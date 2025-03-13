@@ -2,7 +2,7 @@
   "name": "gestordegastos",
   "license": "0BSD",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "start": "expo start --dev-client",
     "android": "expo run:android",
