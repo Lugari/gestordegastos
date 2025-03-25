@@ -1,9 +1,11 @@
 import React from 'react';
-import { View, Alert } from 'react-native';
-import  ButtonPrimary from './components/buttonPrimary';
-import AddButton from './components/addButton';
+import { ScrollView, View, Alert, Image } from 'react-native';
 import Header from './components/Header';
 import CardBox from './components/CardBox';
+import AddButton from './components/addButton';
+import CategoryBar from './components/CategoryBar';
+
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 const App = () => {
   const handlePress = () => {
@@ -12,14 +14,33 @@ const App = () => {
 
   return (
 
+    <ScrollView style={{ flex: 1}}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, gap: 20 }}>
+        <Header username="Lucas" />
+        <CardBox title="Balance total" amount="$1'000.000" seeMore="Historial de transacciones" />
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 20 }}>
+          <CardBox title="Ingresos" amount="$500.000" seeMore={<MaterialIcons name="add" size={20} color="#4AD14A" />} size="s" color="#4AD14A"/>
+          <CardBox title="Egresos" amount="$500.000" seeMore={<MaterialIcons name="add" size={20} color="#D76A61" />} size="s" color="#D76A61" />
+        </View>
 
+        <CardBox title="Presupuesto" amount={
+          <>
+          <CategoryBar name="Arriendo" total={500000} used={460000} color="#61AEE4" />
+          <CategoryBar name="Servicios" total={500000} used={460000} />
+          <CategoryBar name="Mercado" total={500000} used={460000} />
+          </>
+          } seeMore={<MaterialIcons name="expand-more" size={24} color="black" />} />
 
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-      <Header username="Lucas" />
-      <CardBox title="Balance total" amount="$1'000.000" seeMore="Historial de transacciones"  />
-      <CardBox title="Balance total" amount="$1'000.000" seeMore="Historial de transacciones"  />
-      <AddButton title="Add" onPress={handlePress} />
-    </View>
+        <CardBox title="Ahorros" amount={
+          <>
+          <CategoryBar name="Moto" total={5000000} used={3500000} />
+          <CategoryBar name="PS5" total={500000} used={460000} />
+          </>
+          } seeMore={<MaterialIcons name="expand-more" size={24} color="black" />} />
+      </View>
+
+    </ScrollView>
+
 
 
 

@@ -1,14 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+
+
 const Header = ({ username }) => {
   return (
     <View style={styles.header}>
       <Text style={styles.greeting}>Hola, {username}!</Text>
-      <Image
-        source={require('../assets/basic/Avatar.png')}
-        style={{ width: 64, height: 64 }}
-        />
+      <MaterialIcons name="account-circle" size={64} color="black" />
     </View>
   );
 };

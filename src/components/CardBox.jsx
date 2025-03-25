@@ -1,14 +1,19 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-const BalanceBox = ({ title, amount, seeMore }) => {
+const BalanceBox = ({ title, amount, seeMore, size, color = '#000' }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{title.toUpperCase()}</Text>
-      <Text style={styles.amount}>{amount}</Text>
+
+      <Text style={
+        size === 's' ? { ...styles.amount, fontSize: 25, color} : styles.amount
+        
+      } >{amount}</Text>
+
       <View style={styles.seeMoreContainer}>
-      <View style={styles.divider} />
-      <Text style={styles.seeMore}>{seeMore}</Text>
+        <View style={styles.divider} />
+        <Text style={styles.seeMore}>{seeMore}</Text>
       </View>
     </View>
   );
@@ -18,6 +23,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#F8F9FA', // Fondo claro
     padding: 20,
+    paddingBottom: 4,
     borderRadius: 12,
     shadowColor: '#000',
     shadowOpacity: 0.1,
@@ -32,7 +38,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   amount: {
-    fontSize: 28,
+    fontSize: 48,
     fontWeight: 'bold',
     color: '#000',
     marginVertical: 4,
@@ -44,7 +50,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   seeMore: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#787B63',
     fontWeight: 'bold', 
   },
