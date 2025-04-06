@@ -1,50 +1,21 @@
-import React from 'react';
-import { ScrollView, View, Alert, Image } from 'react-native';
-import Header from './components/Header';
-import CardBox from './components/CardBox';
-import AddButton from './components/addButton';
-import CategoryBar from './components/CategoryBar';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import HomeScreen from "./screens/HomeScreen";
+import TransactionHistoryScreen from "./screens/TransactionHistoryScreen";
+import React from "react";
 
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-const App = () => {
-  const handlePress = () => {
-    Alert.alert('Button Pressed!');
-  };
+const queryClient = new QueryClient(); // Inicializar el QueryClient
+const Stack = createNativeStackNavigator(); // Crear el stack navigator
 
+export default function App() {
   return (
-
-    <ScrollView style={{ flex: 1}}>
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, gap: 20 }}>
-        <Header username="Lucas" />
-        <CardBox title="Balance total" amount="$1'000.000" seeMore="Historial de transacciones" />
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 20 }}>
-          <CardBox title="Ingresos" amount="$500.000" seeMore={<MaterialIcons name="add" size={20} color="#4AD14A" />} size="s" color="#4AD14A"/>
-          <CardBox title="Egresos" amount="$500.000" seeMore={<MaterialIcons name="add" size={20} color="#D76A61" />} size="s" color="#D76A61" />
-        </View>
-
-        <CardBox title="Presupuesto" amount={
-          <>
-          <CategoryBar name="Arriendo" total={500000} used={460000} color="#61AEE4" />
-          <CategoryBar name="Servicios" total={500000} used={460000} />
-          <CategoryBar name="Mercado" total={500000} used={460000} />
-          </>
-          } seeMore={<MaterialIcons name="expand-more" size={24} color="black" />} />
-
-        <CardBox title="Ahorros" amount={
-          <>
-          <CategoryBar name="Moto" total={5000000} used={3500000} />
-          <CategoryBar name="PS5" total={500000} used={460000} />
-          </>
-          } seeMore={<MaterialIcons name="expand-more" size={24} color="black" />} />
-      </View>
-
-    </ScrollView>
-
-
-
-
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="HomeScreen">
+        <Stack.Screen name="HomeScreen" component={HomeScreen} />
+        <Stack.Screen name="TransactionHistoryScreen" component={TransactionHistoryScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
-};
-
-export default App;
+}

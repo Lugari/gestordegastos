@@ -3,11 +3,12 @@ import { View, Text, StyleSheet } from 'react-native';
 
 
 
-const CategoryBar = ({ name, total, used, color='#8A2BE2' }) => {
+const CategoryBar = ({ name, total, used, color='#005' }) => {
   const percentage = Math.round((used / total) * 100); // Calculate percentage
   return (
     <View style={styles.container}>
       <Text style={styles.categoryName}>{name.toUpperCase()}</Text>
+      <Text style={styles.percentage}>{used.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })} / {total.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</Text>
       <View style={styles.progressBar}>
         <View style={[styles.progressFill, { width: `${percentage}%`, backgroundColor:color }]} />
       </View>
@@ -37,8 +38,8 @@ const styles = StyleSheet.create({
     //backgroundColor: '#8A2BE2', // Purple progress color
   },
   percentage: {
-    fontSize: 12,
-    color: '#8A2BE2', // Matching the bar color
+    fontSize: 10,
+    color: '#005', // Matching the bar color
     fontWeight: 'bold',
     textAlign: 'right',
   },
