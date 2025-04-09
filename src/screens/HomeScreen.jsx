@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, View, Alert, Image, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
+import { ScrollView, View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 
@@ -9,17 +9,10 @@ import CategoryBar from '../components/CategoryBar';
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
-import { useHomeData } from '../hooks/useHomeData';
 
 const HomeScreen = () => {
 
   const navigation = useNavigation();
-
- ` const userId = "12345"; // Replace with actual user ID from authentication
-  const { user, summary, budgets, savings, loading, error } = useHomeData(userId);
-
-  if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
-  if (error) return console.error(error.message);`
   
 
   return (
@@ -29,13 +22,19 @@ const HomeScreen = () => {
         <Header username= "Lucas" />
 
 
-        <TouchableOpacity onPress={() => navigation.navigate('TransactionHistoryScreen', { someData: 'Hola mundo' })}>
+        <TouchableOpacity onPress={() => navigation.navigate('TransactionHistoryScreen')}>
           <CardBox title="Balance total" amount="$1'000.000" seeMore="Historial de transacciones"   />
         </TouchableOpacity>
         
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 20 }}>
-          <CardBox title="Ingresos" amount="$500.000" seeMore={<MaterialIcons name="add" size={20} color="#4AD14A" />} size="s" color="#4AD14A"/>
-          <CardBox title="Egresos" amount="$500.000" seeMore={<MaterialIcons name="add" size={20} color="#D76A61" />} size="s" color="#D76A61" />
+        
+          <TouchableOpacity onPress={() => navigation.navigate('AddTransactionScreen', { transactionType: 'Ingreso' })}>
+            <CardBox title="Ingresos" amount="$500.000" seeMore={<MaterialIcons name="add" size={20} color="#4AD14A" />} size="s" color="#4AD14A"/>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => navigation.navigate('AddTransactionScreen', { transactionType: 'Egreso' })}>
+            <CardBox title="Egresos" amount="$500.000" seeMore={<MaterialIcons name="add" size={20} color="#D76A61" />} size="s" color="#D76A61" />
+          </TouchableOpacity>
         </View>
 
         <CardBox title="Presupuesto" amount={
