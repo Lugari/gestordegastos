@@ -1,27 +1,38 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
+
+
 const typeColors = {
-  income: '#196819',
-  expense: '#D76A61',
-  saving: '#90afbb',
+  ingreso: '#196819',
+  gasto: '#D76A61',
+  ahorro: '#90afbb',
 };
 
-const TransactionCard = ({ budget, date, amount, type = 'expense' }) => {
-  const amountColor = typeColors[type] || '#000';
+const TransactionCard = ({ name, date, amount, type = 'gasto', icon, color}) => {
+
+
 
   return (
     <View style={styles.card}>
       {/* Placeholder for image or icon */}
-      <View style={styles.avatarPlaceholder} />
+      <View style={{ width: 64, height: 64, borderRadius: 16, overflow: 'hidden', backgroundColor: color, justifyContent: 'center', alignItems: 'center', marginRight: 12 }}>
+      <MaterialIcons
+        name={icon}
+        size={48}
+        color="#000"
+      />
+      </View>
 
       <View style={styles.infoContainer}>
         <View style={styles.topRow}>
-          <Text style={styles.budgetText}>{budget}</Text>
+          <Text style={styles.budgetText}>{name}</Text>
         <Text style={styles.subInfoText}>{type.toUpperCase()} • {date}</Text>
         </View>
       </View>
-          <Text style={[styles.amountText, { color: amountColor }]}>${amount}</Text>
+      <Text style={[styles.amountText, { color: typeColors[type.toLowerCase()] ?? '#000' }]}>{type.toLowerCase() === 'gasto' ? '-' : '+'}${amount.toLocaleString('es-CO')}</Text>
     </View>
   );
 };
@@ -44,9 +55,7 @@ const styles = StyleSheet.create({
   avatarPlaceholder: {
     width: 64,
     height: 64,
-    borderRadius: 32,
-    backgroundColor: '#D9D9D9',
-    marginRight: 12,
+    borderRadius: 16,
   },
   infoContainer: {
     flex: 1,

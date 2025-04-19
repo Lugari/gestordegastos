@@ -6,37 +6,50 @@ import SecondaryButton from './SecondaryButton';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const typeColors = {
-  income: '#196819',
-  expense: '#D76A61',
-  saving: '#90afbb',
+  ingreso: '#196819',
+  gasto: '#D76A61',
+  ahorro: '#90afbb',
 };
 
 const SingleTransactionCard = ({
   amount,
-  type,
-  category,
-  date,
-  description,
+  type = 'GASTO',
+  budget,
+  date, 
+  icon,
+  color,
+  note,
   onEdit,
   onDelete,
 }) => {
-  const color = typeColors[type] || '#000';
+
+  const formattedDate = new Date(date).toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+
 
   return (
     <View style={styles.card}>
-      <Text style={[styles.amount, { color }]}>
-        {type === 'income' ? '+' : '-'}${amount}
+      <Text style={[styles.amount, {  color: typeColors[type] }]}>
+        {type.toLowerCase === 'ingreso' ? '+' : '-'}${amount.toLocaleString('es-CO')}
       </Text>
 
-      <Text style={[styles.label, { color }]}>
+      <Text style={[styles.label, { color: typeColors[type] }]}>
         {type.toUpperCase()}
       </Text>
 
       {/* CATEGORÍA */}
       <Text style={styles.sectionLabel}>CATEGORIA</Text>
       <View style={styles.row}>
-        <View style={styles.circle} />
-        <Text style={styles.rowText}>{category}</Text>
+        <MaterialIcons
+          name={icon}
+          size={24}
+          color={color}
+          style={styles.icon}
+        />
+        <Text style={styles.rowText}>{budget}</Text>
       </View>
 
       {/* FECHA */}
@@ -48,13 +61,13 @@ const SingleTransactionCard = ({
                     color="#5f7067"
                     style={styles.icon}
                   />
-        <Text style={styles.rowText}>{date}</Text>
+        <Text style={styles.rowText}>{formattedDate}</Text>
       </View>
 
       {/* DESCRIPCIÓN */}
       <Text style={styles.sectionLabel}>DESCRIPCION</Text>
       <Text style={styles.descriptionText}>
-        {description}
+        {note || 'Sin descripción'}
       </Text>
 
       {/* BUTTONS */}
@@ -99,18 +112,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 4,
   },
-  circle: {
-    width: 16,
-    height: 16,
-    backgroundColor: '#D9D9D9',
-    borderRadius: 8,
-    marginRight: 8,
-  },
   icon: {
-    width: 18,
-    height: 18,
+    width: 24,
+    height: 24,
     marginRight: 8,
-    tintColor: '#333',
   },
   rowText: {
     fontSize: 14,

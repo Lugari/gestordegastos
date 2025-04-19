@@ -2,6 +2,10 @@ import React from 'react';
 import { StyleSheet, ScrollView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 
+import { useTransactions } from '../hooks/useTransactions';
+import { useBudgets } from '../hooks/useBudgets';
+
+import { useNavigation } from '@react-navigation/native';
 
 
 import SingleTransactionCard from '../components/SingleTransactionCard'; // ajusta la ruta si es necesario
@@ -9,19 +13,33 @@ import SingleTransactionCard from '../components/SingleTransactionCard'; // ajus
 const SingleTransactionScreen = () => {
 
   const route = useRoute();
-  const { transaction } = route.params;
-  
+  const { transaction, budgetName, budgetIcon, budgetColor } = route.params;
 
+  const { deleteTransaction } = useTransactions();
+
+  const { update } = useBudgets();
+
+  const navigator = useNavigation();
+  
+ 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <SingleTransactionCard
+        id={transaction.id}
         amount={transaction.amount}
         type={transaction.type}
-        category={transaction.category}
+        budget={budgetName}
         date={transaction.date}
-        description={transaction.description}
+        icon={budgetIcon}
+        color={budgetColor}
+
+        note={transaction.note}
         onEdit={() => console.log('Editar transacción')}
-        onDelete={() => console.log('Eliminar transacción')}
+        onDelete={() => {
+          deleteTransaction(transaction.id)
+
+          navigator.goBack();
+          }}
       />
     </ScrollView>
   );

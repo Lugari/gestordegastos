@@ -4,15 +4,13 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  FlatList,
   Modal,
   Pressable,
-  Image,
 } from 'react-native';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const options = ['Ingreso', 'Egreso', 'Ahorro'];
+const options = ['ingreso', 'gasto', 'ahorro'];
 
 const TransactionTypeDropdown = ({ selected, onSelect }) => {
   const [visible, setVisible] = useState(false);
@@ -29,7 +27,7 @@ const TransactionTypeDropdown = ({ selected, onSelect }) => {
         onPress={() => setVisible(true)}
       >
         <Text style={styles.selectedText}>
-          {selected || 'Selecciona tipo'}
+          {selected.toUpperCase() || 'Selecciona tipo'}
         </Text>
         <MaterialIcons
           name="keyboard-arrow-down"
@@ -53,7 +51,7 @@ const TransactionTypeDropdown = ({ selected, onSelect }) => {
                 onPress={() => handleSelect(option)}
                 style={styles.option}
               >
-                <Text style={styles.optionText}>{option}</Text>
+                <Text style={styles.optionText}>{option.toUpperCase()}</Text>
               </TouchableOpacity>
             ))}
           </View>

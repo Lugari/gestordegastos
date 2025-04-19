@@ -37,20 +37,28 @@ const HomeScreen = () => {
           </TouchableOpacity>
         </View>
 
-        <CardBox title="Presupuesto" amount={
-          <>
-          <CategoryBar name="Arriendo" total={500000} used={460000} color="#61AEE4" />
-          <CategoryBar name="Servicios" total={500000} used={460000} />
-          <CategoryBar name="Mercado" total={500000} used={460000} />
-          </>
-          } seeMore={<MaterialIcons name="expand-more" size={24} color="black" />} />
+        <TouchableOpacity onPress={() => navigation.navigate('BudgetsScreen')}>
 
-        <CardBox title="Ahorros" amount={
-          <>
-          <CategoryBar name="Moto" total={5000000} used={3500000} />
-          <CategoryBar name="PS5" total={500000} used={460000} />
-          </>
-          } seeMore={<MaterialIcons name="expand-more" size={24} color="black" />} />
+          <CardBox title="Presupuesto" amount={
+            <>
+            <CategoryBar name="Arriendo" total={500000} used={460000} color="#61AEE4" />
+            <CategoryBar name="Servicios" total={500000} used={460000} />
+            <CategoryBar name="Mercado" total={500000} used={460000} />
+            </>
+            } seeMore={<MaterialIcons name="expand-more" size={24} color="black" />} />
+
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => navigation.navigate('SavingsScreen')}>
+
+          <CardBox title="Ahorros" amount={
+            <>
+            <CategoryBar name="Moto" total={5000000} used={3500000} />
+            <CategoryBar name="PS5" total={500000} used={460000} />
+            </>
+            } seeMore={<MaterialIcons name="expand-more" size={24} color="black" />} />
+
+        </TouchableOpacity>
       </View>
 
     </ScrollView>

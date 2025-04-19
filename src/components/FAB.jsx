@@ -3,7 +3,7 @@ import { TouchableOpacity, StyleSheet } from 'react-native';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const AddTransactionButton = ({ onPress }) => {
+const FAB = ({ onPress }) => {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <MaterialIcons
@@ -41,4 +41,4 @@ const styles = StyleSheet.create({
  
 });
 
-export default AddTransactionButton;
+export default FAB;
