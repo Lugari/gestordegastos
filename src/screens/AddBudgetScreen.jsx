@@ -1,7 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import AddBudgetForm from '../components/AddBudgetForm';
+import AddBudgetForm from '../components/budgets/AddBudgetForm';
 
 import { useBudgets } from '../hooks/useBudgets';
 
@@ -13,7 +13,6 @@ const AddBudgetScreen = () => {
   const handleAddBudget = async (budgetData) => {
     try {
       const newBudget = await addBudget(budgetData);
-      console.log('Nuevo presupuesto añadido:', newBudget);
       navigation.goBack();
     } catch (error) {
       console.error('Error al añadir presupuesto:', error);

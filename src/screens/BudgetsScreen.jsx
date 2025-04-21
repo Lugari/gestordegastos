@@ -2,8 +2,8 @@ import React, {useCallback} from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
-import BudgetProgressCard from '../components/BudgetProgressCard';
-import BudgetCategory from '../components/BudgetCategory';
+import BudgetProgressCard from '../components/budgets/BudgetProgressCard';
+import BudgetCategory from '../components/budgets/BudgetCategory';
 import FAB from '../components/FAB';
 
 import { useBudgets } from '../hooks/useBudgets';

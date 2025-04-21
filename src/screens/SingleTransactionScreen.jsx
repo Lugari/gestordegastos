@@ -8,7 +8,7 @@ import { useBudgets } from '../hooks/useBudgets';
 import { useNavigation } from '@react-navigation/native';
 
 
-import SingleTransactionCard from '../components/SingleTransactionCard'; // ajusta la ruta si es necesario
+import SingleTransactionCard from '../components/transactions/SingleTransactionCard'; // ajusta la ruta si es necesario
 
 const SingleTransactionScreen = () => {
 
@@ -17,9 +17,30 @@ const SingleTransactionScreen = () => {
 
   const { deleteTransaction } = useTransactions();
 
-  const { update } = useBudgets();
+  const { updateBudget, budgets } = useBudgets();
 
   const navigator = useNavigation();
+
+  const handleDelete = async () => {
+    try {
+      const updatedBudget = budgets.find(b => b.id === transaction.budget_id);
+      
+      if (!updatedBudget) {
+        await deleteTransaction(transaction.id);
+        navigator.goBack();
+        return;
+      }
+      
+      updatedBudget.used -= transaction.amount;
+      updatedBudget.updated_at = new Date().toISOString();
+      await deleteTransaction(transaction.id);
+      updateBudget(transaction.budget_id, updatedBudget);
+      navigator.goBack();
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+    }
+  }
+
   
  
   return (
@@ -35,11 +56,7 @@ const SingleTransactionScreen = () => {
 
         note={transaction.note}
         onEdit={() => console.log('Editar transacción')}
-        onDelete={() => {
-          deleteTransaction(transaction.id)
-
-          navigator.goBack();
-          }}
+        onDelete={() => {handleDelete()}}
       />
     </ScrollView>
   );

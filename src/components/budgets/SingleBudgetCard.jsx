@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import BudgetProgressCard from './BudgetProgressCard';
-import PrimaryButton from './PrimaryButton';
-import SecondaryButton from './SecondaryButton';
+import PrimaryButton from '../PrimaryButton';
+import SecondaryButton from '../SecondaryButton';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-import { useBudgets } from '../hooks/useBudgets';
+import { useBudgets } from '../../hooks/useBudgets';
 
 
 const SingleBudgetCard = ({

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import PrimaryButton from './PrimaryButton';
-import SecondaryButton from './SecondaryButton';
+import PrimaryButton from '../PrimaryButton';
+import SecondaryButton from '../SecondaryButton';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 

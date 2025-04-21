@@ -1,7 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import SingleBudgetCard from '../components/SingleBudgetCard';
+import SingleBudgetCard from '../components/budgets/SingleBudgetCard';
 
 import { useNavigation } from '@react-navigation/native';
 

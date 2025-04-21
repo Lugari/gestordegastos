@@ -1,4 +1,4 @@
-import AddTransactionForm from "../components/AddTransactionForm";  
+import AddTransactionForm from "../components/transactions/AddTransactionForm";  
 
 import { StyleSheet, ScrollView } from "react-native";
 

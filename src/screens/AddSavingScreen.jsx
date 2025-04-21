@@ -2,7 +2,7 @@ import React from 'react';
 import { ScrollView, View, StyleSheet } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import AddSavingForm from '../components/AddSavingForm';
+import AddSavingForm from '../components/savings/AddSavingForm';
 import { useNavigation } from '@react-navigation/native';
 
 const AddSavingScreen = () => {

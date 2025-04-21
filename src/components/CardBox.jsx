@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 
 const BalanceBox = ({ title, amount, seeMore, size, color = '#000' }) => {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, size === 's' ? {minWidth:'40%'}: { width: '95%' }]}>
       <Text style={styles.title}>{title.toUpperCase()}</Text>
 
       <Text style={
@@ -22,6 +22,7 @@ const BalanceBox = ({ title, amount, seeMore, size, color = '#000' }) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#F8F9FA', // Fondo claro
+    minWidth: '80%',
     padding: 20,
     paddingBottom: 4,
     borderRadius: 12,

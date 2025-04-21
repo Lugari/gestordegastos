@@ -1,11 +1,12 @@
 import React from "react";
 
 import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import BudgetProgressCard from '../components/BudgetProgressCard';
-import BudgetCategory from '../components/BudgetCategory';
+import { useNavigation, useTheme } from '@react-navigation/native';
+
+import BudgetProgressCard from '../components/budgets/BudgetProgressCard';
+import BudgetCategory from '../components/budgets/BudgetCategory';
 import FAB from '../components/FAB';
-import { useTheme } from '@react-navigation/native';
+
 import { useTranslation } from 'react-i18next';
 
 const SavingsScreen = () => {

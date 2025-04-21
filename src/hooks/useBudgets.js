@@ -1,106 +1,78 @@
-import {useState, useEffect} from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+    import {useState, useEffect, useCallback} from 'react';
+    import * as budgetService from '../services/budgetService'; // Importa el servicio
 
-const STORAGE_KEY = '@budgets';
+    export const useBudgets = () => {
+        const [budgets, setBudgets] = useState([]);
+        const [loading, setLoading] = useState(true);
+        const [error, setError] = useState(null); 
 
-// Función para generar un ID único simple
-const generateUniqueId = () => {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
-};
+        const loadBudgets = useCallback(async() => {
+            try {
+                setLoading(true);
+                setError(null);
+                const data = await budgetService.getAllBudgets();
+                setBudgets(data);
+            } catch (error) {
+                console.error('Error al cargar presupuestos:', error);
+            } finally {
+                setLoading(false);
+            }
+        }, []);
 
-export const useBudgets = () => {
-    const [budgets, setBudgets] = useState([]);
-    const [loading, setLoading] = useState(true);
-    
-    useEffect(() => {
-        loadBudgets();
-    }, []);
-    
-    const loadBudgets = async () => {
-        try {
-        setLoading(true);
-        const data = await AsyncStorage.getItem(STORAGE_KEY);
-        if (data) {
-            const parsedData = JSON.parse(data);
-            setBudgets(parsedData);
+        useEffect(() => {
+            loadBudgets();
         }
-        } catch (error) {
-        console.error('Error al cargar presupuestos:', error);
-        } finally {
-        setLoading(false);
-        }
-    };
+        , [loadBudgets]);
 
-    const saveBudgets = async (newBudgets) => {
-        try {
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newBudgets));
-        setBudgets(newBudgets);
-        } catch (error) {
-        console.error('Error al guardar presupuestos:', error);
-        }
-    };
-
-    const addBudget = async (budget) => {
-        try {
-        const newBudget = {
-            ...budget,
-            id: generateUniqueId(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
+        const addBudget = async (budget) => {
+            try {
+                setError(null);
+                const newBudget = await budgetService.addBudget(budget);
+                setBudgets((prev) => [...prev, newBudget]);
+                return newBudget;
+            } catch (error) {
+                console.error('HOOK: Error al añadir presupuesto:', error);
+                setError(error);
+                throw error;
+            }
         };
-        
-        const updatedBudgets = [...budgets, newBudget];
-        await saveBudgets(updatedBudgets);
-        return newBudget;
-        } catch (error) {
-        console.error('Error al añadir presupuesto:', error);
-        throw error;
-        }
-    };
 
-    const updateBudget = async (id, updatedBudget) => {
-        try {
-        const budgetIndex = budgets.findIndex((budget) => budget.id === id);
-        if (budgetIndex === -1) {
-            throw new Error('Presupuesto no encontrado');
+        const updateBudget = async (id, updatedBudget) => {
+            try {
+                setError(null);
+                const updatedBudgetData = await budgetService.updateBudgetById(id, updatedBudget);
+                setBudgets((prev) =>
+                    prev.map((budget) => (budget.id === id ? updatedBudgetData : budget))
+                );
+                return updatedBudgetData;
+            } catch (error) {
+                console.error('HOOK: Error al actualizar presupuesto:', error);
+                setError(error);
+                throw error;
+            }
         }
-        
-        const newBudgets = [...budgets];
-        newBudgets[budgetIndex] = {
-            ...newBudgets[budgetIndex],
-            ...updatedBudget,
-            updated_at: new Date().toISOString(),
+
+        const deleteBudget = async (id) => {
+            try {
+                setError(null);
+                await budgetService.deleteBudgetById(id);
+                // Actualiza el estado local
+                const filteredBudgets = budgets.filter((budget) => budget.id !== id);
+                setBudgets(filteredBudgets);
+            } catch (error) {
+                console.error('Error al eliminar presupuesto:', error);
+                throw error;
+            }
         };
-        
-        await saveBudgets(newBudgets);
-        return newBudgets[budgetIndex];
-        } catch (error) {
-        console.error('Error al actualizar presupuesto:', error);
-        throw error;
-        }
-    };
 
-    const deleteBudget = async (id) => {
-        try {
-        const filteredBudgets = budgets.filter((budget) => budget.id !== id);
-        await saveBudgets(filteredBudgets);
-        } catch (error) {
-        console.error('Error al eliminar presupuesto:', error);
-        throw error;
-        }
-    };
 
-    const markAsSynced = async (id) => {
-        await updateBudget(id, { synced: true });
-    };
-
-    return {
-        budgets,
-        loading,
-        addBudget,
-        deleteBudget,
-        updateBudget,
-        markAsSynced,
-        reload: loadBudgets,
-    };
-}
+        return {
+            budgets,
+            loading,
+            error,
+            addBudget,
+            deleteBudget,
+            updateBudget,
+            reload: loadBudgets,
+        };
+    }

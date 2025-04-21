@@ -9,10 +9,10 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import PrimaryButton from './PrimaryButton';
-import SecondaryButton from './SecondaryButton';
+import PrimaryButton from '../PrimaryButton';
+import SecondaryButton from '../SecondaryButton';
 
-import { useBudgets } from '../hooks/useBudgets';
+import { useBudgets } from '../../hooks/useBudgets';
 
 
 

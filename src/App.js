@@ -23,6 +23,7 @@ const Stack = createNativeStackNavigator(); // Crear el stack navigator
 
 export default function App() {
   return (
+    <QueryClientProvider client={queryClient}>
     <NavigationContainer>
       <Stack.Navigator initialRouteName="HomeScreen">
         <Stack.Screen name="HomeScreen" component={HomeScreen} />
@@ -37,5 +38,6 @@ export default function App() {
         <Stack.Screen name="AddSavingScreen" component={AddSavingScreen} />
       </Stack.Navigator>
     </NavigationContainer>
+    </QueryClientProvider>
   );
 }

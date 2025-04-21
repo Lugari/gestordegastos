@@ -1,7 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import SingleSavingCard from '../components/SingleSavingCard';
+import SingleSavingCard from '../components/savings/SingleSavingCard';
 import AddTransactionButton from '../components/FAB';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@react-navigation/native';

@@ -13,11 +13,11 @@ import { useRoute } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import TransactionTypeDropdown from './TransactionTypeDropdown';
-import PrimaryButton from './PrimaryButton';
-import SecondaryButton from './SecondaryButton';
+import PrimaryButton from '../PrimaryButton';
+import SecondaryButton from '../SecondaryButton';
 
-import { useTransactions } from '../hooks/useTransactions';
-import { useBudgets } from '../hooks/useBudgets';
+import { useTransactions } from '../../hooks/useTransactions';
+import { useBudgets } from '../../hooks/useBudgets';
 
 
 
@@ -29,7 +29,8 @@ const AddTransactionForm = ({ onCancel }) => {
   const [selectedBudgetId, setSelectedBudgetId] = useState(null);
 
   const [formData, setFormData] = useState({
-    type: route.params?.transactionType || 'GASTO',
+    type: route.params?.transactionType || 'gasto',
+    account:'',
     amount: '',
     note: '',
     date: new Date(),
@@ -54,7 +55,8 @@ const AddTransactionForm = ({ onCancel }) => {
     }
 
     addTransaction({
-      type: formData.type,
+      type: formData.type.toLowerCase(),
+      account:formData.account,
       amount: parseFloat(formData.amount),
       note: formData.note,
       date: formData.date.toISOString(),
@@ -62,8 +64,6 @@ const AddTransactionForm = ({ onCancel }) => {
       color: formData.color,
       budget_id: selectedBudgetId,
     });
-
-    console.log(formData)
 
     const usedBudget = budgets.find(b => b.id === selectedBudgetId)
     if (usedBudget) {
@@ -74,15 +74,11 @@ const AddTransactionForm = ({ onCancel }) => {
     // Guardar el presupuesto actualizado
 
     updateBudget(selectedBudgetId, usedBudget);
-    console.log('Presupuesto actualizado con éxito.');
-
-
-
-    
 
     alert('Transacción añadida con éxito.');
     setFormData({
-      type: 'INGRESO',
+      type: 'gasto',
+
       amount: '',
       note: '',
       date: new Date(),
