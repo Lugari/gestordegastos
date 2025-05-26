@@ -2,8 +2,9 @@ import React from 'react';
 import { StyleSheet, ScrollView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 
-import { useTransactions } from '../hooks/useTransactions';
-import { useBudgets } from '../hooks/useBudgets';
+import { useManageBudgets, useGetBudgets } from '../hooks/useBudgetsData';
+import { useManageTransactions } from '../hooks/useTransactionData'
+
 
 import { useNavigation } from '@react-navigation/native';
 
@@ -13,11 +14,11 @@ import SingleTransactionCard from '../components/transactions/SingleTransactionC
 const SingleTransactionScreen = () => {
 
   const route = useRoute();
-  const { transaction, budgetName, budgetIcon, budgetColor } = route.params;
+  const { transaction, categoryName, categoryIcon, categoryColor } = route.params;
 
-  const { deleteTransaction } = useTransactions();
-
-  const { updateBudget, budgets } = useBudgets();
+  const { deleteTransaction } = useManageTransactions();
+  const { updateBudget } = useManageBudgets();
+  const { data: budgets = [], isLoading: isLoadingBudgets, error: budgetsError, refetch: refetchBudgets } = useGetBudgets();
 
   const navigator = useNavigation();
 
@@ -30,14 +31,23 @@ const SingleTransactionScreen = () => {
         navigator.goBack();
         return;
       }
-      
+
       updatedBudget.used -= transaction.amount;
-      updatedBudget.updated_at = new Date().toISOString();
       await deleteTransaction(transaction.id);
-      updateBudget(transaction.budget_id, updatedBudget);
+      updateBudget({id: transaction.budget_id, updates: {used: updatedBudget.used}});
       navigator.goBack();
     } catch (error) {
       console.error('Error deleting transaction:', error);
+    }
+  };
+
+  const handleEdit = async () => {
+    try {
+      navigator.navigate('AddTransactionScreen', {transaction});
+      
+      console.log('Editar transacción');
+    } catch (error) {
+      console.error('Error editing transaction:', error);
     }
   }
 
@@ -49,13 +59,13 @@ const SingleTransactionScreen = () => {
         id={transaction.id}
         amount={transaction.amount}
         type={transaction.type}
-        budget={budgetName}
+        budget={categoryName}
         date={transaction.date}
-        icon={budgetIcon}
-        color={budgetColor}
+        icon={categoryIcon}
+        color={categoryColor}
 
         note={transaction.note}
-        onEdit={() => console.log('Editar transacción')}
+        onEdit={() => {handleEdit()}}
         onDelete={() => {handleDelete()}}
       />
     </ScrollView>

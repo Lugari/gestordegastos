@@ -1,22 +1,45 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, Alert } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import SingleBudgetCard from '../components/budgets/SingleBudgetCard';
 
 import { useNavigation } from '@react-navigation/native';
 
-import { useBudgets } from '../hooks/useBudgets';
+import { useManageBudgets } from '../hooks/useBudgetsData';
 
 const SingleBudgetScreen = () => {
 
-    const navigator = useNavigation();
+  const navigation = useNavigation();
 
-  const { deleteBudget } = useBudgets();
+  const { deleteBudget, isDeleting } = useManageBudgets();
 
-
-
-    const route = useRoute();
+  const route = useRoute();
   const { budget } = route.params;
+
+  const handleDeletePress = async () => {
+    Alert.alert(
+      "Eliminar presupuesto",
+      `¿Estás seguro de que quieres eliminar el presupuesto "${budget.name}"?\n\nEsta acción no se puede deshacer.`,
+      [
+          { text: "Cancelar", style: "cancel" },
+          {
+            text: "Eliminar",
+            style: "destructive",
+            onPress: async () => { 
+              try {
+                console.log(`Intentando eliminar presupuesto ID: ${budget.id}`);
+                await deleteBudget(budget.id); 
+                Alert.alert("Éxito", "Presupuesto eliminado.");
+                navigation.goBack(); 
+              } catch (error) {
+                console.error("Error al eliminar presupuesto:", error);
+                Alert.alert("Error", "No se pudo eliminar el presupuesto.");
+              }
+            }
+          }
+      ]
+    );
+};
 
 
   return (
@@ -32,7 +55,7 @@ const SingleBudgetScreen = () => {
         lastUpdate={budget.updated_at}
         notes={budget.notes}
         onEdit={() => console.log('Editar presupuesto')}
-        onDelete={() => deleteBudget(budget.id) && navigator.goBack()}
+        onDelete={handleDeletePress}
       />
     </ScrollView>
   );

@@ -1,113 +1,167 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, Button } from 'react-native';
+import React, { useState, useCallback, useMemo } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, Button } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import TransactionCard from '../components/transactions/TransactionCard';
 
 import SearchInput from '../components/SearchInput';
 import TransactionCard from '../components/transactions/TransactionCard';
 import DateFilterTabs from '../components/DateFilterTabs';
-import AddTransactionButton from '../components/FAB';
+import FAB from '../components/FAB';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { useGetTransactions } from '../hooks/useTransactionData';
+import { useGetBudgets } from '../hooks/useBudgetsData';
+import { useGetSavings } from '../hooks/useSavingsData';
 
-import { useBudgets } from '../hooks/useBudgets';
 
 
 
 const TransactionHistoryScreen = () => {
+
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
-  const [dateFilter, setDateFilter] = useState('Mes');
+  const [dateFilter, setDateFilter] = useState('Mes')
 
-  // 2. Usa los hooks de React Query
   const { data: transactions = [], isLoading: isLoadingTransactions, error: transactionsError, refetch: refetchTransactions } = useGetTransactions();
   const { data: budgets = [], isLoading: isLoadingBudgets, error: budgetsError, refetch: refetchBudgets } = useGetBudgets();
-  // const { deleteTransaction, isDeleting } = useManageTransactions(); // Si necesitas borrar aquí
+  const { data: savings = [], isLoading: isLoadingSavings, error: savingsError, refetch: refetchSavings } = useGetSavings();
 
-  // ... (tu lógica de formattedDate, handleSearch, filtros de fecha)
-
-  // Crear el mapa de presupuestos (como antes, pero usando los datos de useGetBudgets)
   const budgetMap = useMemo(() => {
     const map = new Map();
     budgets.forEach(b => map.set(b.id, b));
     return map;
   }, [budgets]);
 
-  // Filtrar transacciones (como antes, usando los datos de useGetTransactions)
+  const formattedDate = (date) => {
+    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+    return new Date(date).toLocaleDateString('es-CO', options);
+  };
+
+
   const filteredTransactions = useMemo(() => {
-     // ... tu lógica de filtrado usando 'transactions' ...
-     // Asegúrate de filtrar por 'searchQuery' y 'dateFilter'
-     const filtered = transactions.filter(transaction => {
-        // ... lógica de búsqueda ...
-        return true; // Placeholder
-     });
-     // Ordenar
-     return [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date));
-  }, [transactions, searchQuery, dateFilter]);
+    
+    const filtered = transactions.filter(transaction => {
+      
+      const searchTerm = searchQuery.toLowerCase();
+      const noteMatch = transaction.note?.toLowerCase().includes(searchTerm);
+      const amountMatch = transaction.amount.toString().includes(searchTerm);
+      const typeMatch = transaction.type.toLowerCase().includes(searchTerm);
 
+      return noteMatch || amountMatch || typeMatch;
+    });
 
-  // 3. Manejo de Carga y Errores
-  const isLoading = isLoadingTransactions || isLoadingBudgets;
-  const error = transactionsError || budgetsError;
+    return [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  if (isLoading) {
-    // return renderLoading(); // Tu componente de carga
-    return <ActivityIndicator size="large" />;
-  }
+ }, [transactions, searchQuery, dateFilter]);
 
-  if (error) {
-    // return renderError(); // Tu componente de error
-     return (
-       <View>
-         <Text>Error: {error.message}</Text>
-         <Button title="Reintentar" onPress={() => { refetchTransactions(); refetchBudgets(); }} />
-       </View>
-     );
-  }
+ const isLoading = isLoadingTransactions || isLoadingBudgets;
+ const error = transactionsError || budgetsError;
 
+ if (isLoading) {
+   return <ActivityIndicator size="large" />;
+ }
+
+ if (error) {
+    return (
+      <View>
+        <Text>Error: {error.message}</Text>
+        <Button title="Reintentar" onPress={() => { refetchTransactions(); refetchBudgets(); }} />
+      </View>
+    );
+ }
+
+  const handleSearch = (text) => {
+    setSearchQuery(text);
+  };
 
   const renderTransaction = ({ item }) => {
-    const budget = budgetMap.get(item.budget_id);
-    const budgetName = budget ? budget.name : 'Sin presupuesto';
-    const budgetColor = budget ? budget.selectedColor : '#D9D9D9'; // Asume que 'selectedColor' existe
-    const budgetIcon = budget ? budget.selectedIcon : 'account-balance-wallet'; // Asume que 'selectedIcon' existe
+    let category;
 
+    if (item.type === 'gasto'){
+
+      category = budgets.find(b => b.id === item.budget_id);
+
+    }else if (item.type === 'ahorro'){
+
+      category = savings.find(s => s.id === item.budget_id);
+
+    }else {
+
+      category = {name: 'Cuenta principal', selectedColor: '#D9D9D9', selectedIcon: 'account-balance-wallet'};
+    
+    }
+
+    const categoryName = category ? category.name : 'Cuenta principal';
+    const categoryColor = category ? category.selectedColor : '#D9D9D9';
+    const categoryIcon = category ? category.selectedIcon : 'account-balance-wallet'
     return (
       <TouchableOpacity
-        onPress={() => navigation.navigate('SingleTransactionScreen', {
-            transactionId: item.id // Pasar solo el ID es más limpio si SingleTransactionScreen puede buscar sus propios datos
-            // O pasar los datos como antes si prefieres:
-            // transaction: item, budgetName, budgetColor, budgetIcon
-         })}
+        onPress={() => navigation.navigate('SingleTransactionScreen', {transaction: item, categoryName, categoryColor, categoryIcon})}
         style={styles.transactionItem}
       >
         <TransactionCard
-          // ... props ...
-          name={budgetName}
+          idTransaction={item.id}
+          name={categoryName}
           date={formattedDate(item.date)}
           amount={item.amount}
           type={item.type}
-          icon={budgetIcon}
-          color={budgetColor}
+          icon={categoryIcon}
+          color={categoryColor}
         />
       </TouchableOpacity>
     );
   }
 
-  // ... resto del componente usando 'filteredTransactions' para FlatList ...
+  const renderEmptyList = () => (
+    <View style={styles.emptyContainer}>
+      <MaterialIcons name="receipt" size={48} color="#cdd1c5" />
+      <Text style={styles.emptyText}>No hay transacciones registradas</Text>
+    </View>
+  );
 
   return (
-     <View style={styles.container}>
-        {/* ... Tus filtros y barra de búsqueda ... */}
-         <FlatList
-             data={filteredTransactions}
-             renderItem={renderTransaction}
-             keyExtractor={(item) => item.id}
-             // ... otras props ...
-         />
-         {/* ... Tu FAB ... */}
-     </View>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <SearchInput
+          placeholder="Buscar por categoría, monto, tipo..."
+          value={searchQuery}
+          onChangeText={handleSearch}
+          style={styles.searchInput}
+        />
+        <TouchableOpacity style={styles.filterButton}>
+          <MaterialIcons
+            name="tune"
+            size={24}
+            color="#5f7067"
+          />
+        </TouchableOpacity>
+      </View>  
+
+      <DateFilterTabs
+        activeFilter={dateFilter}
+        onSelectFilter={(value) => {
+          if (value === 'Personalizado') {
+            // TODO: Implementar selector de fecha personalizado
+          } else {
+            setDateFilter(value);
+          }
+        }}
+        showCustom
+      />
+
+      <FlatList
+        data={filteredTransactions}
+        renderItem={renderTransaction}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+        ListEmptyComponent={renderEmptyList}
+        showsVerticalScrollIndicator={false}
+      />
+
+      <FAB
+        onSelect={() => navigation.navigate('AddTransactionScreen')}
+        style={styles.addButton}
+      />
+    </View>
   );
 };
 
@@ -160,18 +214,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     right: 20,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  errorText: {
-    fontSize: 16,
-    color: 'red',
-    marginBottom: 10,
-    textAlign: 'center',
   },
 });
 

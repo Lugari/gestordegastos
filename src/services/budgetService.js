@@ -3,10 +3,6 @@ import * as Crypto from 'expo-crypto';
 
 const BUDGETS_KEY = "@budgets"; // Centralizamos la clave
 
-const generateUniqueId = () => {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
-}
-
 /**
  * Obtiene todos los presupuestos desde AsyncStorage.
  * @returns {Promise<Array>} Una promesa que resuelve a un array de presupuestos.
@@ -52,7 +48,7 @@ export const addBudget = async (budgetData) => {
         const newBudget = {
             ...budgetData,
             id: Crypto.randomUUID(), // Genera un ID único
-            amount: parseFloat(budgetData.amount) || 0, // Asegurar que el monto sea número
+            total: parseFloat(budgetData.total) || 0, // Asegurar que el monto sea número
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
         }
@@ -101,7 +97,6 @@ export const updateBudgetById = async (id, updates) => {
                     ...budget,
                     ...updates,
                     total: updates.total !== undefined ? (parseFloat(updates.total) || 0) : budget.total,
-                    // amount: updates.amount !== undefined ? parseFloat(updates.amount) || 0 : budget.amount, // <-- Revisa si 'amount' es el campo correcto
                     updated_at: new Date().toISOString(), // Actualiza timestamp
                 };
             }

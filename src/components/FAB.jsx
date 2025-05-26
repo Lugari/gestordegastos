@@ -3,9 +3,9 @@ import { TouchableOpacity, StyleSheet } from 'react-native';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const FAB = ({ onPress }) => {
+const FAB = ({onSelect}) => {
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress}>
+    <TouchableOpacity style={styles.container} onPress={onSelect}>
       <MaterialIcons
                     name="add-circle-outline"
                     size={64}

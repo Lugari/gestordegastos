@@ -1,27 +1,25 @@
-import React, {useCallback} from 'react';
+import React, {useState, useMemo} from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, Text } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 import BudgetProgressCard from '../components/budgets/BudgetProgressCard';
 import BudgetCategory from '../components/budgets/BudgetCategory';
 import FAB from '../components/FAB';
 
-import { useBudgets } from '../hooks/useBudgets';
+import { useGetBudgets } from '../hooks/useBudgetsData';
+
+
 
 
 const BudgetsScreen = () => {
-
     
     const navigation = useNavigation();
-    
-    const { budgets, loading, error, reload } = useBudgets();
-    
-    useFocusEffect(
-        useCallback(() => {
-            reload();
-        }, [])
-    );
 
+    const { data: budgets = [], isLoading: isLoadingBudgets, error: budgetsError, refetch: refetchBudgets } = useGetBudgets();
+
+    const isLoading = isLoadingBudgets;
+    const error = budgetsError;
+    
     const renderLoading = () => (
         <View style={styles.container}>
             <Text style={{fontSize: 18, fontWeight: 'bold'}}>Cargando...</Text>
@@ -62,12 +60,12 @@ const BudgetsScreen = () => {
                 ))}
             </ScrollView>
             
-            <FAB onPress={()=> navigation.navigate('AddBudgetScreen')} />
+            <FAB onSelect={()=> navigation.navigate('AddBudgetScreen')} />
 
         </View>
     );
 
-    if (loading) {
+    if (isLoading) {
         return renderLoading();
     }
     if (error) {
@@ -80,6 +78,7 @@ const BudgetsScreen = () => {
         return renderBudgets();
     }
 
+    
 
 
     
@@ -100,7 +99,10 @@ const BudgetsScreen = () => {
                 ))}
             </ScrollView>
 
-            <AddTransactionButton onPress={()=> navigation.navigate('AddBudgetScreen')} />
+            <FAB onPress={()=> {
+                console.log('FAB pressed');
+                navigation.navigate('AddBudgetScreen')
+                }}/>
         </View>
     );
 };

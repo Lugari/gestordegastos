@@ -3,27 +3,19 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const SingleSavingCard = ({
-  title,
-  current,
-  total,
-  period,
-  startDate,
-  deadline,
-  lastUpdate,
-  description,
-  color = '#A77DDB',
+  saving,
   onEdit,
   onDelete
 }) => {
     
-    const percentage = current / total;
+    const percentage = saving.used / saving.total;
 
   return (
     <View style={styles.card}>
       {/* Avatar + Title */}
       <View style={styles.header}>
         <View style={styles.avatar} />
-        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.title}>{saving.name}</Text>
       </View>
 
       {/* Progress bar */}
@@ -34,31 +26,27 @@ const SingleSavingCard = ({
               styles.progressBarFill,
               {
                 width: `${Math.min(percentage, 1) * 100}%`,
-                backgroundColor: color,
+                backgroundColor: saving.selectedColor,
               },
             ]}
           />
         </View>
-        <Text style={[styles.percentage, { color }]}>{`${Math.round(percentage * 100)}%`}</Text>
+        <Text style={[styles.percentage, { color:saving.selectedColor }]}>{`${Math.round(percentage * 100)}%`}</Text>
       </View>
 
       {/* Amount */}
-      <Text style={[styles.amount, { color }]}>
-        ${current.toLocaleString('es-CO')} <Text style={styles.total}> / ${total.toLocaleString('es-CO')}</Text>
+      <Text style={[styles.amount, { color: saving.selectedCcolor }]}>
+        ${saving.used.toLocaleString('es-CO')} <Text style={styles.total}> / ${saving.total.toLocaleString('es-CO')}</Text>
       </Text>
 
       {/* Info Sections */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>PERIODO</Text>
-        <Text style={styles.sectionValue}>{period}</Text>
-      </View>
 
       <View style={styles.row}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>FECHA DE INICIO</Text>
           <View style={styles.iconRow}>
             <MaterialIcons name="calendar-month" size={18} color="#000" />
-            <Text style={styles.sectionValue}>{startDate}</Text>
+            <Text style={styles.sectionValue}>{saving.created_at.toLocaleString('es-CO')}</Text>
           </View>
         </View>
 
@@ -66,7 +54,7 @@ const SingleSavingCard = ({
           <Text style={styles.sectionTitle}>PLAZO MAXIMO</Text>
           <View style={styles.iconRow}>
             <MaterialIcons name="calendar-month" size={18} color="#000" />
-            <Text style={styles.sectionValue}>{deadline}</Text>
+            <Text style={styles.sectionValue}>{saving.deadline.toLocaleString('es-CO')}</Text>
           </View>
         </View>
       </View>
@@ -75,13 +63,13 @@ const SingleSavingCard = ({
         <Text style={styles.sectionTitle}>ULTIMA ACTUALIZACIÓN</Text>
         <View style={styles.iconRow}>
           <MaterialIcons name="calendar-month" size={18} color="#000" />
-          <Text style={styles.sectionValue}>{lastUpdate}</Text>
+          <Text style={styles.sectionValue}>{saving.updated_at}</Text>
         </View>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>DESCRIPCIÓN</Text>
-        <Text style={styles.description}>{description}</Text>
+        <Text style={styles.description}>{saving.notes}</Text>
       </View>
 
       {/* Buttons */}

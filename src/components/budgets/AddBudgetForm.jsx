@@ -12,17 +12,29 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import PrimaryButton from '../PrimaryButton';
 import SecondaryButton from '../SecondaryButton';
 
-import { useBudgets } from '../../hooks/useBudgets';
-
+import { useManageBudgets } from '../../hooks/useBudgetsData';
+import { useNavigation } from '@react-navigation/native';
 
 
 const periodOptions = ['Diario', 'Semanal', 'Mensual'];
-const colorOptions = ['#b1c3cb', '#f2f1b6', '#b3e6b3', '#edbcbc'];
-const iconOptions = ['home', 'receipt', 'shopping-cart'];
+const colorOptions = ['#b1c3cb', '#b3e6b3', '#edbcbc', '#d5cde0', '#ffe9b6', '#b6efd2'];
+const iconOptions = [
+  'home',
+  'receipt',
+  'shopping-cart',
+  'favorite',
+  'search',
+  'warning',
+  'edit',
+];
 
-const AddBudgetForm = ({ onAdd, onCancel }) => {
+const AddBudgetForm = ({onCancel}) => {
 
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const navigation = useNavigation()
+
+  const {addBudget, isAdding} = useManageBudgets()
 
   const [formData, setFormData] = useState({
     name: '',
@@ -42,7 +54,7 @@ const AddBudgetForm = ({ onAdd, onCancel }) => {
 
   
 
-  const handleAddBudget = () => {
+  const handleAddBudget = async () => {
     if (!formData.name || !formData.total) {
       alert('Por favor, completa todos los campos.');
       return;
@@ -60,8 +72,15 @@ const AddBudgetForm = ({ onAdd, onCancel }) => {
       notes,
     };
 
+    try{
+      await addBudget(budgetData)
+      alert('Éxito', 'Presupuesto añadido correctamente.');
 
-    onAdd(budgetData);
+    } catch{
+      console.error("Error al guardar presupuesto:", error);
+      alert('Error', 'No se pudo añadir el presupuesto. Inténtalo de nuevo.');
+    }
+    
     
   }
 
@@ -79,7 +98,7 @@ const AddBudgetForm = ({ onAdd, onCancel }) => {
       {/* MONTO */}
       <TextInput
         placeholder="Monto"
-        value={formData.total.toString()}
+        value={formData.total.toLocaleString('es-CO')}
         onChangeText={(value)=>handleInputChange('total',value)}
         keyboardType="numeric"
         style={styles.input}
@@ -112,7 +131,7 @@ const AddBudgetForm = ({ onAdd, onCancel }) => {
               onPress={() => handleInputChange('selectedIcon', icon)}
               style={[
                 styles.iconButton,
-                formData.selectedIcon === icon && styles.iconSelected,
+                formData.selectedIcon === icon && {backgroundColor:formData.selectedColor},
               ]}
             >
               <MaterialIcons name={icon} size={24} color="#333" />
@@ -223,9 +242,6 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
     backgroundColor: '#f0f0f0',
-  },
-  iconSelected: {
-    backgroundColor: '#d0e6ff',
   },
   periodButton: {
     paddingHorizontal: 10,

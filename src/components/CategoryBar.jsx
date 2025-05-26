@@ -8,11 +8,11 @@ const CategoryBar = ({ name, total, used, color='#005' }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.categoryName}>{name.toUpperCase()}</Text>
-      <Text style={styles.percentage}>{used.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })} / {total.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</Text>
+      <Text style={[styles.percentage, {color}]}>{used.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })} / {total.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</Text>
       <View style={styles.progressBar}>
         <View style={[styles.progressFill, { width: `${percentage}%`, backgroundColor:color }]} />
       </View>
-      <Text style={styles.percentage}>{percentage}%</Text>
+      <Text style={[styles.percentage, {color}]}>{percentage}%</Text>
     </View>
   );
 };

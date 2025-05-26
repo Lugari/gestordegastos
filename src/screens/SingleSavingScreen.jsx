@@ -2,39 +2,45 @@ import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import SingleSavingCard from '../components/savings/SingleSavingCard';
-import AddTransactionButton from '../components/FAB';
+import FAB from '../components/FAB';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 
+import { useManageSavings } from '../hooks/useSavingsData';
+
 const SingleSavingScreen = () => {
     const route = useRoute();
     const { colors } = useTheme();
-    const { t } = useTranslation();
+    const { t } = useTranslation()
+
     const navigation = useNavigation();
     
+    const {deleteSaving} = useManageSavings()
     const { saving } = route.params;
+
+    const handleDelete = async ()=>{
+        try{
+            await deleteSaving(saving.id)
+            navigation.goBack()
+            console.log("Ahorro eliminado:", saving.name)
+        }catch{
+            console.log("Error al eliminar ahorro")
+        }
+    }
     
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
         <ScrollView contentContainerStyle={styles.content}>
         <SingleSavingCard
-            title={saving.name}
-            current={saving.current}
-            total={saving.total}
-            color={saving.color}
-            period={saving.period}
-            startDate={saving.startDate}
-            lastUpdate={saving.lastUpdate}
-            deadline={saving.deadline}
-            description={saving.description}
+            saving={saving}
             onEdit={() => console.log('Editar ahorro')}
-            onDelete={() => console.log('Eliminar ahorro')}
+            onDelete={handleDelete}
         />
         <View style={{ paddingVertical: 24 }}>
         </View>
         </ScrollView>
-        <AddTransactionButton onPress={() => navigation.navigate('AddTransactionScreen', { transactionType: 'Ingreso' })} />
+        <FAB onPress={() => navigation.navigate('AddTransactionScreen', { transactionType: 'ahorro' })} />
         </View>
     
     );

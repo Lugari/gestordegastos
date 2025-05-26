@@ -1,18 +1,14 @@
-// src/hooks/useTransactionData.js (o renombra useTransactions.js)
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as TransactionService from '../services/transactionService'; // Importa tu servicio
 
-// --- Hook para OBTENER transacciones ---
 export const useGetTransactions = () => {
   return useQuery({
-    queryKey: ['transactions'], // Clave única para esta query
-    queryFn: TransactionService.getAllTransactions, // La función que lee de AsyncStorage
-    // Opciones adicionales si quieres (ej. staleTime, cacheTime)
+    queryKey: ['transactions'], 
+    queryFn: TransactionService.getAllTransactions,
   });
   // Esto devuelve { data, isLoading, isError, error, refetch, ... }
 };
 
-// --- Hook para MODIFICAR transacciones ---
 export const useManageTransactions = () => {
   const queryClient = useQueryClient(); // Obtiene el cliente para invalidar caché
 
@@ -20,7 +16,8 @@ export const useManageTransactions = () => {
     onSuccess: () => {
       // Cuando una mutación tiene éxito, invalida la query 'transactions'
       // Esto hará que React Query la vuelva a cargar automáticamente
-      queryClient.invalidateQueries(['transactions']);
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
     },
     onError: (error) => {
       // Puedes manejar errores globalmente aquí si quieres (ej. mostrar notificación)
@@ -41,7 +38,6 @@ export const useManageTransactions = () => {
     // Podrías querer hacer algo específico al borrar, como actualizar dependencias
      onSuccess: (data, variables, context) => {
          queryClient.invalidateQueries(['transactions']);
-         // ¡Importante! Invalida también los presupuestos si el borrado afecta su 'used'
          queryClient.invalidateQueries(['budgets']);
      }
   });

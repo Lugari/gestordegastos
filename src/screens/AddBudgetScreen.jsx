@@ -3,29 +3,17 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AddBudgetForm from '../components/budgets/AddBudgetForm';
 
-import { useBudgets } from '../hooks/useBudgets';
+import { useManageBudgets } from '../hooks/useBudgetsData';
 
 const AddBudgetScreen = () => {
   const navigation = useNavigation();
 
-  const { addBudget } = useBudgets();
+  const {addBudget, isAdding} = useManageBudgets
 
-  const handleAddBudget = async (budgetData) => {
-    try {
-      const newBudget = await addBudget(budgetData);
-      navigation.goBack();
-    } catch (error) {
-      console.error('Error al añadir presupuesto:', error);
-    }
-  }
-
-  const handleCancel = () => {
-    navigation.goBack();
-  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <AddBudgetForm onAdd={handleAddBudget} onCancel={handleCancel} />
+      <AddBudgetForm/>
     </ScrollView>
   );
 };

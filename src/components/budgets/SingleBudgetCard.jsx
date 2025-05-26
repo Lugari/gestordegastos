@@ -5,11 +5,7 @@ import PrimaryButton from '../PrimaryButton';
 import SecondaryButton from '../SecondaryButton';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-import { useBudgets } from '../../hooks/useBudgets';
-
-
 const SingleBudgetCard = ({
-  id,
   name,
   used,
   total,

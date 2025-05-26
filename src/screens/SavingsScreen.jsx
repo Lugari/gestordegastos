@@ -1,11 +1,13 @@
 import React from "react";
 
-import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, ScrollView, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';
 
 import BudgetProgressCard from '../components/budgets/BudgetProgressCard';
 import BudgetCategory from '../components/budgets/BudgetCategory';
 import FAB from '../components/FAB';
+
+import { useGetSavings } from "../hooks/useSavingsData";
 
 import { useTranslation } from 'react-i18next';
 
@@ -15,13 +17,70 @@ const SavingsScreen = () => {
     const { colors } = useTheme();
     const { t } = useTranslation();
 
-    const savings = [
-        {name: "Fondo de Emergencia", current: 120000, total:200000, color:"#3498db", startDate: "2023-01-01", lastUpdate: "2023-01-15", deadline:"2023-02-28", description: "Ahorros para emergencias", period: "Mensual"},
-        {name: "Viaje a Europa", current: 80000, total:150000, color:"#e74c3c", startDate: "2023-01-01", lastUpdate: "2023-01-15", deadline:"2023-02-28", description: "Ahorros para viaje a Europa", period: "Mensual"},
-        {name: "Compra de Auto", current: 50000, total:100000, color:"#2ecc71", startDate: "2023-01-01", lastUpdate: "2023-01-15", deadline:"2023-02-28", description: "Ahorros para compra de auto", period: "Mensual"},
-        {name: "Boda", current: 30000, total:50000, color:"#f1c40f", startDate: "2023-01-01", lastUpdate: "2023-01-15", deadline:"2023-02-28", description: "Ahorros para boda", period: "Mensual"},
-        {name: "Estudios en el Extranjero", current: 20000, total:30000, color:"#9b59b6", startDate: "2023-01-01", lastUpdate: "2023-01-15", deadline:"2023-02-28", description: "Ahorros para estudios en el extranjero", period: "Mensual"},
-      ]
+    const {data: savings = [], isLoading: isLoadingSavings, error: savingsError} = useGetSavings();
+
+    const renderSavings = () => (
+            <View style={styles.container}>
+                <ScrollView contentContainerStyle={styles.scrollContainer}>
+                    <BudgetProgressCard
+                        title="Total"
+                        used={savings.map(b => b.used).reduce((a, b) => a + b, 0)}
+                        total={savings.map(b => b.total).reduce((a, b) => a + b, 0)}
+                    />
+                    {savings.map((saving, index) => (
+                        <TouchableOpacity key={index} onPress={() => navigation.navigate('SingleSavingScreen', { saving })}>
+                            <BudgetCategory
+                                name={saving.name}
+                                used={saving.used}
+                                total={saving.total}
+                                color={saving.selectedColor}
+                            />
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+                
+                <FAB onPress={()=> navigation.navigate('AddSavingScreen')} />
+    
+            </View>
+        );
+    
+
+    const renderEmpty = () => (
+        <View style={styles.container}>
+            <Text style={{fontSize: 18, fontWeight: 'bold'}}>No tienes ahorros</Text>
+            <Text onPress={()=> navigation.navigate('AddSavingScreen')} style={{fontSize: 16, marginTop: 10}}>¡Agrega un ahorro!</Text>
+        </View>
+    );
+
+    const renderLoading = () => (
+
+        <View style={styles.container}>
+            <Text style={{fontSize: 18, fontWeight: 'bold'}}>Cargando...</Text> 
+        </View>
+    );
+    const renderError = () => (
+
+        <View style={styles.container}>
+            <Text style={{fontSize: 18, fontWeight: 'bold'}}>Error</Text> 
+        </View>
+    );
+
+    if (savings.length === 0) {
+        return renderEmpty();
+    }
+    
+    if (isLoadingSavings){
+        return renderLoading()
+    }
+
+    if (savingsError){
+        return renderError()
+    }
+    
+    if (savings.length > 0){
+        return renderSavings()
+    }
+
     return (
         <View style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -32,15 +91,7 @@ const SavingsScreen = () => {
                 />
                 
                 {savings.map((saving, index) => (
-                    <TouchableOpacity key={index} onPress={() => navigation.navigate('SingleSavingScreen', { saving })}>
-                        <BudgetCategory
-                            color={saving.color}
-                            key={index}
-                            name={saving.name}
-                            current={saving.current}
-                            total={saving.total}
-                        />
-                    </TouchableOpacity>
+                    renderSavings()
                 ))}
             </ScrollView>
 
