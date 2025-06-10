@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ScrollView, View, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { ScrollView, View, TouchableOpacity, ActivityIndicator, Image} from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
 
@@ -90,6 +90,14 @@ const HomeScreen = () => {
   return (
 
     <ScrollView style={{ flex: 1}}>
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, width: '100%', height: '100%' }}>
+        <Image 
+          source={require('../assets/basic/background.png')}
+          style={{ width: '100%', height: '100%' }}
+          resizeMode="cover"
+        />
+      </View>
+
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, gap: 20 }}>
         <Header username= "Lucas" />
 

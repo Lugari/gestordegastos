@@ -6,6 +6,9 @@ import { useNavigation, useTheme } from '@react-navigation/native';
 import BudgetProgressCard from '../components/budgets/BudgetProgressCard';
 import BudgetCategory from '../components/budgets/BudgetCategory';
 import FAB from '../components/FAB';
+import PrimaryButton from '../components/PrimaryButton';
+
+import { MaterialIcons } from '@expo/vector-icons';
 
 import { useGetSavings } from "../hooks/useSavingsData";
 
@@ -42,13 +45,14 @@ const SavingsScreen = () => {
                 <FAB onPress={()=> navigation.navigate('AddSavingScreen')} />
     
             </View>
-        );
+        ); 
     
 
     const renderEmpty = () => (
-        <View style={styles.container}>
-            <Text style={{fontSize: 18, fontWeight: 'bold'}}>No tienes ahorros</Text>
-            <Text onPress={()=> navigation.navigate('AddSavingScreen')} style={{fontSize: 16, marginTop: 10}}>¡Agrega un ahorro!</Text>
+        <View style={styles.emptyContainer}>
+            <MaterialIcons name="receipt" size={48} color="#cdd1c5" />
+            <Text style={styles.emptyText}>No hay ahorros programados</Text>
+            <PrimaryButton onPress={()=> navigation.navigate('AddSavingScreen')} title="Agregar ahorro"  />
         </View>
     );
 
@@ -107,5 +111,17 @@ const styles = StyleSheet.create({
     scrollContainer: {
         padding: 16,
     },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 32,
+        gap: 14,
+      },
+      emptyText: {
+        fontSize: 16,
+        color: '#5f7067',
+        textAlign: 'center',
+      },
 });
 export default SavingsScreen;
