@@ -31,7 +31,7 @@ const BudgetsScreen = () => {
 
     const renderEmpty = () => (
         <View style={styles.emptyContainer}>
-            <MaterialIcons name="receipt" size={48} color="#cdd1c5" />
+            <MaterialIcons name="wallet" size={48} color="#cdd1c5" />
             <Text style={styles.emptyText}>No hay presupestos registrados</Text>
             <PrimaryButton onPress={()=> navigation.navigate('AddBudgetScreen')} title="Agregar Presupuesto"  />
         </View>
@@ -78,37 +78,10 @@ const BudgetsScreen = () => {
     if (budgets.length === 0) {
         return renderEmpty();
     }
-    if (budgets.length > 0) {
-        return renderBudgets();
-    }
 
-    
+    return renderBudgets()
 
 
-    
-    return (
-
-        <View style={styles.container}>
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
-                <BudgetProgressCard
-
-                    title="Total"
-                    used={budgets.map(b => b.used).reduce((a, b) => a + b, 0)}
-                    total={budgets.map(b => b.total).reduce((a, b) => a + b, 0)}
-
-                />
-                
-                {budgets.map((budget, index) => (
-                    renderBudgets()
-                ))}
-            </ScrollView>
-
-            <FAB onPress={()=> {
-                console.log('FAB pressed');
-                navigation.navigate('AddBudgetScreen')
-                }}/>
-        </View>
-    );
 };
 
 const styles = StyleSheet.create({

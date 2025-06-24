@@ -33,13 +33,13 @@ const SingleBudgetCard = ({
       <Text style={styles.sectionTitle}>FECHA DE INICIO</Text>
       <View style={styles.row}>
         <MaterialIcons name="calendar-month" size={20} color="#000" />
-        <Text style={styles.sectionValue}>{date}</Text>
+        <Text style={styles.sectionValue}>{new Date(date).toLocaleDateString('es-CO')}</Text>
       </View>
 
       <Text style={styles.sectionTitle}>ULTIMA ACTUALIZACIÓN</Text>
       <View style={styles.row}>
         <MaterialIcons name="calendar-month" size={20} color="#000" />
-        <Text style={styles.sectionValue}>{lastUpdate}</Text>
+        <Text style={styles.sectionValue}>{new Date(lastUpdate).toLocaleDateString('es-CO')}</Text>
       </View>
 
       <Text style={styles.sectionTitle}>DESCRIPCION</Text>

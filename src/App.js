@@ -26,16 +26,16 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
     <NavigationContainer>
       <Stack.Navigator initialRouteName="HomeScreen">
-        <Stack.Screen name="HomeScreen" component={HomeScreen} />
-        <Stack.Screen name="TransactionHistoryScreen" component={TransactionHistoryScreen} />
-        <Stack.Screen name="SingleTransactionScreen" component={SingleTransactionScreen} />
-        <Stack.Screen name="AddTransactionScreen" component={AddTransactionScreen} />
-        <Stack.Screen name="BudgetsScreen" component={BudgetScreen} />
-        <Stack.Screen name="SingleBudgetScreen" component={SingleBudgetScreen} />
-        <Stack.Screen name="AddBudgetScreen" component={AddBudgetScreen} />
-        <Stack.Screen name="SavingsScreen" component={SavingsScreen} />
-        <Stack.Screen name="SingleSavingScreen" component={SingleSavingScreen} />
-        <Stack.Screen name="AddSavingScreen" component={AddSavingScreen} />
+        <Stack.Screen name="HomeScreen" component={HomeScreen} options={{headerShown:false}}/>
+        <Stack.Screen name="TransactionHistoryScreen" component={TransactionHistoryScreen} options={{title:"Transacciones"}} />
+        <Stack.Screen name="SingleTransactionScreen" component={SingleTransactionScreen} options={{title:"Detalles de Transacción"}} />
+        <Stack.Screen name="AddTransactionScreen" component={AddTransactionScreen} options={{title:"Añadir Transacción"}} />
+        <Stack.Screen name="BudgetsScreen" component={BudgetScreen} options={{title:"Presupuesto"}} />
+        <Stack.Screen name="SingleBudgetScreen" component={SingleBudgetScreen} options={{title:"Detalles de Presupuesto"}} />
+        <Stack.Screen name="AddBudgetScreen" component={AddBudgetScreen} options={{title:"Añadir Presupuesto"}} />
+        <Stack.Screen name="SavingsScreen" component={SavingsScreen} options={{title:"Metas de Ahorro"}} />
+        <Stack.Screen name="SingleSavingScreen" component={SingleSavingScreen} options={{title:"Detalles de Ahorro"}}/>
+        <Stack.Screen name="AddSavingScreen" component={AddSavingScreen} options={{title:"Añadir Meta"}}/>
       </Stack.Navigator>
     </NavigationContainer>
     </QueryClientProvider>

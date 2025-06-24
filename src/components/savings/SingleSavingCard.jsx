@@ -10,12 +10,39 @@ const SingleSavingCard = ({
     
     const percentage = saving.used / saving.total;
 
+    const formatDate = (date) => {
+        return new Date(date).toLocaleDateString('es-CO', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+        });
+    };
+
+
+
+    const calculateScheduledSaving = (time) => { // Calcula el ahorro necesario diario, semanal o mensual
+      const now = new Date();
+      const deadline = new Date(saving.deadline)
+      const timeDiff = deadline - now;
+      const daysLeft =timeDiff/(1000*60*60*24);
+      const weeksLeft = timeDiff / (1000*60*60*24*7)
+      const monthsLeft = timeDiff / (1000*60*60*24*30);
+
+      if (time === 'daily') {
+        return Math.ceil((saving.total - saving.used) / daysLeft);
+      }else if (time === 'weekly') {
+        return Math.ceil((saving.total - saving.used) / weeksLeft);
+      }else if (time === 'monthly') {
+        return Math.ceil((saving.total - saving.used) / monthsLeft);
+      }
+    }
+
   return (
     <View style={styles.card}>
       {/* Avatar + Title */}
       <View style={styles.header}>
-        <View style={styles.avatar} />
         <Text style={styles.title}>{saving.name}</Text>
+        <MaterialIcons title={saving.selectedIcon}></MaterialIcons>
       </View>
 
       {/* Progress bar */}
@@ -41,12 +68,19 @@ const SingleSavingCard = ({
 
       {/* Info Sections */}
 
+      <View style={styles.section}>
+        <Text style={[styles.title, {marginTop:24}]}>Ahorro minimo</Text>
+        <Text style={styles.amount}>Diario: ${calculateScheduledSaving('daily').toLocaleString('es-CO')}</Text>
+        <Text style={styles.amount}>Semanal: ${calculateScheduledSaving('weekly').toLocaleString('es-CO')} </Text>
+        <Text style={styles.amount}>Mensual: ${calculateScheduledSaving('monthly').toLocaleString('es-CO')}</Text>
+      </View>
+
       <View style={styles.row}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>FECHA DE INICIO</Text>
           <View style={styles.iconRow}>
             <MaterialIcons name="calendar-month" size={18} color="#000" />
-            <Text style={styles.sectionValue}>{saving.created_at.toLocaleString('es-CO')}</Text>
+            <Text style={styles.sectionValue}>{formatDate(saving.created_at)}</Text>
           </View>
         </View>
 
@@ -54,16 +88,16 @@ const SingleSavingCard = ({
           <Text style={styles.sectionTitle}>PLAZO MAXIMO</Text>
           <View style={styles.iconRow}>
             <MaterialIcons name="calendar-month" size={18} color="#000" />
-            <Text style={styles.sectionValue}>{saving.deadline.toLocaleString('es-CO')}</Text>
+            <Text style={styles.sectionValue}>{formatDate(saving.deadline)}</Text>
           </View>
         </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>ULTIMA ACTUALIZACIÓN</Text>
-        <View style={styles.iconRow}>
-          <MaterialIcons name="calendar-month" size={18} color="#000" />
-          <Text style={styles.sectionValue}>{saving.updated_at}</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>ULTIMA ACTUALIZACIÓN</Text>
+          <View style={styles.iconRow}>
+            <MaterialIcons name="calendar-month" size={18} color="#000" />
+            <Text style={styles.sectionValue}>{formatDate(saving.updated_at)}</Text>
+          </View>
         </View>
       </View>
 

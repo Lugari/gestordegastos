@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   TextInput,
@@ -9,18 +9,22 @@ import {
   Platform,
   Alert
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
 import PrimaryButton from '../PrimaryButton'; 
 import SecondaryButton from '../SecondaryButton';
 
+import DateTimePicker from '@react-native-community/datetimepicker';
+import IconPicker from "react-native-icon-picker";
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const iconOptions = ['savings', 'credit-card', 'account-balance', 'travel-explore', 'home', 'directions-car'];
 const colorOptions = ['#A77DDB', '#F9DC5C', '#F38BA0', '#b1c3cb', '#b3e6b3', '#edbcbc'];
 
 // -----------------------------
 
-const AddSavingForm = ({ onSubmit, onCancel }) => {
+const AddSavingForm = ({ onSubmit, onCancel, toEdit }) => {
+
+  const [showIconPicker, setShowIconPicker] = useState(false);  
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Estado para todos los campos del formulario
@@ -33,9 +37,44 @@ const AddSavingForm = ({ onSubmit, onCancel }) => {
     notes: '',
   });
 
+  useEffect(() => {
+
+    if (toEdit) {
+      setFormData({
+        name: toEdit.name || '',
+        total: toEdit.total || '',
+        selectedIcon: toEdit.selectedIcon || iconOptions[0],
+        selectedColor: toEdit.selectedColor || colorOptions[0],
+        deadline: new Date(toEdit.deadline) || new Date(),
+        notes: toEdit.notes || '',
+      });
+    }
+  
+  }, [toEdit])
+
+
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  const formatCurrency = (value) => {
+  const number = typeof value === 'string' ? parseInt(value.replace(/\D/g, '')) : value;
+  if (isNaN(number)) return '';
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    maximumFractionDigits: 0,
+  }).format(number);
+};
+
+const handleCurrencyInput = (text) => {
+  const numericValue = parseInt(text.replace(/\D/g, '')); // Remove non-numeric
+  if (!isNaN(numericValue)) {
+    handleInputChange('total', numericValue); // Save the clean value
+  } else {
+    handleInputChange('total', 0);
+  }
+};
 
   const onDateChange = (event, selectedDate) => {
     setShowDatePicker(Platform.OS === 'ios');
@@ -47,7 +86,7 @@ const AddSavingForm = ({ onSubmit, onCancel }) => {
   // Manejador para enviar el formulario
   const handleSubmit = () => {
     // Validación simple
-    if (!formData.name.trim() || !formData.total.trim()) {
+    if (!formData.name || !formData.total) {
       Alert.alert('Campos Requeridos', 'Por favor, ingresa el nombre y el monto total del ahorro.');
       return;
     }
@@ -71,12 +110,16 @@ const AddSavingForm = ({ onSubmit, onCancel }) => {
     onSubmit(savingData)
     
   };
+  const onSelect = (icon) => {
+    setShowIconPicker(false)
+  }
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
 
       {/* Nombre del Ahorro */}
-      <Text style={styles.label}>Nombre del Objetivo</Text>
+      <Text style={styles.label}>Nombre del Ahorro</Text>
       <TextInput
         placeholder="Ej: Viaje a Cartagena, Nuevo Celular..."
         value={formData.name}
@@ -86,32 +129,16 @@ const AddSavingForm = ({ onSubmit, onCancel }) => {
       />
 
       {/* Monto Total */}
-      <Text style={styles.label}>Monto Total Objetivo</Text>
+      <Text style={styles.label}>Monto Total</Text>
       <TextInput
-        placeholder="Ej: 1500000"
-        value={formData.total.toL}
-        onChangeText={(value) => handleInputChange('total', value)}
+        placeholder="Ej: $1'500.000"
+        value={formatCurrency(formData.total)}
+        onChangeText={(value) => handleCurrencyInput(value)}
         keyboardType="numeric"
         style={styles.input}
         placeholderTextColor="#B5B77E"
       />
 
-      {/* Selección de Ícono */}
-      <Text style={styles.label}>Ícono</Text>
-      <View style={styles.optionsRow}>
-        {iconOptions.map((icon) => (
-          <TouchableOpacity
-            key={icon}
-            onPress={() => handleInputChange('selectedIcon', icon)}
-            style={[
-              styles.iconButton,
-              formData.selectedIcon === icon && styles.optionSelected, // Estilo cuando está seleccionado
-            ]}
-          >
-            <MaterialIcons name={icon} size={28} color="#333" />
-          </TouchableOpacity>
-        ))}
-      </View>
 
       {/* Selección de Color */}
       <Text style={styles.label}>Color</Text>
@@ -130,6 +157,56 @@ const AddSavingForm = ({ onSubmit, onCancel }) => {
         ))}
       </View>
 
+      {/* Selección de Ícono */}
+      <View style={styles.subSection}>
+        <Text style={styles.label}>Icono:</Text>
+        <IconPicker
+          headerTitle="Seleccionar Icono"
+          showIconPicker={showIconPicker}
+          toggleIconPicker={() => setShowIconPicker(!showIconPicker)}
+          iconDetails={[
+            {
+              family: "MaterialIcons",
+              icons: [ 'home', 'receipt', 'shopping-cart', 'favorite', 'search', 'warning', 'edit',],
+            },
+            {
+              family: "AntDesign",
+              color: "blue",
+              icons: [
+                "wallet",
+                "user",
+                "addusergroup",
+                "deleteuser",
+                "deleteusergroup",
+                "adduser",
+              ],
+            },
+            { family: "Entypo", icons: ["wallet"] },
+            { family: "FontAwesome", icons: ["google-wallet"] },
+            {
+              family: "FontAwesome5",
+              icons: [
+                "wallet",
+                "hospital-user",
+                "house-user",
+                "user-alt-slash",
+                "user-cog",
+                "user-md",
+                "user-tag",
+                "user-slash",
+              ],
+            },
+            { family: "Fontisto", icons: ["wallet"] },
+            {
+              family: "MaterialCommunityIcons",
+              icons: ["wallet-membership"],
+            },
+          ]}
+          content={<Text><SecondaryButton title="Seleccionar Icono" onPress={() => setShowIconPicker(true)} /></Text>}
+          onSelect={onSelect}
+        />
+      </View>
+
       {/* Fecha Límite */}
       <Text style={styles.label}>Fecha Límite (Opcional)</Text>
       <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateDisplay}>
@@ -144,7 +221,8 @@ const AddSavingForm = ({ onSubmit, onCancel }) => {
           mode="date"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={onDateChange}
-          minimumDate={new Date()} // Opcional: no permitir fechas pasadas
+          minimumDate={new Date()}
+
         />
       )}
 
@@ -162,7 +240,7 @@ const AddSavingForm = ({ onSubmit, onCancel }) => {
 
       {/* Botones de Acción */}
       <View style={styles.buttonRow}>
-        <PrimaryButton title="Añadir Ahorro" onPress={handleSubmit} />
+        <PrimaryButton title={toEdit? "Actualizar" : "Añadir Ahorro"} onPress={handleSubmit} />
         <SecondaryButton title="Cancelar" onPress={onCancel} />
       </View>
     </ScrollView>

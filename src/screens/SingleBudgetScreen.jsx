@@ -1,8 +1,8 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View, Alert } from 'react-native';
-import { useRoute } from '@react-navigation/native';
 import SingleBudgetCard from '../components/budgets/SingleBudgetCard';
 
+import { useRoute } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 
 import { useManageBudgets } from '../hooks/useBudgetsData';
@@ -10,10 +10,9 @@ import { useManageBudgets } from '../hooks/useBudgetsData';
 const SingleBudgetScreen = () => {
 
   const navigation = useNavigation();
+  const route = useRoute();
 
   const { deleteBudget, isDeleting } = useManageBudgets();
-
-  const route = useRoute();
   const { budget } = route.params;
 
   const handleDeletePress = async () => {
@@ -41,6 +40,12 @@ const SingleBudgetScreen = () => {
     );
 };
 
+const handleEditPress = () =>{
+
+  navigation.navigate('AddBudgetScreen', { budgetToEdit: budget });
+
+}
+
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
@@ -54,7 +59,7 @@ const SingleBudgetScreen = () => {
         date={budget.date}
         lastUpdate={budget.updated_at}
         notes={budget.notes}
-        onEdit={() => console.log('Editar presupuesto')}
+        onEdit={handleEditPress}
         onDelete={handleDeletePress}
       />
     </ScrollView>

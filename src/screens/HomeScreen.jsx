@@ -93,13 +93,13 @@ const HomeScreen = () => {
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, width: '100%', height: '100%' }}>
         <Image 
           source={require('../assets/basic/background.png')}
-          style={{ width: '100%', height: '100%' }}
+          style={{ width: '100%'}}
           resizeMode="cover"
         />
       </View>
 
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, gap: 20 }}>
-        <Header username= "Lucas" />
+        <Header username= "Usuario" />
 
 
         <TouchableOpacity onPress={() => navigation.navigate('TransactionHistoryScreen')}>

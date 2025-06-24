@@ -42,7 +42,7 @@ const SavingsScreen = () => {
                     ))}
                 </ScrollView>
                 
-                <FAB onPress={()=> navigation.navigate('AddSavingScreen')} />
+                <FAB onSelect={()=> navigation.navigate('AddSavingScreen')} />
     
             </View>
         ); 
@@ -50,7 +50,7 @@ const SavingsScreen = () => {
 
     const renderEmpty = () => (
         <View style={styles.emptyContainer}>
-            <MaterialIcons name="receipt" size={48} color="#cdd1c5" />
+            <MaterialIcons name="savings" size={48} color="#cdd1c5" />
             <Text style={styles.emptyText}>No hay ahorros programados</Text>
             <PrimaryButton onPress={()=> navigation.navigate('AddSavingScreen')} title="Agregar ahorro"  />
         </View>
@@ -59,20 +59,16 @@ const SavingsScreen = () => {
     const renderLoading = () => (
 
         <View style={styles.container}>
-            <Text style={{fontSize: 18, fontWeight: 'bold'}}>Cargando...</Text> 
+            <Text style={{fontSize: 18, fontWeight: 'bold'}}>Cargando tus ahorros...</Text> 
         </View>
     );
     const renderError = () => (
 
         <View style={styles.container}>
-            <Text style={{fontSize: 18, fontWeight: 'bold'}}>Error</Text> 
+            <Text style={{fontSize: 18, fontWeight: 'bold'}}>Error al cargar los datos</Text> 
         </View>
     );
 
-    if (savings.length === 0) {
-        return renderEmpty();
-    }
-    
     if (isLoadingSavings){
         return renderLoading()
     }
@@ -80,28 +76,14 @@ const SavingsScreen = () => {
     if (savingsError){
         return renderError()
     }
-    
-    if (savings.length > 0){
-        return renderSavings()
+
+    if (savings.length === 0) {
+        return renderEmpty();
     }
 
-    return (
-        <View style={styles.container}>
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
-                <BudgetProgressCard
-                    title={t('Total')}
-                    current={savings.map(b => b.current).reduce((a, b) => a + b, 0)}
-                    total={savings.map(b => b.total).reduce((a, b) => a + b, 0)}
-                />
-                
-                {savings.map((saving, index) => (
-                    renderSavings()
-                ))}
-            </ScrollView>
+    return renderSavings()
 
-            <FAB onPress={()=> navigation.navigate('AddSavingScreen')} />
-        </View>
-    );
+    
 }
 const styles = StyleSheet.create({
     container: {
