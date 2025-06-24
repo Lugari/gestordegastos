@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet, ScrollView, Alert } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 
 import { useManageBudgets, useGetBudgets } from '../hooks/useBudgetsData';
@@ -20,25 +20,40 @@ const SingleTransactionScreen = () => {
   const { updateBudget } = useManageBudgets();
   const { data: budgets = [], isLoading: isLoadingBudgets, error: budgetsError, refetch: refetchBudgets } = useGetBudgets();
 
-  const navigator = useNavigation();
+  const navigator = useNavigation(); 
 
   const handleDelete = async () => {
-    try {
-      const updatedBudget = budgets.find(b => b.id === transaction.budget_id);
-      
-      if (!updatedBudget) {
-        await deleteTransaction(transaction.id);
-        navigator.goBack();
-        return;
-      }
 
-      updatedBudget.used -= transaction.amount;
-      await deleteTransaction(transaction.id);
-      updateBudget({id: transaction.budget_id, updates: {used: updatedBudget.used}});
-      navigator.goBack();
-    } catch (error) {
-      console.error('Error deleting transaction:', error);
-    }
+    Alert.alert( 
+            'Eliminar Transacción',
+            `¿Estás seguro de que quieres eliminar el Transacción? Esta acción no se puede deshacer.`,
+            [
+                { text: 'cancelar', style: 'cancel'},
+                { text: 'Eliminar', syle: 'destructive', onPress: async ()=> {
+                    
+                  try {
+                    const updatedBudget = budgets.find(b => b.id === transaction.budget_id);
+                    
+                    if (!updatedBudget) {
+                      await deleteTransaction(transaction.id);
+                      navigator.goBack();
+                      return;
+                    }
+
+                    updatedBudget.used -= transaction.amount;
+                    await deleteTransaction(transaction.id);
+                    updateBudget({id: transaction.budget_id, updates: {used: updatedBudget.used}});
+                    navigator.goBack();
+                  } catch (error) {
+                    console.error('Error deleting transaction:', error);
+                  }
+
+                }}
+            ]
+        )
+
+
+    
   };
 
   const handleEdit = async () => {

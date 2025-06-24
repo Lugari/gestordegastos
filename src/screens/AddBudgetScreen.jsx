@@ -18,12 +18,17 @@ const AddBudgetScreen = () => {
     try {
       if (budgetToEdit) {
         await updateBudget({ id: budgetToEdit.id, updates: formData });
-        Alert.alert('Éxito', 'Presupuesto actualizado correctamente.');
+        console.log("Actualizando presupuesto:", formData);
       } else {
-        await addBudget(formData);
-        Alert.alert('Éxito', 'Presupuesto añadido correctamente.');
+        await addBudget(formData)
+        console.log("Añadiendo presupuesto:", formData)
       }
-      navigation.goBack(); // Vuelve a la pantalla anterior tras el éxito
+      Alert.alert(
+        'Éxito',
+        budgetToEdit ? 'Presupuesto actualizado correctamente.' : 'Presupuesto añadido correctamente.',
+        [{ text: 'Aceptar', onPress: () => navigation.popTo('BudgetsScreen') }],
+      )
+      navigation.popTo('BudgetsScreen'); // Vuelve a la pantalla anterior tras el éxito
     } catch (error) {
       console.error("Error al guardar presupuesto:", error);
       Alert.alert('Error', 'No se pudo guardar el presupuesto.');

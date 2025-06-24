@@ -19,7 +19,7 @@ const SingleSavingScreen = () => {
     const { saving } = route.params;
 
     const handleDelete = async ()=>{
-        Alert.alert(
+        Alert.alert( 
             'Eliminar Ahorro',
             `¿Estás seguro de que quieres eliminar el ahorro "${saving.name}"? Esta acción no se puede deshacer.`,
             [

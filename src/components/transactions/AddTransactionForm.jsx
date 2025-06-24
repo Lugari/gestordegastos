@@ -33,7 +33,8 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
     icon: '',
     color: '#b1c3cb',
   });
-
+  
+  
   // Si hay una transacción pasada, cargar sus datos
   useEffect(() => {
     if (transactionToEdit) {
@@ -65,6 +66,25 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
     newDate.setDate(newDate.getDate() - daysAgo);
     handleInputChange('date', newDate);
   };
+
+  const formatCurrency = (value) => {
+  const number = typeof value === 'string' ? parseInt(value.replace(/\D/g, '')) : value;
+  if (isNaN(number)) return '';
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    maximumFractionDigits: 0,
+  }).format(number);
+};
+
+const handleCurrencyInput = (text) => {
+  const numericValue = parseInt(text.replace(/\D/g, '')); // Remove non-numeric
+  if (!isNaN(numericValue)) {
+    handleInputChange('amount', numericValue); // Save the clean value
+  } else {
+    handleInputChange('amount', 0);
+  }
+};
 
   const handleSubmit = async () => {
     if (!formData.type || !formData.amount) {
@@ -122,8 +142,8 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
         placeholder="Monto"
         keyboardType="numeric"
         style={styles.input}
-        value={formData.amount}
-        onChangeText={(value) => handleInputChange('amount', value)}
+        value={formatCurrency(formData.amount)}
+        onChangeText={(value) => handleCurrencyInput(value)}
       />
 
       <Text style={styles.sectionTitle}>Categoria</Text>
@@ -229,7 +249,7 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
       />
 
       <View style={styles.buttonRow}>
-        <PrimaryButton title={isEditing ? 'Editar Transacción': 'Añadir Transacción'} onPress={handleSubmit} />
+        <PrimaryButton title={isEditing ? 'Actualizar': 'Añadir'} onPress={handleSubmit} />
         <SecondaryButton title="Cancelar" onPress={onCancel} />
       </View>
     </ScrollView>

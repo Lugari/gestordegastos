@@ -1,6 +1,6 @@
 import AddTransactionForm from "../components/transactions/AddTransactionForm";  
 
-import { StyleSheet, ScrollView } from "react-native";
+import { StyleSheet, ScrollView, Alert } from "react-native";
 
 import { useNavigation } from "@react-navigation/native";
 import { useRoute } from "@react-navigation/native";
@@ -34,6 +34,7 @@ const AddTransactionScreen = () => {
             }else{
                 await updateTransaction({id: transaction.id, updates: formData});
             }
+
             if(formData.type.toLowerCase() === 'gasto'){
                 if (formData.budget_id){
                     const usedBudget = budgets.find(b => b.id === formData.budget_id)
@@ -65,8 +66,11 @@ const AddTransactionScreen = () => {
 
             }
 
-            alert('Éxito', 'Transacción añadida.');
-            
+            Alert.alert(
+                'Éxito',
+                transaction ? 'Transacción actualizado correctamente.' : 'transacción añadido correctamente.',
+                [{ text: 'Aceptar', onPress: () => navigation.popTo('TransactionHistoryScreen') }],
+            )            
             
         }catch (error) {
             console.error("Error en handleSubmit:", error);
