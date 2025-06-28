@@ -1,18 +1,18 @@
-import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-
+import {SIZES, COLORS} from '../constants/theme';
 
 const CategoryBar = ({ name, total, used, color='#005' }) => {
   const percentage = Math.round((used / total) * 100); // Calculate percentage
   return (
     <View style={styles.container}>
       <Text style={styles.categoryName}>{name.toUpperCase()}</Text>
-      <Text style={[styles.percentage, {color}]}>{used.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })} / {total.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</Text>
-      <View style={styles.progressBar}>
-        <View style={[styles.progressFill, { width: `${percentage}%`, backgroundColor:color }]} />
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignContent: 'center', width: '100%' }}>
+        <View style={[styles.progressBar, { backgroundColor: color + '55' }]}>
+          <View style={[styles.progressFill, { width: `${percentage}%`, backgroundColor:color }]} />
+        </View>
+        <Text style={[styles.percentage, {color}]}>{ percentage }%</Text>
       </View>
-      <Text style={[styles.percentage, {color}]}>{percentage}%</Text>
     </View>
   );
 };
@@ -20,26 +20,27 @@ const CategoryBar = ({ name, total, used, color='#005' }) => {
 const styles = StyleSheet.create({
   container: {
     width: '100%',
+    color: COLORS.background,
   },
   categoryName: {
-    fontSize: 12,
-    color: '#787B63', // Similar to your image
+    fontSize: SIZES.font,
+    color: COLORS.textPrimary,
     fontWeight: 'bold',
   },
   progressBar: {
-    height: 6,
-    backgroundColor: '#E0E0E0', // Light gray background
-    borderRadius: 3,
-    overflow: 'hidden',
-    marginVertical: 4,
+    height: 12,
+    width: '90%',
+    borderRadius: SIZES.radius,
+    marginVertical: SIZES.base,
   },
+
   progressFill: {
     height: '100%',
-    //backgroundColor: '#8A2BE2', // Purple progress color
+    borderRadius: SIZES.radius,
   },
+  
   percentage: {
-    fontSize: 10,
-    color: '#005', // Matching the bar color
+    fontSize: SIZES.font*1.2,
     fontWeight: 'bold',
     textAlign: 'right',
   },

@@ -1,5 +1,6 @@
-import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+
+import {COLORS, SIZES} from '../constants/theme'
 
 const PrimaryButton = ({ title, onPress }) => (
   <TouchableOpacity style={styles.button} onPress={onPress}>
@@ -9,17 +10,18 @@ const PrimaryButton = ({ title, onPress }) => (
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#90afbb',
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+    backgroundColor: COLORS.primary,
+    paddingVertical: SIZES.padding* 0.75,
+    paddingHorizontal: SIZES.padding * 1.25,
+    borderRadius: SIZES.radius,
     alignItems: 'center',
     marginHorizontal: 4,
+    elevation: 1,
   },
   text: {
-    color: '#000',
+    color: COLORS.textPrimary,
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: SIZES.font,
   },
 });
 

@@ -1,5 +1,6 @@
-import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+
+import {COLORS, SIZES} from '../constants/theme';
 
 const FILTERS = ['Mes', 'Semana', 'Trimestre', 'Año'];
 
@@ -46,22 +47,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   filterButton: {
-    backgroundColor: '#b1c3cb',
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    backgroundColor: COLORS.primary,
+    borderRadius: SIZES.radius,
+    paddingHorizontal: SIZES.padding*.9,
+    paddingVertical: SIZES.padding*.5,
     marginRight: 10,
   },
   filterText: {
-    color: '#1a1a1a',
-    fontSize: 13,
+    color: COLORS.textPrimary,
+    fontSize: SIZES.font,
     fontWeight: '600',
   },
   activeButton: {
-    backgroundColor: '#39454e',
+    backgroundColor: COLORS.primary + '40',
   },
   activeText: {
-    color: '#ffffff',
+    color: COLORS.textSecondary,
   },
 });
 

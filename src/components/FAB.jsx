@@ -3,13 +3,15 @@ import { TouchableOpacity, StyleSheet } from 'react-native';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
+import { COLORS, SIZES } from '../constants/theme';
+
 const FAB = ({onSelect}) => { 
   return (
     <TouchableOpacity style={styles.container} onPressIn={onSelect}>
       <MaterialIcons
-                    name="add-circle-outline"
+                    name="add"
                     size={64}
-                    color="#729AA9"
+                    color={COLORS.textPrimary}
                     style={styles.fab}
                   />
     </TouchableOpacity>
@@ -19,23 +21,22 @@ const FAB = ({onSelect}) => {
 const styles = StyleSheet.create({
   container: {
     position: 'sticky',
-    bottom: 20,
-    right: 20,
-  },
-  fab: {
-    position: 'absolute',
     bottom: 30,
     right: 20,
-    backgroundColor: '#fff',
-    borderRadius: 28,
+
+  },
+
+  fab: {
+    position: 'absolute',
+    bottom: 40,
+    right: 20,
+    backgroundColor: COLORS.primary,
+    borderRadius: SIZES.radius*1.5,
     width: 64,
     height: 64,
-    alignItems: 'center',
-    justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.15,
-    shadowRadius: 6,
     elevation: 5,
   },
  

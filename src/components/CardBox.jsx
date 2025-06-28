@@ -1,5 +1,6 @@
-import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+
+import {COLORS, SIZES} from '../constants/theme';
 
 const BalanceBox = ({ title, amount, seeMore, size, color = '#000' }) => {
   return (
@@ -7,7 +8,7 @@ const BalanceBox = ({ title, amount, seeMore, size, color = '#000' }) => {
       <Text style={styles.title}>{title.toUpperCase()}</Text>
 
       <Text style={
-        size === 's' ? { ...styles.amount, fontSize: 25, color} : styles.amount
+        size === 's' ? { ...styles.amount, fontSize: SIZES.font*2, color} : styles.amount
         
       } >{amount}</Text>
 
@@ -21,11 +22,11 @@ const BalanceBox = ({ title, amount, seeMore, size, color = '#000' }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#F8F9FA', // Fondo claro
+    backgroundColor: COLORS.background, // Fondo claro
     minWidth: '80%',
-    padding: 20,
+    padding: SIZES.padding,
     paddingBottom: 4,
-    borderRadius: 12,
+    borderRadius: SIZES.radius,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
@@ -34,25 +35,25 @@ const styles = StyleSheet.create({
     alignItems: 'left',      
   },
   title: {
-    fontSize: 12,
-    color: '#787B63', // Color similar al de la imagen
+    fontSize: SIZES.font,
+    color: COLORS.neutral,
     fontWeight: 'bold',
   },
   amount: {
-    fontSize: 48,
+    fontSize: SIZES.font * 3.2,
     fontWeight: 'bold',
-    color: '#000',
+    color: COLORS.textPrimary,
     marginVertical: 4,
   },
   divider: {
     width: '100%',
     height: 1,
     backgroundColor: '#C4C4C4',
-    marginVertical: 8,
+    marginVertical: SIZES.base,
   },
   seeMore: {
-    fontSize: 14,
-    color: '#787B63',
+    fontSize: SIZES.font,
+    color: COLORS.textSecondary,
     fontWeight: 'bold', 
   },
     seeMoreContainer: {

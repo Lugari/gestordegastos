@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { COLORS, SIZES, FONTS } from '../constants/theme';
 
 
 const Header = ({ username }) => {
@@ -15,18 +16,18 @@ const Header = ({ username }) => {
 
 const styles = StyleSheet.create({
   header: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    alignItems: 'flex-start', // Alineado a la izquierda
-    flexDirection: 'row', // Elementos en fila
-    justifyContent: 'space-between', 
     width: '100%', 
+    paddingVertical: SIZES.padding,
+    paddingHorizontal: SIZES.padding * 1.25,
+    alignItems: 'flex-start', 
+    flexDirection: 'row',
+    justifyContent: 'space-between', 
   },
   greeting: {
-    fontFamily: 'Poppins',
-    fontSize: 44,
+    fontFamily: FONTS.body.fontFamily,
+    fontSize: SIZES.font * 3,
     fontWeight: 500,
-    color: '#000',
+    color: COLORS.textPrimary,
   },
 });
 
