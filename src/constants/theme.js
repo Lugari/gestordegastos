@@ -8,6 +8,8 @@ export const COLORS = {
   background: '#F8F9FA',
   textPrimary: '#000',
   textSecondary: '#4f6057',
+  lightGray: '#f1f1f1',
+  darkGray: '#333',
 };
 
 export const SIZES = {

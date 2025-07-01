@@ -9,7 +9,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 
 const AddSavingScreen = () => {
-  const { colors } = useTheme();
   const { t } = useTranslation();
 
   const navigation = useNavigation();
@@ -46,7 +45,7 @@ const AddSavingScreen = () => {
 
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
       <ScrollView contentContainerStyle={styles.container}>
         <AddSavingForm onSubmit={handleSubmit} toEdit={toEdit}/>
       </ScrollView>

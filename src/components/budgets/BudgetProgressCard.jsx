@@ -1,12 +1,18 @@
-import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { ProgressChart } from 'react-native-chart-kit';
+
+import { COLORS, SIZES } from '../../constants/theme';
 
 const screenWidth = Dimensions.get('window').width;
 
 const BudgetProgressCard = ({ title, used, total, color="#3498db" }) => {
 
   const percentage = total > 0 ? used / total : 0;
+
+  if (percentage > 1) {
+    console.warn("El porcentaje no puede ser mayor que 1. Ajustando a 1.");
+    percentage = 1; // Aseguramos que el porcentaje no supere 1
+  }
 
   const hexToRgba = (hex, opacity = 1) => {
     const r = parseInt(hex.slice(1, 3), 16)
@@ -30,10 +36,10 @@ const BudgetProgressCard = ({ title, used, total, color="#3498db" }) => {
         strokeWidth={16}
         radius={100}
         chartConfig={{
-          backgroundColor: '#FFFFFF',
-          backgroundGradientFrom: '#FFFFFF',
-          backgroundGradientTo: '#ffffff',
-          color: (opacity = 1) => hexToRgba(color, opacity), // #3498db en RGBA
+          backgroundColor: COLORS.background,
+          backgroundGradientFrom: COLORS.background,
+          backgroundGradientTo: COLORS.background,
+          color: (opacity = 1) => hexToRgba(color, 0.25), 
           strokeWidth: 12,
           
         }}
@@ -60,23 +66,19 @@ const BudgetProgressCard = ({ title, used, total, color="#3498db" }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: COLORS.background,
+    borderRadius: SIZES.radius,
+    padding: SIZES.padding,
     marginVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
     elevation: 3,
   },
   title: {
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: SIZES.font * 1.2,
     marginBottom: 8,
-    color: '#111',
+    color: COLORS.textPrimary,
   },
   chart: {
     marginBottom: 16,
@@ -91,12 +93,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     },
   amount: {
-    fontSize: 24,
+    fontSize: SIZES.font * 1.8,
     fontWeight: 'bold',
   },
   total: {
-    fontSize: 14,
-    color: '#888',
+    fontSize: SIZES.font * 1.2,
+    color: COLORS.textSecondary,
     fontWeight: 'normal',
   },
 });

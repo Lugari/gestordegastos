@@ -12,6 +12,7 @@ import {
 
 import PrimaryButton from '../PrimaryButton'; 
 import SecondaryButton from '../SecondaryButton';
+import { SIZES, COLORS} from '../../constants/theme';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
 import IconPicker from "react-native-icon-picker";
@@ -234,7 +235,7 @@ const handleCurrencyInput = (text) => {
         onChangeText={(value) => handleInputChange('notes', value)}
         multiline
         numberOfLines={4}
-        style={styles.notesInput}
+        style={[styles.input, styles.notesInput]}
         placeholderTextColor="#B5B77E"
       />
 
@@ -250,34 +251,29 @@ const handleCurrencyInput = (text) => {
 // --- Estilos ---
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    paddingBottom: 40, // Espacio extra al final para el scroll
+    backgroundColor: COLORS.background,
+    borderRadius: SIZES.radius,
+    padding: SIZES.padding,
+    paddingBottom: 40, 
   },
   label: {
-    fontSize: 14,
+    fontSize: SIZES.font,
     fontWeight: 'bold',
-    color: '#5f5a67', // Un color estándar para labels
+    color: COLORS.textSecondary, // Un color estándar para labels
     marginTop: 15,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.background,
     borderWidth: 1,
-    borderColor: '#E3E3C4', // Color del borde como en tu imagen
-    borderRadius: 8,
-    paddingHorizontal: 14,
+    borderColor: COLORS.neutral, 
+    borderRadius: SIZES.radius,
+    paddingHorizontal: SIZES.padding,
     paddingVertical: 10,
-    fontSize: 15,
-    color: '#000',
+    fontSize: SIZES.font,
+    color: COLORS.textPrimary,
   },
   notesInput: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#DADDBB',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 15,
-    color: '#000',
     minHeight: 80,
     textAlignVertical: 'top', // Para Android
   },
@@ -287,32 +283,24 @@ const styles = StyleSheet.create({
     gap: 12, // Espacio entre items
     marginBottom: 10,
   },
-  iconButton: {
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: '#f0f0f0', // Fondo gris claro
-    borderWidth: 2,
-    borderColor: 'transparent', // Borde transparente por defecto
-  },
   colorCircle: {
     width: 40,
     height: 40,
-    borderRadius: 20, // Círculo perfecto
+    borderRadius: 20, 
     borderWidth: 2,
     borderColor: 'transparent', // Borde transparente por defecto
   },
   optionSelected: {
-    borderColor: '#007AFF', // Color de borde para indicar selección (azul iOS como ejemplo)
-    // Puedes añadir un shadow o un background diferente si prefieres
+    borderColor: COLORS.secondary,
   },
    dateDisplay: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.background,
     borderWidth: 1,
-    borderColor: '#E3E3C4',
-    borderRadius: 8,
-    paddingHorizontal: 14,
+    borderColor: COLORS.neutral,
+    borderRadius: SIZES.radius,
+    paddingHorizontal: SIZES.padding,
     paddingVertical: 12,
   },
   buttonRow: {

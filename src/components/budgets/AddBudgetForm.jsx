@@ -7,10 +7,13 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
+
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import PrimaryButton from '../PrimaryButton';
 import SecondaryButton from '../SecondaryButton';
+
+import { COLORS, SIZES } from '../../constants/theme';
 
 import IconPicker from "react-native-icon-picker";
 
@@ -227,7 +230,7 @@ const handleCurrencyInput = (text) => {
         <TouchableOpacity onPress={() => setShowDatePicker(true)}>
           <MaterialIcons name="calendar-month" size={24} color="#5f5a67" />
         </TouchableOpacity>
-        <Text style={{ marginLeft: 8, color: '#333' }}>
+        <Text style={{ marginLeft: 8, color: COLORS.textSecondary }}>
           Fecha de inicio: {formData.date.toLocaleDateString('es-CO')}
         </Text>
       </View>
@@ -264,16 +267,24 @@ const handleCurrencyInput = (text) => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    padding: SIZES.padding *2,
+    backgroundColor: COLORS.background,
+    borderRadius: SIZES.radius,
+    margin: SIZES.margin,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    }
   },
   input: {
     borderWidth: 1,
-    borderColor: '#cdd1c5',
-    borderRadius: 8,
-    paddingHorizontal: 14,
+    borderColor: COLORS.neutral,
+    borderRadius: SIZES.radius,
+    paddingHorizontal: SIZES.padding,
     paddingVertical: 10,
     marginBottom: 16,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: COLORS.background,
   },
   subSection: {
     marginBottom: 12,
@@ -281,7 +292,7 @@ const styles = StyleSheet.create({
   label: {
     fontWeight: 'bold',
     marginBottom: 6,
-    color: '#5a5a5a',
+    color: COLORS.textSecondary,
   },
   row: {
     flexDirection: 'row',
@@ -294,34 +305,30 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
   },
-  iconButton: {
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: '#f0f0f0',
-  },
   periodButton: {
     paddingHorizontal: 10,
     paddingVertical: 6,
-    backgroundColor: '#eee',
+    backgroundColor: COLORS.background,
+    borderColor: COLORS.neutral,
+    borderWidth: 1,
     borderRadius: 6,
   },
   periodSelected: {
-    backgroundColor: '#b1c3cb',
+    backgroundColor: COLORS.primary,
   },
   periodText: {
-    color: '#333',
+    color: COLORS.textPrimary,
   },
   periodTextSelected: {
     fontWeight: 'bold',
-    color: '#fff',
   },
   notesInput: {
-    height: 100,
+    height: 80,
     borderWidth: 1,
-    borderColor: '#cdd1c5',
-    borderRadius: 8,
+    borderColor: COLORS.neutral,
+    borderRadius: SIZES.radius,
     padding: 10,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: COLORS.background,
     textAlignVertical: 'top',
     marginTop: 10,
   },

@@ -1,19 +1,19 @@
-import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import PrimaryButton from '../PrimaryButton';
 import SecondaryButton from '../SecondaryButton';
+import { SIZES, COLORS } from '../../constants/theme';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const typeColors = {
-  ingreso: '#196819',
-  gasto: '#D76A61',
-  ahorro: '#90afbb',
+  ingreso: COLORS.secondary,
+  gasto: COLORS.danger,
+  ahorro: COLORS.primary,
 };
 
 const SingleTransactionCard = ({
   amount,
-  type = 'GASTO',
+  type = 'gasto',
   budget,
   date, 
   icon,
@@ -81,29 +81,29 @@ const SingleTransactionCard = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#f9f9f9',
-    padding: 20,
-    borderRadius: 16,
+    backgroundColor: COLORS.background,
+    padding: SIZES.padding,
+    borderRadius: SIZES.radius,
     margin: 20,
-    shadowColor: '#000',
+    shadowColor: COLORS.darkGray,
     shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 1 },
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 4,
   },
   amount: {
-    fontSize: 24,
+    fontSize: SIZES.font *2,
     fontWeight: 'bold',
   },
   label: {
-    fontSize: 18,
+    fontSize: SIZES.font * 1.2,
     fontWeight: '700',
     marginBottom: 16,
   },
   sectionLabel: {
-    color: '#7A7D62',
+    color: COLORS.textSecondary,
     fontWeight: '600',
-    fontSize: 13,
+    fontSize: SIZES.font,
     marginTop: 14,
     marginBottom: 6,
   },
@@ -118,13 +118,13 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   rowText: {
-    fontSize: 14,
-    color: '#000',
+    fontSize: SIZES.font,
+    color: COLORS.textPrimary,
     fontWeight: '500',
   },
   descriptionText: {
-    fontSize: 14,
-    color: '#000',
+    fontSize: SIZES.font,
+    color: COLORS.textPrimary,
     lineHeight: 20,
   },
   buttonRow: {

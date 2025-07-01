@@ -3,7 +3,9 @@ import { View, Text, StyleSheet } from 'react-native';
 import {SIZES, COLORS} from '../constants/theme';
 
 const CategoryBar = ({ name, total, used, color='#005' }) => {
-  const percentage = Math.round((used / total) * 100); // Calculate percentage
+  
+  const percentage = Math.round((used / total) * 100);
+
   return (
     <View style={styles.container}>
       <Text style={styles.categoryName}>{name.toUpperCase()}</Text>

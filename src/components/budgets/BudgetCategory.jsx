@@ -1,6 +1,7 @@
-import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
+import {COLORS, SIZES} from '../../constants/theme';
 
 const BudgetCategory = ({ name, used, total, color }) => {
   const percentage = total > 0 ? used / total : 0;
@@ -27,9 +28,9 @@ const BudgetCategory = ({ name, used, total, color }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#b1c3cb',
-    borderRadius: 14,
-    padding: 14,
+    backgroundColor: COLORS.background,
+    borderRadius: SIZES.radius,
+    padding: SIZES.padding,
     marginVertical: 6,
   },
   header: {
@@ -39,36 +40,36 @@ const styles = StyleSheet.create({
   },
   title: {
     fontWeight: 'bold',
-    color: '#000',
-    fontSize: 14,
+    color: COLORS.textPrimary,
+    fontSize: SIZES.font,
   },
   amount: {
-    fontSize: 13,
+    fontSize: SIZES.font,
     fontWeight: 'bold',
   },
   highlight: {
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: SIZES.font * 1.2,
     
   },
   progressContainer: {
     flexDirection: 'row',
     height: 10,
     width: '95%',
-    backgroundColor: '#ffffff55',
-    borderRadius: 8,
+    backgroundColor: COLORS.background + '55',
+    borderRadius: SIZES.radius,
     position: 'relative',
     overflow: 'visible',
     },
   progressBar: {
     height: '100%',
-    borderRadius: 10,
+    borderRadius: SIZES.radius,
   },
   checkIcon: {
     position: 'absolute',
     top: -6,
     right: -20,
-    borderRadius: 18,
+    borderRadius: SIZES.radius * 1.3,
   },
 });
 

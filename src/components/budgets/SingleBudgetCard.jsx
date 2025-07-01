@@ -1,8 +1,10 @@
-import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
+
 import BudgetProgressCard from './BudgetProgressCard';
 import PrimaryButton from '../PrimaryButton';
 import SecondaryButton from '../SecondaryButton';
+import {SIZES, COLORS} from '../../constants/theme';
+
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const SingleBudgetCard = ({
@@ -19,7 +21,6 @@ const SingleBudgetCard = ({
 }) => {
   return (
     <View style={styles.container}>
-      {/* Reemplaza título y círculo por BudgetProgressCard */}
       <BudgetProgressCard
         title={name}
         used={used}
@@ -55,22 +56,22 @@ const SingleBudgetCard = ({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 16,
+    padding: SIZES.padding * 1.5,
+    backgroundColor: COLORS.background,
+    borderRadius: SIZES.radius,
     margin: 20,
     elevation: 3,
   },
   sectionTitle: {
-    color: '#7a7d62',
+    color: COLORS.textPrimary,
     fontWeight: 'bold',
-    fontSize: 13,
+    fontSize: SIZES.font * 1.1,
     marginTop: 16,
     marginBottom: 4,
   },
   sectionValue: {
-    fontSize: 14,
-    color: '#000',
+    fontSize: SIZES.font,
+    color: COLORS.textSecondary,
   },
   row: {
     flexDirection: 'row',
@@ -78,8 +79,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   description: {
-    fontSize: 14,
-    color: '#000',
+    fontSize: SIZES.font,
+    color: COLORS.textSecondary,
     marginTop: 6,
     lineHeight: 20,
   },

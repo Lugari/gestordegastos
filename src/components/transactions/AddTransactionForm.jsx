@@ -15,6 +15,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import TransactionTypeDropdown from './TransactionTypeDropdown';
 import PrimaryButton from '../PrimaryButton';
 import SecondaryButton from '../SecondaryButton';
+import { SIZES, COLORS } from '../../constants/theme';
 
 
 const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionToEdit }) => {
@@ -22,6 +23,8 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
   const route = useRoute();
 
   const [isEditing, setIsEditing] = useState(false);
+  const [activeDate, setActiveDate] = useState(0); // 'Hoy' es el botón activo por defecto
+
 
   const [formData, setFormData] = useState({
     type: route.params?.transactionType || 'gasto',
@@ -65,6 +68,7 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
     const newDate = new Date();
     newDate.setDate(newDate.getDate() - daysAgo);
     handleInputChange('date', newDate);
+    setActiveDate(daysAgo); // Actualiza el botón activo
   };
 
   const formatCurrency = (value) => {
@@ -211,18 +215,35 @@ const handleCurrencyInput = (text) => {
 
       <Text style={styles.sectionTitle}>Fecha</Text>
       <View style={styles.dateButtonsRow}>
-        <TouchableOpacity onPress={() => setRelativeDate(0)} style={styles.dateQuickBtn}>
-          <Text style={styles.dateQuickBtnText}>Hoy</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setRelativeDate(1)} style={styles.dateQuickBtn}>
-          <Text style={styles.dateQuickBtnText}>Ayer</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setRelativeDate(2)} style={styles.dateQuickBtn}>
-          <Text style={styles.dateQuickBtnText}>Anteayer</Text>
-        </TouchableOpacity>
+
+         {[ { label: 'Hoy', daysAgo: 0 },
+            { label: 'Ayer', daysAgo: 1 },
+            { label: 'Anteayer', daysAgo: 2 },].map((buttonInfo) => (
+          <TouchableOpacity
+            key={buttonInfo.label}
+            onPress={() => setRelativeDate(buttonInfo.daysAgo)}
+            style={[
+              styles.dateQuickBtn,
+              // Aplica el estilo 'activeBtn' si el botón actual es el activo
+              activeDate === buttonInfo.daysAgo && styles.dateQuickBtn_selected,
+            ]}
+          >
+            <Text
+              style={[
+                styles.dateQuickBtnText,
+                // Aplica el estilo 'activeBtnText' si el botón es el activo
+                activeDate === buttonInfo.daysAgo && styles.activeBtnText,
+              ]}
+            >
+              {buttonInfo.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+
         <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-          <MaterialIcons name="calendar-month" size={24} color="#5f5a67" />
+          <MaterialIcons name="calendar-month" size={32} color="#5f5a67" />
         </TouchableOpacity>
+      
 
         {showDatePicker && (
           <DateTimePicker
@@ -236,11 +257,11 @@ const handleCurrencyInput = (text) => {
           />
         )}
       </View>
-      <Text style={styles.dateText}>Seleccionada: {formattedDate}</Text>
+      <Text style={styles.dateText}>Fecha: {formattedDate}</Text>
 
       <Text style={styles.sectionTitle}>Notas</Text>
       <TextInput
-        placeholder="Notas..."
+        placeholder="Descripción..."
         multiline
         numberOfLines={4}
         style={styles.noteInput}
@@ -258,22 +279,23 @@ const handleCurrencyInput = (text) => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    padding: SIZES.padding,
+    borderRadius: SIZES.radius,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: SIZES.font,
     fontWeight: 'bold',
-    color: '#5f5a67',
+    color: COLORS.textSecondary,
     marginTop: 20,
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#cdd1c5',
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    backgroundColor: '#f9f9f9',
+    borderColor: COLORS.textSecondary,
+    borderRadius: SIZES.radius,
+    paddingHorizontal: SIZES.padding,
+    paddingVertical: SIZES.padding * 0.6,
+    backgroundColor: COLORS.background,
   },
   iconRow: {
     flexDirection: 'row',
@@ -286,56 +308,60 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   dateQuickBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#f1f3f2',
-    borderRadius: 8,
+    paddingVertical: SIZES.padding * 0.5,
+    paddingHorizontal: SIZES.padding * 0.66,
+    backgroundColor: COLORS.background,
+    borderRadius: SIZES.radius * 0.8,
+  },
+  dateQuickBtn_selected: {
+    backgroundColor: COLORS.lightGray,
+
   },
   dateQuickBtnText: {
-    color: '#333',
+    color: COLORS.darkGray,
     fontWeight: '500',
   },
   dateText: {
-    fontSize: 13,
-    color: '#555',
-    marginBottom: 12,
+    fontSize: SIZES.font,
+    color: COLORS.textSecondary,
+    marginVertical: 12,
     textAlign: 'center',
   },
   noteInput: {
     borderWidth: 1,
-    borderColor: '#cdd1c5',
-    borderRadius: 8,
-    padding: 10,
+    borderColor: COLORS.lightGray,
+    borderRadius: SIZES.radius * 0.8,
+    padding: SIZES.padding * 0.8,
     height: 100,
     textAlignVertical: 'top',
-    backgroundColor: '#f9f9f9',
+    backgroundColor: COLORS.background,
   },
   buttonRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-evenly',
     marginTop: 24,
   },
   budgetsContainer: {
   flexDirection: 'row',
   flexWrap: 'wrap',
   gap: 12,
-  justifyContent: 'space-between',
   marginBottom: 10,
 },
 
 budgetIconWrapper: {
   alignItems: 'center',
-  padding: 8,
-  borderRadius: 10,
-  backgroundColor: '#f1f1f1',
-  width: '30%',
+  paddingHorizontal: SIZES.padding *1.5,
+  paddingVertical: SIZES.padding * 0.5,
+  borderRadius: SIZES.radius,
+  backgroundColor: COLORS.lightGray,
+  
 },
 
 budgetLabel: {
-  fontSize: 12,
+  fontSize: SIZES.font,
   marginTop: 4,
   textAlign: 'center',
-  color: '#333',
+  color: COLORS.textSecondary,
 },
 });
 

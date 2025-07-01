@@ -1,14 +1,15 @@
-import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
+
+import { SIZES, COLORS } from '../../constants/theme';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 
 
 const typeColors = {
-  ingreso: '#196819',
-  gasto: '#D76A61',
-  ahorro: '#90afbb',
+  ingreso: COLORS.secondary,
+  gasto: COLORS.danger,
+  ahorro: COLORS.primary,
 };
 
 const TransactionCard = ({ name, date, amount, type = 'gasto', icon, color}) => {
@@ -40,13 +41,13 @@ const TransactionCard = ({ name, date, amount, type = 'gasto', icon, color}) => 
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
+    backgroundColor: COLORS.background,
+    borderRadius: SIZES.radius,
+    paddingHorizontal: SIZES.padding,
+    paddingVertical: SIZES.padding * 0.8,
     alignItems: 'center',
     justifyContent: 'space-between',    marginVertical: 6,
-    shadowColor: '#000',
+    shadowColor: COLORS.darkGray,
     shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 1 },
     shadowRadius: 4,
@@ -55,7 +56,7 @@ const styles = StyleSheet.create({
   avatarPlaceholder: {
     width: 64,
     height: 64,
-    borderRadius: 16,
+    borderRadius: SIZES.radius,
   },
   infoContainer: {
     flex: 1,
@@ -69,18 +70,18 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   budgetText: {
-    fontSize: 16,
+    fontSize: SIZES.font * 1.2,
     fontWeight: 'bold',
-    color: '#000',
+    color: COLORS.textPrimary,
     marginBottom: 14,
   },
   subInfoText: {
     marginTop: 4,
-    fontSize: 12,
-    color: '#7A7D62',
+    fontSize: SIZES.font * 0.9,
+    color: COLORS.textSecondary,
   },
   amountText: {
-    fontSize: 18,
+    fontSize: SIZES.font * 1.3,
     fontWeight: '600',
   },
 });

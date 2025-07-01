@@ -8,6 +8,8 @@ import {
   Pressable,
 } from 'react-native';
 
+import { COLORS, SIZES } from '../../constants/theme';
+
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const options = ['ingreso', 'gasto', 'ahorro'];
@@ -64,44 +66,44 @@ const TransactionTypeDropdown = ({ selected, onSelect }) => {
 const styles = StyleSheet.create({
   dropdownButton: {
     borderWidth: 1,
-    borderColor: '#cdd1c5',
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    backgroundColor: '#f4f7f6',
+    borderColor: COLORS.lightGray,
+    borderRadius: SIZES.radius,
+    paddingVertical: SIZES.padding * 0.5,
+    paddingHorizontal: SIZES.padding,
+    backgroundColor: COLORS.background,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   selectedText: {
-    fontSize: 14,
-    color: '#000',
+    fontSize: SIZES.font,
+    color: COLORS.textPrimary,
   },
   arrow: {
     width: 16,
     height: 16,
     marginLeft: 8,
-    tintColor: '#5f7067',
+    tintColor: COLORS.lightGray,
   },
   modalBackground: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 40,
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    paddingHorizontal: SIZES.padding * 2.4,
+    backgroundColor: '#00000088', // Semi-transparent background
   },
   dropdown: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    backgroundColor: COLORS.background,
+    borderRadius: SIZES.radius,
+    paddingVertical:  SIZES.padding * 0.5,
+    paddingHorizontal: SIZES.padding,
     elevation: 5,
   },
   option: {
-    paddingVertical: 10,
+    paddingVertical: SIZES.padding * 0.8,
   },
   optionText: {
-    fontSize: 14,
-    color: '#333',
+    fontSize: SIZES.font,
+    color: COLORS.textPrimary,
   },
 });
 
