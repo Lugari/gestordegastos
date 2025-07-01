@@ -5,6 +5,7 @@ import AddBudgetForm from '../components/budgets/AddBudgetForm';
 import { useManageBudgets } from '../hooks/useBudgetsData';
 
 import { useRoute } from '@react-navigation/native';
+import { useCallback } from 'react';
 
 const AddBudgetScreen = () => {
   const navigation = useNavigation();
@@ -14,7 +15,7 @@ const AddBudgetScreen = () => {
 
   const { budgetToEdit } = route.params || {};
 
-  const handleSubmit = async (formData) => {
+  const handleSubmit = useCallback(async (formData) => {
     try {
       if (budgetToEdit) {
         await updateBudget({ id: budgetToEdit.id, updates: formData });
@@ -33,11 +34,11 @@ const AddBudgetScreen = () => {
       console.error("Error al guardar presupuesto:", error);
       Alert.alert('Error', 'No se pudo guardar el presupuesto.');
     }
-  };
+  }, [addBudget, updateBudget, budgetToEdit, navigation])
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     navigation.goBack(); // Vuelve a la pantalla anterior sin guardar cambios
-  };
+  }, [navigation]);
 
 
   return (

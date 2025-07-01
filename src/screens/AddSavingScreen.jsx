@@ -1,5 +1,6 @@
+import { useCallback } from 'react';
+
 import { ScrollView, View, StyleSheet, Alert } from 'react-native';
-import { useTheme } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import AddSavingForm from '../components/savings/AddSavingForm';
 
@@ -24,7 +25,7 @@ const AddSavingScreen = () => {
 
   const {addSaving, updateSaving} = useManageSavings()
 
-  const handleSubmit = async (data)=>{
+  const handleSubmit = useCallback(async (data)=>{
     try{
       if (toEdit) {
         await updateSaving({ id: toEdit.id, updates: data})
@@ -41,7 +42,7 @@ const AddSavingScreen = () => {
     }catch(e){
       console.log("Error al añadir ahorro", e)
     }
-  }
+  }, [addSaving, updateSaving, toEdit, navigation])
 
 
   return (

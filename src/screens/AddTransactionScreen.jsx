@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import AddTransactionForm from "../components/transactions/AddTransactionForm";  
 
 import { StyleSheet, ScrollView, Alert } from "react-native";
@@ -26,7 +27,7 @@ const AddTransactionScreen = () => {
         navigation.goBack()
     }
 
-    const handleSubmit = async (formData)=>{
+    const handleSubmit = useCallback(async (formData)=>{
         try{  
 
             if (!transaction) {
@@ -77,7 +78,7 @@ const AddTransactionScreen = () => {
             alert('Error', 'No se pudo guardar la transacción o actualizar el presupuesto.');
         }
 
-    }
+    }, [addTransaction, updateTransaction, updateBudget, updateSaving, transaction, budgets, savings, navigation])
 
 
     return (

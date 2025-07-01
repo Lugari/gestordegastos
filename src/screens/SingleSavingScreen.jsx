@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { ScrollView, StyleSheet, View, Alert } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import SingleSavingCard from '../components/savings/SingleSavingCard';
@@ -18,7 +19,7 @@ const SingleSavingScreen = () => {
     const {deleteSaving} = useManageSavings()
     const { saving } = route.params;
 
-    const handleDelete = async ()=>{
+    const handleDelete = useCallback(async ()=>{
         Alert.alert( 
             'Eliminar Ahorro',
             `¿Estás seguro de que quieres eliminar el ahorro "${saving.name}"? Esta acción no se puede deshacer.`,
@@ -37,7 +38,7 @@ const SingleSavingScreen = () => {
                 }}
             ]
         )
-    }
+    }, [saving, deleteSaving, navigation]);
 
     
     return (

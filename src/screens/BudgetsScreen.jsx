@@ -6,6 +6,7 @@ import BudgetProgressCard from '../components/budgets/BudgetProgressCard';
 import BudgetCategory from '../components/budgets/BudgetCategory';
 import FAB from '../components/FAB';
 import PrimaryButton from '../components/PrimaryButton';
+import {SIZES, COLORS} from '../constants/theme';
 
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -90,18 +91,19 @@ const styles = StyleSheet.create({
         backgroundColor: '#f5f5f5',
     },
     scrollContainer: {
-        padding: 16,
+        padding: SIZES.padding,
     },
     emptyContainer: {
+        backgroundColor: COLORS.background,
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 32,
+        padding: SIZES.padding * 2,
         gap: 14,
       },
       emptyText: {
-        fontSize: 16,
-        color: '#5f7067',
+        fontSize: SIZES.font,
+        color: COLORS.textSecondary,
         textAlign: 'center',
       },
 });

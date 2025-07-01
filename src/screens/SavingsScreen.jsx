@@ -13,6 +13,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useGetSavings } from "../hooks/useSavingsData";
 
 import { useTranslation } from 'react-i18next';
+import { COLORS, SIZES } from "../constants/theme";
 
 const SavingsScreen = () => {
 
@@ -91,18 +92,19 @@ const styles = StyleSheet.create({
         backgroundColor: '#f5f5f5',
     },
     scrollContainer: {
-        padding: 16,
+        padding: SIZES.padding,
     },
     emptyContainer: {
+        backgroundColor: COLORS.background,
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 32,
+        padding: SIZES.padding * 2.2,
         gap: 14,
       },
       emptyText: {
-        fontSize: 16,
-        color: '#5f7067',
+        fontSize: SIZES.font * 1.1,
+        color: COLORS.textSecondary,
         textAlign: 'center',
       },
 });

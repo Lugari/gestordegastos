@@ -45,22 +45,6 @@ const HomeScreen = () => {
         setTotalBalance(currentIncome - currentExpense);
     }, [transactions]);
 
-    `const { totalIncome, totalExpenses, totalBalance } = useMemo(() => {
-      let income = 0;
-      let expense = 0;
-
-      transactions.forEach(transaction => {
-        const amount = parseFloat(transaction.amount) || 0;
-        if (transaction.type.toLowerCase() === 'ingreso'){
-          income += amount;
-        }else if (transaction.type.toLowerCase() === 'gasto'){
-          expense += amount;
-        }
-      })
-      const balance = income - expense;
-      return {totalIcome: parseFloat(income), totalExpenses: parseFloat(expense), totalBalance: parseFloat(balance)}
-    }, [transactions])`
-
   const topBudgets = useMemo(() => {
     const sortedBudgets = budgets.map((b => (
       {

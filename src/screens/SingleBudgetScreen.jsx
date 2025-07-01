@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import { ScrollView, StyleSheet, View, Alert } from 'react-native';
 import SingleBudgetCard from '../components/budgets/SingleBudgetCard';
 
@@ -15,7 +15,7 @@ const SingleBudgetScreen = () => {
   const { deleteBudget, isDeleting } = useManageBudgets();
   const { budget } = route.params;
 
-  const handleDeletePress = async () => {
+  const handleDeletePress = useCallback(async () => {
     Alert.alert(
       "Eliminar presupuesto",
       `¿Estás seguro de que quieres eliminar el presupuesto "${budget.name}"?\n\nEsta acción no se puede deshacer.`,
@@ -38,13 +38,13 @@ const SingleBudgetScreen = () => {
           }
       ]
     );
-};
+}, [budget, deleteBudget, navigation]);
 
-const handleEditPress = () =>{
+const handleEditPress = useCallback(() =>{
 
   navigation.navigate('AddBudgetScreen', { budgetToEdit: budget });
 
-}
+}, [budget, navigation]);
 
 
   return (

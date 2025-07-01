@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { StyleSheet, ScrollView, Alert } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 
@@ -20,9 +20,9 @@ const SingleTransactionScreen = () => {
   const { updateBudget } = useManageBudgets();
   const { data: budgets = [], isLoading: isLoadingBudgets, error: budgetsError, refetch: refetchBudgets } = useGetBudgets();
 
-  const navigator = useNavigation(); 
+  const navigation = useNavigation(); 
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
 
     Alert.alert( 
             'Eliminar Transacción',
@@ -36,14 +36,14 @@ const SingleTransactionScreen = () => {
                     
                     if (!updatedBudget) {
                       await deleteTransaction(transaction.id);
-                      navigator.goBack();
+                      navigation.goBack();
                       return;
                     }
 
                     updatedBudget.used -= transaction.amount;
                     await deleteTransaction(transaction.id);
                     updateBudget({id: transaction.budget_id, updates: {used: updatedBudget.used}});
-                    navigator.goBack();
+                    navigation.goBack();
                   } catch (error) {
                     console.error('Error deleting transaction:', error);
                   }
@@ -51,22 +51,7 @@ const SingleTransactionScreen = () => {
                 }}
             ]
         )
-
-
-    
-  };
-
-  const handleEdit = async () => {
-    try {
-      navigator.navigate('AddTransactionScreen', {transaction});
-      
-      console.log('Editar transacción');
-    } catch (error) {
-      console.error('Error editing transaction:', error);
-    }
-  }
-
-  
+  }, [transaction, deleteTransaction, updateBudget, budgets, navigation]);
  
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -80,7 +65,7 @@ const SingleTransactionScreen = () => {
         color={categoryColor}
 
         note={transaction.note}
-        onEdit={() => {handleEdit()}}
+        onEdit={() => {navigation.navigate('AddTransactionScreen', {transaction});}}
         onDelete={() => {handleDelete()}}
       />
     </ScrollView>

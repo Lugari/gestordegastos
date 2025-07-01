@@ -63,15 +63,15 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   sectionTitle: {
-    color: COLORS.textPrimary,
+    color: COLORS.textSecondary,
     fontWeight: 'bold',
-    fontSize: SIZES.font * 1.1,
+    fontSize: SIZES.font ,
     marginTop: 16,
     marginBottom: 4,
   },
   sectionValue: {
-    fontSize: SIZES.font,
-    color: COLORS.textSecondary,
+    fontSize: SIZES.font *1.1,
+    color: COLORS.textPrimary,
   },
   row: {
     flexDirection: 'row',
