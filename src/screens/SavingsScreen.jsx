@@ -37,13 +37,13 @@ const SavingsScreen = () => {
                                 name={saving.name}
                                 used={saving.used}
                                 total={saving.total}
-                                color={saving.selectedColor}
+                                color={saving.color}
                             />
                         </TouchableOpacity>
                     ))}
                 </ScrollView>
                 
-                <FAB onSelect={()=> navigation.navigate('AddSavingScreen')} />
+                <FAB onPress={()=> navigation.navigate('AddSavingScreen')} />
     
             </View>
         ); 

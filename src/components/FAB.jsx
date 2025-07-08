@@ -5,9 +5,9 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 import { COLORS, SIZES } from '../constants/theme';
 
-const FAB = ({onSelect}) => { 
+const FAB = ({onPress}) => { 
   return (
-    <TouchableOpacity style={styles.container} onPressIn={onSelect}>
+    <TouchableOpacity style={styles.container} onPressIn={onPress}>
       <MaterialIcons
                     name="add"
                     size={64}

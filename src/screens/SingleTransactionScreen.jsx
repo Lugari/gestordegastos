@@ -1,26 +1,26 @@
-import React, { useCallback } from 'react';
-import { StyleSheet, ScrollView, Alert } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import React, { useCallback } from 'react'
+import { StyleSheet, ScrollView, Alert } from 'react-native'
+import { useRoute } from '@react-navigation/native'
 
-import { useManageBudgets, useGetBudgets } from '../hooks/useBudgetsData';
+import { useManageBudgets, useGetBudgets } from '../hooks/useBudgetsData'
 import { useManageTransactions } from '../hooks/useTransactionData'
 
 
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native'
 
 
-import SingleTransactionCard from '../components/transactions/SingleTransactionCard'; // ajusta la ruta si es necesario
+import SingleTransactionCard from '../components/transactions/SingleTransactionCard' // ajusta la ruta si es necesario
 
 const SingleTransactionScreen = () => {
 
-  const route = useRoute();
-  const { transaction, categoryName, categoryIcon, categoryColor } = route.params;
+  const route = useRoute()
+  const { transaction, categoryName, categoryIcon, categoryColor } = route.params
 
-  const { deleteTransaction } = useManageTransactions();
-  const { updateBudget } = useManageBudgets();
-  const { data: budgets = [], isLoading: isLoadingBudgets, error: budgetsError, refetch: refetchBudgets } = useGetBudgets();
+  const { deleteTransaction } = useManageTransactions()
+  const { updateBudget } = useManageBudgets()
+  const { data: budgets = [], isLoading: isLoadingBudgets, error: budgetsError, refetch: refetchBudgets } = useGetBudgets()
 
-  const navigation = useNavigation(); 
+  const navigation = useNavigation() 
 
   const handleDelete = useCallback(async () => {
 
@@ -31,27 +31,23 @@ const SingleTransactionScreen = () => {
                 { text: 'cancelar', style: 'cancel'},
                 { text: 'Eliminar', syle: 'destructive', onPress: async ()=> {
                     
-                  try {
-                    const updatedBudget = budgets.find(b => b.id === transaction.budget_id);
-                    
-                    if (!updatedBudget) {
-                      await deleteTransaction(transaction.id);
-                      navigation.goBack();
-                      return;
-                    }
-
-                    updatedBudget.used -= transaction.amount;
-                    await deleteTransaction(transaction.id);
-                    updateBudget({id: transaction.budget_id, updates: {used: updatedBudget.used}});
-                    navigation.goBack();
+                  try { 
+                    await deleteTransaction({
+                      transactionId: transaction.id,
+                      budgetId: transaction.budget_id,
+                      amount: transaction.amount,
+                      type: transaction.type,
+                    })
+                    navigation.popTo('TransactionHistoryScreen')
+                    return
                   } catch (error) {
-                    console.error('Error deleting transaction:', error);
+                    console.error('Error deleting transaction:', error)
                   }
 
                 }}
             ]
         )
-  }, [transaction, deleteTransaction, updateBudget, budgets, navigation]);
+  }, [transaction, deleteTransaction, updateBudget, budgets, navigation])
  
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -65,12 +61,12 @@ const SingleTransactionScreen = () => {
         color={categoryColor}
 
         note={transaction.note}
-        onEdit={() => {navigation.navigate('AddTransactionScreen', {transaction});}}
+        onEdit={() => {navigation.navigate('AddTransactionScreen', {transaction})}}
         onDelete={() => {handleDelete()}}
       />
     </ScrollView>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -79,6 +75,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     flexGrow: 1,
   },
-});
+})
 
-export default SingleTransactionScreen;
+export default SingleTransactionScreen

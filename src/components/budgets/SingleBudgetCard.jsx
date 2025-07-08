@@ -28,6 +28,17 @@ const SingleBudgetCard = ({
         color={color}
       />
 
+      {
+        used > total && (
+          <View style={{ marginTop: 10, alignItems: 'center' }}>
+            <MaterialIcons name="report-problem" size={24} color={COLORS.danger} />
+            <Text style={{ color: COLORS.danger, fontSize: SIZES.font }}>
+              ¡Presupuesto excedido!
+            </Text>
+          </View>
+        )
+      }
+
       <Text style={styles.sectionTitle}>PERIODO</Text>
       <Text style={styles.sectionValue}>{period}</Text>
 

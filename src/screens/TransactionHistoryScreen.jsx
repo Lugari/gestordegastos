@@ -86,13 +86,13 @@ const TransactionHistoryScreen = () => {
 
     }else {
 
-      category = {name: 'Cuenta principal', selectedColor: '#D9D9D9', selectedIcon: 'account-balance-wallet'};
+      category = {name: 'Cuenta principal', color: '#D9D9D9', icon: 'account-balance-wallet'};
     
     }
 
     const categoryName = category ? category.name : 'Cuenta principal';
-    const categoryColor = category ? category.selectedColor : '#D9D9D9';
-    const categoryIcon = category ? category.selectedIcon : 'account-balance-wallet'
+    const categoryColor = category ? category.color : '#D9D9D9';
+    const categoryIcon = category ? category.icon : 'account-balance-wallet'
     return (
       <TouchableOpacity
         onPress={() => navigation.navigate('SingleTransactionScreen', {transaction: item, categoryName, categoryColor, categoryIcon})}
@@ -158,7 +158,7 @@ const TransactionHistoryScreen = () => {
       />
 
       <FAB
-        onSelect={() => navigation.navigate('AddTransactionScreen')}
+        onPress={() => navigation.navigate('AddTransactionScreen')}
         style={styles.addButton}
       />
     </View>

@@ -7,12 +7,13 @@ import {
   StyleSheet,
   ScrollView,
   Platform,
-  Alert
+  Alert,
 } from 'react-native';
 
 import PrimaryButton from '../PrimaryButton'; 
 import SecondaryButton from '../SecondaryButton';
 import { SIZES, COLORS} from '../../constants/theme';
+import { SAVING_ICONS } from '../../constants/icons';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
 import IconPicker from "react-native-icon-picker";
@@ -32,10 +33,11 @@ const AddSavingForm = ({ onSubmit, onCancel, toEdit }) => {
   const [formData, setFormData] = useState({
     name: '',
     total: '', 
-    selectedIcon: iconOptions[0], 
-    selectedColor: colorOptions[0], 
+    icon: iconOptions[0], 
+    color: colorOptions[0], 
     deadline: new Date(),
     notes: '',
+    showable: false, // Nuevo campo para mostrar en balance
   });
 
   useEffect(() => {
@@ -44,10 +46,11 @@ const AddSavingForm = ({ onSubmit, onCancel, toEdit }) => {
       setFormData({
         name: toEdit.name || '',
         total: toEdit.total || '',
-        selectedIcon: toEdit.selectedIcon || iconOptions[0],
-        selectedColor: toEdit.selectedColor || colorOptions[0],
+        icon: toEdit.icon || iconOptions[0],
+        color: toEdit.color || colorOptions[0],
         deadline: new Date(toEdit.deadline) || new Date(),
         notes: toEdit.notes || '',
+        showable: toEdit.showable || false, // Aseguramos que este campo también se inicialice
       });
     }
   
@@ -102,18 +105,20 @@ const handleCurrencyInput = (text) => {
       name: formData.name.trim(),
       total: parseFloat(totalAmount),
       used: parseFloat(0),
-      selectedIcon: formData.selectedIcon,
-      selectedColor: formData.selectedColor,
+      icon: formData.icon,
+      color: formData.color,
       deadline: formData.deadline.toISOString(), // Guarda fecha en formato estándar
       notes: formData.notes.trim(),
+      showable: formData.showable, // Incluye el nuevo campo
     };
     
     onSubmit(savingData)
     
   };
-  const onSelect = (icon) => {
+  const onIconPress = (icon) => {
+    handleInputChange('icon', icon.icon)
     setShowIconPicker(false)
-  }
+    }
 
 
   return (
@@ -147,12 +152,12 @@ const handleCurrencyInput = (text) => {
         {colorOptions.map((color) => (
           <TouchableOpacity
             key={color}
-            onPress={() => handleInputChange('selectedColor', color)}
+            onPress={() => handleInputChange('color', color)}
             style={[
               styles.colorCircle,
               { backgroundColor: color },
               // Borde más grueso si está seleccionado
-              formData.selectedColor === color && styles.optionSelected
+              formData.color === color && styles.optionSelected
             ]}
           />
         ))}
@@ -168,43 +173,12 @@ const handleCurrencyInput = (text) => {
           iconDetails={[
             {
               family: "MaterialIcons",
-              icons: [ 'home', 'receipt', 'shopping-cart', 'favorite', 'search', 'warning', 'edit',],
-            },
-            {
-              family: "AntDesign",
-              color: "blue",
-              icons: [
-                "wallet",
-                "user",
-                "addusergroup",
-                "deleteuser",
-                "deleteusergroup",
-                "adduser",
-              ],
-            },
-            { family: "Entypo", icons: ["wallet"] },
-            { family: "FontAwesome", icons: ["google-wallet"] },
-            {
-              family: "FontAwesome5",
-              icons: [
-                "wallet",
-                "hospital-user",
-                "house-user",
-                "user-alt-slash",
-                "user-cog",
-                "user-md",
-                "user-tag",
-                "user-slash",
-              ],
-            },
-            { family: "Fontisto", icons: ["wallet"] },
-            {
-              family: "MaterialCommunityIcons",
-              icons: ["wallet-membership"],
+              icons: SAVING_ICONS,
+
             },
           ]}
           content={<Text><SecondaryButton title="Seleccionar Icono" onPress={() => setShowIconPicker(true)} /></Text>}
-          onSelect={onSelect}
+          onSelect={onIconPress}
         />
       </View>
 
@@ -226,6 +200,22 @@ const handleCurrencyInput = (text) => {
 
         />
       )}
+      {/* Mostrar en Balance */}
+      <Text style={styles.label}>Mostrar en balance </Text>
+
+      <TouchableOpacity
+        style={styles.checkboxContainer}
+        onPress={() => handleInputChange('showable', !formData.showable)}
+      >
+        <MaterialIcons
+          name={formData.showable ? 'check-box' : 'check-box-outline-blank'}
+          size={24}
+          color={COLORS.primary}
+        />
+        <Text style={styles.checkboxLabel}>{formData.showable ? 'El ahorro se mostrará en el balance' : 'El ahorro NO se mostrará en el balance'}</Text>
+      </TouchableOpacity>
+
+
 
       {/* Notas */}
       <Text style={styles.label}>Notas (Opcional)</Text>
@@ -251,7 +241,6 @@ const handleCurrencyInput = (text) => {
 // --- Estilos ---
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.background,
     borderRadius: SIZES.radius,
     padding: SIZES.padding,
     paddingBottom: 40, 
@@ -270,6 +259,17 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.radius,
     paddingHorizontal: SIZES.padding,
     paddingVertical: 10,
+    fontSize: SIZES.font,
+    color: COLORS.textPrimary,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  checkboxLabel: {
+    marginLeft: 10,
     fontSize: SIZES.font,
     color: COLORS.textPrimary,
   },

@@ -138,7 +138,7 @@ const handleCurrencyInput = (text) => {
       <Text style={styles.sectionTitle}>Tipo de Transacción</Text>
       <TransactionTypeDropdown 
         selected={formData.type} 
-        onSelect={(newType) => handleInputChange('type', newType)}
+        onPress={(newType) => handleInputChange('type', newType)}
       />
 
       <Text style={styles.sectionTitle}>Monto</Text>
@@ -154,22 +154,23 @@ const handleCurrencyInput = (text) => {
       
       
       <View style={styles.budgetsContainer}>
-  {formData.type.toLowerCase() === 'gasto' ? ( // Convertir a minúscula para comparación robusta
+  {formData.type.toLowerCase() === 'gasto' ? ( 
+    
     // --- SECCIÓN PARA GASTOS (mostrar presupuestos) ---
     budgets.map((budget) => (
       <TouchableOpacity
         key={budget.id}
         style={[
           styles.budgetIconWrapper,
-          formData.budget_id === budget.id && { backgroundColor: budget.selectedColor },
+          formData.budget_id === budget.id && { backgroundColor: budget.color },
         ]}
         onPress={() => {
           handleInputChange('budget_id', budget.id);
-          handleInputChange('icon', budget.selectedIcon);
-          handleInputChange('color', budget.selectedColor);
+          handleInputChange('icon', budget.icon);
+          handleInputChange('color', budget.color);
         }}
       >
-        <MaterialIcons name={budget.selectedIcon} size={28} color="#5f5a67" />
+        <MaterialIcons name={budget.icon} size={28} color="#5f5a67" />
         <Text style={styles.budgetLabel}>{budget.name}</Text>
       </TouchableOpacity>
     ))
@@ -185,29 +186,28 @@ const handleCurrencyInput = (text) => {
       </TouchableOpacity> 
     </View>
   ) : formData.type.toLowerCase() === 'ahorro' ? (
-    <View style={styles.accountSelectionPlaceholder}>
-      <Text>Selecciona tu Objetivo de Ahorro</Text>
+    <View style={styles.budgetsContainer}>
         {
           savings.map((saving) => (
             <TouchableOpacity
               key={saving.id}
               style={[
                 styles.budgetIconWrapper,
-                formData.budget_id === saving.id && { backgroundColor: saving.selectedColor },
+                formData.budget_id === saving.id && { backgroundColor: saving.color },
               ]}
               onPress={() => {
                 handleInputChange('budget_id', saving.id);
-                handleInputChange('icon', saving.selectedIcon);
-                handleInputChange('color', saving.selectedColor);
+                handleInputChange('icon', saving.icon);
+                handleInputChange('color', saving.color);
         }}
       >
-        <MaterialIcons name={saving.selectedIcon} size={28} color="#5f5a67" />
+        <MaterialIcons name={saving.icon} size={28} color="#5f5a67" />
         <Text style={styles.budgetLabel}>{saving.name}</Text>
       </TouchableOpacity>
     ))
         }
     </View>
-  ) : null /* O <></> o <View /> si no quieres mostrar nada para otros tipos */}
+  ) : null }
 </View>
 
 
@@ -224,14 +224,12 @@ const handleCurrencyInput = (text) => {
             onPress={() => setRelativeDate(buttonInfo.daysAgo)}
             style={[
               styles.dateQuickBtn,
-              // Aplica el estilo 'activeBtn' si el botón actual es el activo
               activeDate === buttonInfo.daysAgo && styles.dateQuickBtn_selected,
             ]}
           >
             <Text
               style={[
                 styles.dateQuickBtnText,
-                // Aplica el estilo 'activeBtnText' si el botón es el activo
                 activeDate === buttonInfo.daysAgo && styles.activeBtnText,
               ]}
             >
@@ -314,7 +312,7 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.radius * 0.8,
   },
   dateQuickBtn_selected: {
-    backgroundColor: COLORS.lightGray,
+    backgroundColor: COLORS.primary,
 
   },
   dateQuickBtnText: {

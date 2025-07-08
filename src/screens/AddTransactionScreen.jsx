@@ -36,37 +36,6 @@ const AddTransactionScreen = () => {
                 await updateTransaction({id: transaction.id, updates: formData});
             }
 
-            if(formData.type.toLowerCase() === 'gasto'){
-                if (formData.budget_id){
-                    const usedBudget = budgets.find(b => b.id === formData.budget_id)
-                    
-                if (usedBudget) {
-                    if(transaction){
-                        usedBudget.used -= parseFloat(transaction.amount);
-                    }
-                    usedBudget.used += parseFloat(formData.amount);
-                    await updateBudget({id: formData.budget_id, updates: {used: usedBudget.used}});
-                }else{
-                    console.warn(`Presupuesto ${formData.budget_id} no encontrado en la lista actual.`);
-                }}
-            }else if (formData.type.toLowerCase() === 'ahorro'){
-                const savedTransaction = savings.find(s => s.id === formData.budget_id)
-                console.log("Transacción de ahorro:", savedTransaction);
-                
-                if (savedTransaction){
-                    if(transaction){
-                        savedTransaction.used -= parseFloat(transaction.amount);
-                        console.log("Transacción editada, monto usado anterior:", savedTransaction.used);
-                    }
-                    savedTransaction.used += parseFloat(formData.amount);
-                    await updateSaving({id: formData.budget_id, updates: {used: savedTransaction.used}});
-                    console.log("Transacción editada, monto usado nuevo:", savedTransaction.used);
-                }else{
-                    console.warn(`Ahorro ${formData.budget_id} no encontrado en la lista actual.`);
-                }
-
-            }
-
             Alert.alert(
                 'Éxito',
                 transaction ? 'Transacción actualizado correctamente.' : 'transacción añadido correctamente.',

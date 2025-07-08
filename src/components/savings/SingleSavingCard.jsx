@@ -1,7 +1,6 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
-import CategoryBar from '../CategoryBar';
 import PrimaryButton from '../PrimaryButton';
 import SecondaryButton from '../SecondaryButton';
 import BudgetProgressCard from '../budgets/BudgetProgressCard';
@@ -54,24 +53,57 @@ const SingleSavingCard = ({
         title={saving.name}
         used={saving.used}
         total={saving.total}
-        color={saving.selectedColor}
+        color={saving.color}
       />
 
       {/* Info Sections */}
 
       <View style={styles.section}>
-        <Text style={[styles.title, {marginTop:24}]}>Ahorro minimo</Text>
-        <Text style={styles.amount}>Diario: ${calculateScheduledSaving('daily').toLocaleString('es-CO')}</Text>
-        <Text style={styles.amount}>Semanal: ${calculateScheduledSaving('weekly').toLocaleString('es-CO')} </Text>
-        <Text style={styles.amount}>Mensual: ${calculateScheduledSaving('monthly').toLocaleString('es-CO')}</Text>
+        
+        <Text style={styles.sectionTitle}>AHORRO MINIMO</Text>
+        
+          <View style={styles.row}>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Diario: </Text>
+              <View style={styles.iconRow}>
+                <Text style={[styles.sectionValue, {fontSize: SIZES.font * 1.3,fontWeight: '600'}]}>${calculateScheduledSaving('daily').toLocaleString('es-CO')}</Text>  
+              </View>
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Semanal</Text>
+              <View style={styles.iconRow}>
+                <Text style={[styles.sectionValue, {fontSize: SIZES.font * 1.3,fontWeight: '600'}]}> ${calculateScheduledSaving('weekly').toLocaleString('es-CO')} </Text>
+              </View>
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Mensual: </Text>
+              <View style={styles.iconRow}>
+            <Text style={[styles.sectionValue, {fontSize: SIZES.font * 1.3,fontWeight: '600'}]}>${calculateScheduledSaving('monthly').toLocaleString('es-CO')}</Text>
+              </View>
+            </View>
+
+          </View>
       </View>
+
+      <Text style={styles.section}>Te faltan <Text style={{fontSize: SIZES.font *1.2,fontWeight: 'bold'}}>${(saving.total-saving.used).toLocaleString('es-CO')}</Text> para cumplir tu meta de ahorro!</Text>
 
       <View style={styles.row}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>FECHA DE INICIO</Text>
+          <Text style={styles.sectionTitle}>INICIO</Text>
           <View style={styles.iconRow}>
             <MaterialIcons name="calendar-month" size={18} color="#000" />
             <Text style={styles.sectionValue}>{formatDate(saving.created_at)}</Text>
+          </View>
+        </View>
+        
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>ULTIMA ACTUALIZACIÓN</Text>
+          <View style={styles.iconRow}>
+            <MaterialIcons name="calendar-month" size={18} color="#000" />
+            <Text style={styles.sectionValue}>{formatDate(saving.updated_at)}</Text>
           </View>
         </View>
 
@@ -83,13 +115,6 @@ const SingleSavingCard = ({
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>ULTIMA ACTUALIZACIÓN</Text>
-          <View style={styles.iconRow}>
-            <MaterialIcons name="calendar-month" size={18} color="#000" />
-            <Text style={styles.sectionValue}>{formatDate(saving.updated_at)}</Text>
-          </View>
-        </View>
       </View>
 
       <View style={styles.section}>
@@ -124,10 +149,11 @@ const styles = StyleSheet.create({
   amount: {
     marginTop: 10,
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: SIZES.font,
   },
   section: {
     marginTop: 20,
+    fontSize: SIZES.font,
   },
   sectionTitle: {
     color: '#888A3E',
@@ -135,7 +161,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   sectionValue: {
-    fontSize: 14,
+    fontSize: SIZES.font,
     marginTop: 4,
   },
   row: {
@@ -151,7 +177,7 @@ const styles = StyleSheet.create({
   },
   description: {
     marginTop: 6,
-    fontSize: 13,
+    fontSize: SIZES.font,
     color: '#333',
   },
   buttonRow: {

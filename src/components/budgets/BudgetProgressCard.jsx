@@ -1,3 +1,4 @@
+import {useEffect, useState} from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { ProgressChart } from 'react-native-chart-kit';
 
@@ -7,12 +8,16 @@ const screenWidth = Dimensions.get('window').width;
 
 const BudgetProgressCard = ({ title, used, total, color="#3498db" }) => {
 
-  const percentage = total > 0 ? used / total : 0;
+  const [percentage, setPercentage] = useState(0);
 
-  if (percentage > 1) {
-    console.warn("El porcentaje no puede ser mayor que 1. Ajustando a 1.");
-    percentage = 1; // Aseguramos que el porcentaje no supere 1
+  useEffect(() => {
+  
+  if (total >0 && used <= total) {
+    setPercentage(used / total);
+  } else {
+    setPercentage(1) // Aseguramos que el porcentaje no supere 1
   }
+  }, [used, total]);
 
   const hexToRgba = (hex, opacity = 1) => {
     const r = parseInt(hex.slice(1, 3), 16)

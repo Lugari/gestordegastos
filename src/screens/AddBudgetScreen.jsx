@@ -29,7 +29,6 @@ const AddBudgetScreen = () => {
         budgetToEdit ? 'Presupuesto actualizado correctamente.' : 'Presupuesto añadido correctamente.',
         [{ text: 'Aceptar', onPress: () => navigation.popTo('BudgetsScreen') }],
       )
-      navigation.popTo('BudgetsScreen'); // Vuelve a la pantalla anterior tras el éxito
     } catch (error) {
       console.error("Error al guardar presupuesto:", error);
       Alert.alert('Error', 'No se pudo guardar el presupuesto.');

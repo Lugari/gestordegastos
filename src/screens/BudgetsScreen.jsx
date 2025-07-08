@@ -59,13 +59,13 @@ const BudgetsScreen = () => {
                             name={budget.name}
                             used={budget.used}
                             total={budget.total}
-                            color={budget.selectedColor}
+                            color={budget.color}
                         />
                     </TouchableOpacity>
                 ))}
             </ScrollView>
             
-            <FAB onSelect={()=> navigation.navigate('AddBudgetScreen')} />
+            <FAB onPress={()=> navigation.navigate('AddBudgetScreen')} />
 
         </View>
     );

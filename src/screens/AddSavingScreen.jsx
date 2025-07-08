@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 
 import { ScrollView, View, StyleSheet, Alert } from 'react-native';
-import { useTranslation } from 'react-i18next';
 import AddSavingForm from '../components/savings/AddSavingForm';
 
 import {useManageSavings} from '../hooks/useSavingsData'
@@ -10,7 +9,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 
 const AddSavingScreen = () => {
-  const { t } = useTranslation();
 
   const navigation = useNavigation();
   const route = useRoute();
@@ -18,9 +16,9 @@ const AddSavingScreen = () => {
   const toEdit = route.params?.toEdit || null;
 
   if (toEdit) {
-    navigation.setOptions({ title: t('Editar Ahorro') });
+    navigation.setOptions({ title: 'Editar Ahorro' });
   } else {
-    navigation.setOptions({ title: t('Añadir Ahorro') });
+    navigation.setOptions({ title: 'Añadir Ahorro' });
   }
 
   const {addSaving, updateSaving} = useManageSavings()
@@ -44,11 +42,15 @@ const AddSavingScreen = () => {
     }
   }, [addSaving, updateSaving, toEdit, navigation])
 
+  const handleCancel = useCallback(()=>{
+    navigation.popTo('SavingsScreen')
+  })
+
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
       <ScrollView contentContainerStyle={styles.container}>
-        <AddSavingForm onSubmit={handleSubmit} toEdit={toEdit}/>
+        <AddSavingForm onSubmit={handleSubmit} toEdit={toEdit} onCancel={handleCancel}/>
       </ScrollView>
     </View>
   );

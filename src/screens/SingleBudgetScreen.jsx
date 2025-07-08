@@ -54,7 +54,7 @@ const handleEditPress = useCallback(() =>{
         name={budget.name}
         used={budget.used}
         total={budget.total}
-        color={budget.selectedColor}
+        color={budget.color}
         period={budget.period}
         date={budget.date}
         lastUpdate={budget.updated_at}

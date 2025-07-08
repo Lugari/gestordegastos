@@ -49,6 +49,7 @@ export const addSaving= async (savingData) => {
             ...savingData,
             id: Crypto.randomUUID(), // Genera un ID único
             total: parseFloat(savingData.total) || 0, // Asegurar que el monto sea número
+            showable: savingData.showable !== undefined ? savingData.showable : false, // Asegurar que showable sea booleano
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
         }

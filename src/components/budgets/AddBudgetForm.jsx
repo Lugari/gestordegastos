@@ -14,6 +14,7 @@ import PrimaryButton from '../PrimaryButton';
 import SecondaryButton from '../SecondaryButton';
 
 import { COLORS, SIZES } from '../../constants/theme';
+import { BUDGET_ICONS } from '../../constants/icons';
 
 import IconPicker from "react-native-icon-picker";
 
@@ -31,12 +32,13 @@ const AddBudgetForm = ({onCancel, onSubmit, toEdit}) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showIconPicker, setShowIconPicker] = useState(false);  
 
+
   const [formData, setFormData] = useState({
     name: '',
     total: '',
     used: 0,
-    selectedColor: colorOptions[0],
-    selectedIcon: 'wallet', 
+    color: colorOptions[0],
+    icon: 'wallet', 
     period: periodOptions[2], // mensual por defecto
     date: new Date(),
     notes: '',
@@ -48,8 +50,8 @@ const AddBudgetForm = ({onCancel, onSubmit, toEdit}) => {
         name: toEdit.name || '',
         total: toEdit.total?.toString() || '',
         used: toEdit.used || 0,
-        selectedColor: toEdit.selectedColor || colorOptions[0],
-        selectedIcon: toEdit.selectedIcon || 'wallet',
+        color: toEdit.color || colorOptions[0],
+        icon: toEdit.icon || 'wallet',
         period: toEdit.period || periodOptions[2],
         date: toEdit.date ? new Date(toEdit.date) : new Date(),
         notes: toEdit.notes || '',
@@ -87,14 +89,14 @@ const handleCurrencyInput = (text) => {
       return;
     }
 
-    const { name, total, used, selectedColor, selectedIcon, period, date, notes } = formData;
+    const { name, total, used, color, icon, period, date, notes } = formData;
     
     const budgetData = {
       name,
       total: parseFloat(total),
       used: parseFloat(used),
-      selectedColor,
-      selectedIcon,
+      color,
+      icon,
       period,
       date: date.toISOString(),
       notes,
@@ -104,7 +106,8 @@ const handleCurrencyInput = (text) => {
     
   }
   
-  const onSelect = (icon) => {
+  const onIconPress = (icon) => {
+    handleInputChange('icon', icon.icon)
     setShowIconPicker(false)
   }
 
@@ -139,9 +142,9 @@ const handleCurrencyInput = (text) => {
               key={idx}
               style={[
                 styles.colorCircle,
-                { backgroundColor: color, borderWidth: formData.selectedColor === color ? 2 : 0 },
+                { backgroundColor: color, borderWidth: formData.color === color ? 2 : 0 },
               ]}
-              onPress={() => handleInputChange('selectedColor', color)}
+              onPress={() => handleInputChange('color', color)}
             />
           ))}
         </View>
@@ -158,43 +161,11 @@ const handleCurrencyInput = (text) => {
           iconDetails={[
             {
               family: "MaterialIcons",
-              icons: [ 'home', 'receipt', 'shopping-cart', 'favorite', 'search', 'warning', 'edit',],
-            },
-            {
-              family: "AntDesign",
-              color: "blue",
-              icons: [
-                "wallet",
-                "user",
-                "addusergroup",
-                "deleteuser",
-                "deleteusergroup",
-                "adduser",
-              ],
-            },
-            { family: "Entypo", icons: ["wallet"] },
-            { family: "FontAwesome", icons: ["google-wallet"] },
-            {
-              family: "FontAwesome5",
-              icons: [
-                "wallet",
-                "hospital-user",
-                "house-user",
-                "user-alt-slash",
-                "user-cog",
-                "user-md",
-                "user-tag",
-                "user-slash",
-              ],
-            },
-            { family: "Fontisto", icons: ["wallet"] },
-            {
-              family: "MaterialCommunityIcons",
-              icons: ["wallet-membership"],
+              icons: BUDGET_ICONS
             },
           ]}
           content={<Text><SecondaryButton title="Seleccionar Icono" onPress={() => setShowIconPicker(true)} /></Text>}
-          onSelect={onSelect}
+          onSelect={onIconPress}
         />
       </View>
 

@@ -24,7 +24,7 @@ export const useManageBudgets = () => {
     };
 
     const addMutation = useMutation({
-        mutationFn: BudgetService.addBudget,
+        mutationFn: BudgetService.addBudget, 
         ...mutationOptions,
     });
 

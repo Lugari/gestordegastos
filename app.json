@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "ccefe727-6f64-43ec-98f3-fd16cb2de466"
+      }
+    },
+    "android": {
+      "package": "com.lugari.gestordegastos"
+    }
+  }
+}

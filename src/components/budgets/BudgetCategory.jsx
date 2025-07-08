@@ -2,11 +2,20 @@ import { View, Text, StyleSheet } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 import {COLORS, SIZES} from '../../constants/theme';
+import { useEffect, useState} from 'react';
 
 const BudgetCategory = ({ name, used, total, color }) => {
-  const percentage = total > 0 ? used / total : 0;
-  const isComplete = percentage >= 1;
 
+  const [percentage, setPercentage] = useState(0);
+  const isComplete = percentage >= 1;
+  useEffect(() => {
+
+  if (total > 0 && used <= total) {
+    setPercentage(used / total);
+  } else {
+    setPercentage(1); // Aseguramos que el porcentaje no supere 1
+  }
+}, [used, total]);
   return (
     <View style={[styles.card, { backgroundColor: color + '44' }]}>
       <View style={styles.header}>

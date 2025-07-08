@@ -1,19 +1,30 @@
 import { View, Text, StyleSheet } from 'react-native';
 
 import {SIZES, COLORS} from '../constants/theme';
+import { useEffect, useState } from 'react';
 
 const CategoryBar = ({ name, total, used, color='#005' }) => {
   
-  const percentage = Math.round((used / total) * 100);
+  //const percentage = Math.round((used / total) * 100);
 
+  const [percentage, setPercentage] = useState(0);
+
+  useEffect(() => {
+  
+  if (total > 0 && used <= total) {
+    setPercentage (used / total)
+  } else {
+    setPercentage(1); // Aseguramos que el porcentaje no supere 1
+  }
+}, [used, total]);
   return (
     <View style={styles.container}>
       <Text style={styles.categoryName}>{name.toUpperCase()}</Text>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignContent: 'center', width: '100%' }}>
         <View style={[styles.progressBar, { backgroundColor: color + '55' }]}>
-          <View style={[styles.progressFill, { width: `${percentage}%`, backgroundColor:color }]} />
+          <View style={[styles.progressFill, { width: `${percentage*100}%`, backgroundColor:color  }]} />
         </View>
-        <Text style={[styles.percentage, {color}]}>{ percentage }%</Text>
+        <Text style={[styles.percentage, {color: color}]}>{ Math.round(percentage*100) }%</Text>
       </View>
     </View>
   );

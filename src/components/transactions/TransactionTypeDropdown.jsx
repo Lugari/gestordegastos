@@ -14,11 +14,11 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const options = ['ingreso', 'gasto', 'ahorro'];
 
-const TransactionTypeDropdown = ({ selected, onSelect }) => {
+const TransactionTypeDropdown = ({ selected, onPress }) => {
   const [visible, setVisible] = useState(false);
 
   const handleSelect = (option) => {
-    onSelect(option);
+    onPress(option);
     setVisible(false);
   };
 

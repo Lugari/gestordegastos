@@ -1,12 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import * as TransactionService from '../services/transactionService'; // Importa tu servicio
+import * as TransactionService from '../services/transactionService'; 
+import * as SavingService from '../services/savingService'; 
+import * as BudgetService from '../services/budgetService';
 
 export const useGetTransactions = () => {
   return useQuery({
     queryKey: ['transactions'], 
     queryFn: TransactionService.getAllTransactions,
   });
-  // Esto devuelve { data, isLoading, isError, error, refetch, ... }
+  // devuelve { data, isLoading, isError, error, refetch, ... }
 };
 
 export const useManageTransactions = () => {
@@ -14,10 +16,10 @@ export const useManageTransactions = () => {
 
   const mutationOptions = {
     onSuccess: () => {
-      // Cuando una mutación tiene éxito, invalida la query 'transactions'
-      // Esto hará que React Query la vuelva a cargar automáticamente
+      // invalida la query para que React Query la vuelva a cargar automáticamente
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      queryClient.invalidateQueries({ queryKey: ['savings'] });
     },
     onError: (error) => {
       // Puedes manejar errores globalmente aquí si quieres (ej. mostrar notificación)
@@ -27,20 +29,52 @@ export const useManageTransactions = () => {
 
   // Mutación para AÑADIR
   const addMutation = useMutation({
-    mutationFn: TransactionService.addTransaction, // Llama a la función del servicio
-    ...mutationOptions,
+    mutationFn: async (transactionData) => {
+      
+      const newTransaction = await TransactionService.addTransaction(transactionData)
+
+      if (transactionData.type.toLowerCase() === 'gasto' && transactionData.budget_id) {
+        const budgets = queryClient.getQueryData(['budgets'])
+        const budget = budgets.find(b => b.id === transactionData.budget_id);
+        if (budget) {
+          const newUsedAmount = (budget.used || 0) + transactionData.amount
+          await BudgetService.updateBudgetById(transactionData.budget_id, { used: newUsedAmount }); 
+        }
+      }else if (transactionData.type.toLowerCase() === 'ahorro' && transactionData.budget_id) {
+        const savings = queryClient.getQueryData(['savings'])
+        const saving = savings.find(s => s.id === transactionData.budget_id)
+        if (saving){
+          const newUsedAmount = (saving.used || 0) + transactionData.amount
+          await SavingService.updateSavingById(transactionData.budget_id, { used: newUsedAmount})
+        }
+      }
+      return newTransaction
+    },
+    ...mutationOptions
   });
 
   // Mutación para BORRAR
   const deleteMutation = useMutation({
-    mutationFn: TransactionService.deleteTransactionById, // Llama a la función del servicio
+    mutationFn: async ({transactionId, budgetId, amount, type}) => {
+      if(type === 'gasto' && budgetId){         // Si es un gasto lo descuenta del monto total usado del presupuesto
+        const budgets = queryClient.getQueryData(['budgets'])
+        const budget = budgets.find(b => b.id === budgetId)
+        if (budget) {
+          const newUsedAmount = Math.max(0, (budget.used || 0) - amount)
+          await BudgetService.updateBudgetById(budgetId, { used: newUsedAmount})
+        }
+      }else if(type === 'ahorro' && budgetId){ //Si es un ahorro lo descuenta del monto toal ahorrado
+        const savings = queryClient.getQueryData(['budgets'])
+        const saving = savings.find(b => b.id === budgetId)
+        if (saving) {
+          const newUsedAmount = Math.max(0, (saving.used || 0) - amount)
+          await SavingService.updateSavingById(budgetId, { used: newUsedAmount})
+        }
+      }
+      await TransactionService.deleteTransactionById(transactionId) // elimina la transacción
+    },
     ...mutationOptions,
-    // Podrías querer hacer algo específico al borrar, como actualizar dependencias
-     onSuccess: (data, variables, context) => {
-         queryClient.invalidateQueries(['transactions']);
-         queryClient.invalidateQueries(['budgets']);
-     }
-  });
+  })
 
   // Mutación para ACTUALIZAR
   const updateMutation = useMutation({

@@ -33,7 +33,7 @@ const SingleTransactionCard = ({
   return (
     <View style={styles.card}>
       <Text style={[styles.amount, {  color: typeColors[type] }]}>
-        {type.toLowerCase === 'ingreso' ? '+' : '-'}${amount.toLocaleString('es-CO')}
+        {type.toLowerCase === 'gasto' ? '-' : '+'}${amount.toLocaleString('es-CO')}
       </Text>
 
       <Text style={[styles.label, { color: typeColors[type] }]}>

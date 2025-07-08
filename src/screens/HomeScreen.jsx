@@ -17,7 +17,6 @@ const HomeScreen = () => {
 
   const navigation = useNavigation();
 
-
   const { data: transactions = [], isLoading: isLoadingTrasactions, error: transactionsError, refetch: refetchTransactions } = useGetTransactions();
   const { data: budgets = [], isLoading: isLoadingBudgets, error: budgetsError, refetch: refetchBudgets } = useGetBudgets();
   const { data: savings = [], isLoading: isLoadingSavings, error: savingsError, refetch: refetchSavings } = useGetSavings();
@@ -37,6 +36,11 @@ const HomeScreen = () => {
           currentIncome += amount;
         }else if (transaction.type.toLowerCase() === 'gasto'){
           currentExpense+= amount;
+        }else if (transaction.type.toLowerCase() === 'ahorro'){
+          const saving = savings.find(s => s.id === transaction.budget_id);
+          if (saving.showable === false || saving.showable === undefined){
+            currentExpense += amount;
+          }
         }
         });
 
@@ -106,7 +110,7 @@ const HomeScreen = () => {
           <CardBox title="Presupuesto" amount={
             <>
               {topBudgets.map((budget) => (
-                <CategoryBar key={budget.id} name={budget.name} total={budget.total} used={budget.used} color={budget.selectedColor} />
+                <CategoryBar key={budget.id} name={budget.name} total={budget.total} used={budget.used} color={budget.color} />
               ))}
             </>
             } seeMore={<MaterialIcons name="expand-more" size={24} color="black" />} />
@@ -118,7 +122,7 @@ const HomeScreen = () => {
           <CardBox title="Ahorros" amount={
             <>
             {topSavings.map((saving) => (
-                <CategoryBar key={saving.id} name={saving.name} total={saving.total} used={saving.used} color={saving.selectedColor} />
+                <CategoryBar key={saving.id} name={saving.name} total={saving.total} used={saving.used} color={saving.color} />
               ))}
             </>
             } seeMore={<MaterialIcons name="expand-more" size={24} color="black" />} />
