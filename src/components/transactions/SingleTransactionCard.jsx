@@ -18,7 +18,7 @@ const SingleTransactionCard = ({
   date, 
   icon,
   color,
-  note,
+  notes,
   onEdit,
   onDelete,
 }) => {
@@ -67,7 +67,7 @@ const SingleTransactionCard = ({
       {/* DESCRIPCIÓN */}
       <Text style={styles.sectionLabel}>DESCRIPCION</Text>
       <Text style={styles.descriptionText}>
-        {note || 'Sin descripción'}
+        {notes || 'Sin descripción'}
       </Text>
 
       {/* BUTTONS */}

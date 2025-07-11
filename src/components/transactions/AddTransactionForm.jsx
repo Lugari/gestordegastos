@@ -118,7 +118,7 @@ const handleCurrencyInput = (text) => {
       type: 'gasto',
       account:'',
       amount: '',
-      note: '',
+      notes: '',
       date: new Date(),
       icon: '',
       color: '#b1c3cb',

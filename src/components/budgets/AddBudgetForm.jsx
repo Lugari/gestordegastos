@@ -12,11 +12,10 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import PrimaryButton from '../PrimaryButton';
 import SecondaryButton from '../SecondaryButton';
+import IconPicker from '../IconPicker';
 
 import { COLORS, SIZES } from '../../constants/theme';
 import { BUDGET_ICONS } from '../../constants/icons';
-
-import IconPicker from "react-native-icon-picker";
 
 import { useNavigation } from '@react-navigation/native';
 
@@ -29,8 +28,7 @@ const AddBudgetForm = ({onCancel, onSubmit, toEdit}) => {
 
   const navigation = useNavigation()
 
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showIconPicker, setShowIconPicker] = useState(false);  
+  const [showDatePicker, setShowDatePicker] = useState(false); 
 
 
   const [formData, setFormData] = useState({
@@ -106,9 +104,8 @@ const handleCurrencyInput = (text) => {
     
   }
   
-  const onIconPress = (icon) => {
-    handleInputChange('icon', icon.icon)
-    setShowIconPicker(false)
+  const onIconPress = (iconName) => {
+    handleInputChange('icon', iconName)
   }
 
   return (
@@ -155,16 +152,8 @@ const handleCurrencyInput = (text) => {
       <View style={styles.subSection}>
         <Text style={styles.label}>Icono:</Text>
         <IconPicker
-          headerTitle="Seleccionar Icono"
-          showIconPicker={showIconPicker}
-          toggleIconPicker={() => setShowIconPicker(!showIconPicker)}
-          iconDetails={[
-            {
-              family: "MaterialIcons",
-              icons: BUDGET_ICONS
-            },
-          ]}
-          content={<Text><SecondaryButton title="Seleccionar Icono" onPress={() => setShowIconPicker(true)} /></Text>}
+          title="Seleccionar Icono"
+          iconList={BUDGET_ICONS}
           onSelect={onIconPress}
         />
       </View>

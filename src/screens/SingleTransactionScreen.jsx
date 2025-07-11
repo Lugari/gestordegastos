@@ -60,7 +60,7 @@ const SingleTransactionScreen = () => {
         icon={categoryIcon}
         color={categoryColor}
 
-        note={transaction.note}
+        notes={transaction.notes}
         onEdit={() => {navigation.navigate('AddTransactionScreen', {transaction})}}
         onDelete={() => {handleDelete()}}
       />

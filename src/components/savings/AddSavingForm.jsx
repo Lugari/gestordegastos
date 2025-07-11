@@ -12,11 +12,11 @@ import {
 
 import PrimaryButton from '../PrimaryButton'; 
 import SecondaryButton from '../SecondaryButton';
+import IconPicker from '../IconPicker';
 import { SIZES, COLORS} from '../../constants/theme';
 import { SAVING_ICONS } from '../../constants/icons';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
-import IconPicker from "react-native-icon-picker";
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const iconOptions = ['savings', 'credit-card', 'account-balance', 'travel-explore', 'home', 'directions-car'];
@@ -26,14 +26,13 @@ const colorOptions = ['#A77DDB', '#F9DC5C', '#F38BA0', '#b1c3cb', '#b3e6b3', '#e
 
 const AddSavingForm = ({ onSubmit, onCancel, toEdit }) => {
 
-  const [showIconPicker, setShowIconPicker] = useState(false);  
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Estado para todos los campos del formulario
   const [formData, setFormData] = useState({
     name: '',
     total: '', 
-    icon: iconOptions[0], 
+    icon: SAVING_ICONS[0], 
     color: colorOptions[0], 
     deadline: new Date(),
     notes: '',
@@ -115,9 +114,8 @@ const handleCurrencyInput = (text) => {
     onSubmit(savingData)
     
   };
-  const onIconPress = (icon) => {
-    handleInputChange('icon', icon.icon)
-    setShowIconPicker(false)
+  const onIconPress = (iconName) => {
+    handleInputChange('icon', iconName)
     }
 
 
@@ -167,17 +165,8 @@ const handleCurrencyInput = (text) => {
       <View style={styles.subSection}>
         <Text style={styles.label}>Icono:</Text>
         <IconPicker
-          headerTitle="Seleccionar Icono"
-          showIconPicker={showIconPicker}
-          toggleIconPicker={() => setShowIconPicker(!showIconPicker)}
-          iconDetails={[
-            {
-              family: "MaterialIcons",
-              icons: SAVING_ICONS,
-
-            },
-          ]}
-          content={<Text><SecondaryButton title="Seleccionar Icono" onPress={() => setShowIconPicker(true)} /></Text>}
+          title="Seleccionar Icono"
+          iconList={SAVING_ICONS}
           onSelect={onIconPress}
         />
       </View>
