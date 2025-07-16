@@ -1,5 +1,5 @@
-import React, {useCallback} from 'react';
-import { ScrollView, StyleSheet, View, Alert } from 'react-native';
+import {useCallback, useMemo} from 'react';
+import { ScrollView, StyleSheet, View, Alert, FlatList } from 'react-native';
 
 import SingleBudgetCard from '../components/budgets/SingleBudgetCard';
 import TransactionCard from '../components/transactions/TransactionCard'
@@ -20,13 +20,9 @@ const SingleBudgetScreen = () => {
 
   const { budget } = route.params;
 
-  const showTransactions = () => {
-
-    const transactionList = transactions.find(b => b.budget_id === budget.id);
-    
-    
-    
-  }
+  const showTransactions = useMemo(() => transactions.filter(b => b.budget_id === budget.id).sort((a, b) => new Date(b.date) - new Date(a.date)),
+  
+  [transactions, budget.id])
 
   const handleDeletePress = useCallback(async () => {
     Alert.alert(
@@ -61,24 +57,38 @@ const handleEditPress = useCallback(() =>{
 
 
   return (
-    <ScrollView contentContainerStyle={styles.content}>
+      
+      <FlatList 
+        style={styles.container}
+        data= {showTransactions}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={
+          <SingleBudgetCard
+            name={budget.name}
+            used={budget.used}
+            total={budget.total}
+            color={budget.color}
+            period={budget.period}
+            date={budget.date}
+            lastUpdate={budget.updated_at}
+            notes={budget.notes}
+            onEdit={handleEditPress}
+            onDelete={handleDeletePress}
+          />
+        }
+        renderItem={({item}) => (
+          <TransactionCard
+            name={budget.name}
+            date={new Date(item.date).toLocaleDateString('es-CO')}
+            amount={item.amount}
+            type={item.type}
+            icon={budget.icon}
+            color={budget.color}
+          />
+        )}
+        >
 
-      <SingleBudgetCard
-        name={budget.name}
-        used={budget.used}
-        total={budget.total}
-        color={budget.color}
-        period={budget.period}
-        date={budget.date}
-        lastUpdate={budget.updated_at}
-        notes={budget.notes}
-        onEdit={handleEditPress}
-        onDelete={handleDeletePress}
-      />
-      {
-        showTransactions()
-      }
-    </ScrollView>
+      </FlatList>
     
   );
 };

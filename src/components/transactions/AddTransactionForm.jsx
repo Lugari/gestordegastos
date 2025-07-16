@@ -42,15 +42,15 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
    const visibleCategory = useMemo(() => {
     if (showAllCategories){
       if(formData.type === 'gasto'){
-        budgets
+        return budgets
       }else if(formData.type === 'ahorro' ){
-        savings
+        return savings
       }
-    }else {
+    }else if (!showAllCategories){
       if(formData.type === 'gasto'){
-        budgets.slice(0,3)
+        return budgets.slice(0,2)
       }else if(formData.type === 'ahorro' ){
-        savings.slice(0,3)
+        return savings.slice(0,2)
       }
     }
   })
@@ -197,10 +197,10 @@ const handleCurrencyInput = (text) => {
               ))             
             }
             {
-              budgets.length > 3 && !showAllCategories && (
-                <TouchableOpacity style={styles.showMoreButton} onPress={()=> setShowAllCategories(true)}>
-                  <MaterialIcons name="expand-more" size={28} color={COLORS.textPrimary}/>
-                  <Text style={styles.budgetLabel}>Ver más</Text>
+              budgets.length > 2 && (
+                <TouchableOpacity style={styles.showMoreButton} onPress={()=> setShowAllCategories(!showAllCategories)}>
+                  <MaterialIcons name={showAllCategories ? "navigate-before" : "add"} size={28} color={COLORS.textPrimary}/>
+                  <Text style={styles.budgetLabel}>{showAllCategories ? "Ver menos" : "Ver más"}</Text>
                 </TouchableOpacity>
             )}
           </>
@@ -241,10 +241,10 @@ const handleCurrencyInput = (text) => {
             <Text style={styles.budgetLabel}>{saving.name}</Text>
             </TouchableOpacity>
             ))}
-              {savings.length > 3 && !showAllSavings && (
+              {savings.length > 2 && (
                 <TouchableOpacity style={styles.showMoreButton} onPress={() => setShowAllSavings(true)}>
-                    <MaterialIcons name="expand-more" size={28} color="#5f5a67" />
-                    <Text style={styles.budgetLabel}>Ver más</Text>
+                    <MaterialIcons name={showAllCategories ? "navigate-before" : "add"} size={28} color="#5f5a67" />
+                    <Text style={styles.budgetLabel}>{showAllCategories ? "Ver menos" : "Ver más"}</Text>
                 </TouchableOpacity>
             )}
           </View>
@@ -335,11 +335,6 @@ const styles = StyleSheet.create({
     paddingVertical: SIZES.padding * 0.6,
     backgroundColor: COLORS.background,
   },
-  iconRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 10,
-  },
   dateButtonsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -382,6 +377,8 @@ const styles = StyleSheet.create({
   budgetsContainer: {
   flexDirection: 'row',
   flexWrap: 'wrap',
+  justifyContent: 'space-evenly',
+  alignContent: 'flex-start',
   gap: 12,
   marginBottom: 10,
 },
@@ -406,6 +403,15 @@ disabledOverlay: {
     backgroundColor: 'rgba(230, 230, 230, 0.6)', // Un color gris semi-transparente
     borderRadius: 8, // Para que coincida con el borde del dropdown
   },
+  showMoreButton: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 8,
+        borderRadius: 10,
+        backgroundColor: '#e8e8e8',
+        width: '22%', // Para que ocupe el mismo espacio que un ítem de presupuesto
+        minHeight: 70, // Para mantener la altura consistente
+    },
 
 });
 
