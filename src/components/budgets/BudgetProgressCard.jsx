@@ -44,7 +44,7 @@ const BudgetProgressCard = ({ title, used, total, color="#3498db" }) => {
           backgroundColor: COLORS.background,
           backgroundGradientFrom: COLORS.background,
           backgroundGradientTo: COLORS.background,
-          color: (opacity = 1) => hexToRgba(color, 0.25), 
+          color: (opacity = 1) => hexToRgba(color, 1), 
           strokeWidth: 12,
           
         }}

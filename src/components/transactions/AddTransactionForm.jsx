@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   TextInput,
@@ -26,6 +26,8 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
   const [activeDate, setActiveDate] = useState(0); // 'Hoy' es el botón activo por defecto
 
 
+  const [showAllCategories, setShowAllCategories] = useState(false)
+
   const [formData, setFormData] = useState({
     type: route.params?.transactionType || 'gasto',
     account:'',
@@ -36,6 +38,22 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
     icon: '',
     color: '#b1c3cb',
   });
+
+   const visibleCategory = useMemo(() => {
+    if (showAllCategories){
+      if(formData.type === 'gasto'){
+        budgets
+      }else if(formData.type === 'ahorro' ){
+        savings
+      }
+    }else {
+      if(formData.type === 'gasto'){
+        budgets.slice(0,3)
+      }else if(formData.type === 'ahorro' ){
+        savings.slice(0,3)
+      }
+    }
+  })
   
   
   // Si hay una transacción pasada, cargar sus datos
@@ -136,10 +154,13 @@ const handleCurrencyInput = (text) => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.sectionTitle}>Tipo de Transacción</Text>
-      <TransactionTypeDropdown 
-        selected={formData.type} 
-        onPress={(newType) => handleInputChange('type', newType)}
-      />
+      <View pointerEvents={transactionToEdit ? 'none' : 'auto'}>
+        <TransactionTypeDropdown 
+          selected={formData.type} 
+          onPress={(newType) => handleInputChange('type', newType)} 
+        />
+        {transactionToEdit && <View style={styles.disabledOverlay}/>}
+      </View>
 
       <Text style={styles.sectionTitle}>Monto</Text>
       <TextInput
@@ -151,67 +172,86 @@ const handleCurrencyInput = (text) => {
       />
 
       <Text style={styles.sectionTitle}>Categoria</Text>
-      
-      
       <View style={styles.budgetsContainer}>
-  {formData.type.toLowerCase() === 'gasto' ? ( 
-    
-    // --- SECCIÓN PARA GASTOS (mostrar presupuestos) ---
-    budgets.map((budget) => (
-      <TouchableOpacity
-        key={budget.id}
-        style={[
-          styles.budgetIconWrapper,
-          formData.budget_id === budget.id && { backgroundColor: budget.color },
-        ]}
-        onPress={() => {
-          handleInputChange('budget_id', budget.id);
-          handleInputChange('icon', budget.icon);
-          handleInputChange('color', budget.color);
-        }}
-      >
-        <MaterialIcons name={budget.icon} size={28} color="#5f5a67" />
-        <Text style={styles.budgetLabel}>{budget.name}</Text>
-      </TouchableOpacity>
-    ))
-  ) : formData.type.toLowerCase() === 'ingreso' ? (
-    // Por ahora, solo un texto ya que es una cuenta principal.
-    // Más adelante, mapear un array de 'accounts' similar a 'budgets'.
-    <View style={styles.accountSelectionPlaceholder}>
-      <Text>Ingreso a Cuenta Principal</Text>
-      {/* Aquí podrías tener un selector si tuvieras múltiples cuentas */}
-      {/* Por ejemplo, si tuvieras un estado 'selectedAccountId' y un array 'accounts' */}
-      <TouchableOpacity onPress={() => handleInputChange('account', 'ID_CUENTA_PRINCIPAL')}> 
-        <Text>Cuenta Principal</Text> 
-      </TouchableOpacity> 
-    </View>
-  ) : formData.type.toLowerCase() === 'ahorro' ? (
-    <View style={styles.budgetsContainer}>
-        {
-          savings.map((saving) => (
-            <TouchableOpacity
-              key={saving.id}
-              style={[
-                styles.budgetIconWrapper,
-                formData.budget_id === saving.id && { backgroundColor: saving.color },
-              ]}
-              onPress={() => {
-                handleInputChange('budget_id', saving.id);
-                handleInputChange('icon', saving.icon);
-                handleInputChange('color', saving.color);
-        }}
-      >
-        <MaterialIcons name={saving.icon} size={28} color="#5f5a67" />
-        <Text style={styles.budgetLabel}>{saving.name}</Text>
-      </TouchableOpacity>
-    ))
+        {formData.type.toLowerCase() === 'gasto' && ( 
+          // --- SECCIÓN PARA GASTOS (mostrar presupuestos) ---
+          <>
+            {
+              visibleCategory.map((budget) => (
+                <TouchableOpacity
+                  key={budget.id}
+                  style={[
+                    styles.budgetIconWrapper,
+                    formData.budget_id === budget.id && { backgroundColor: budget.color },
+                  ]}
+                  onPress={() => {
+                    handleInputChange('budget_id', budget.id);
+                    handleInputChange('icon', budget.icon);
+                    handleInputChange('color', budget.color);
+                  }}
+                >
+                  <MaterialIcons name={budget.icon} size={28} color="#5f5a67" />
+                  <Text style={styles.budgetLabel}>{budget.name}</Text>
+                </TouchableOpacity>
+              
+              ))             
+            }
+            {
+              budgets.length > 3 && !showAllCategories && (
+                <TouchableOpacity style={styles.showMoreButton} onPress={()=> setShowAllCategories(true)}>
+                  <MaterialIcons name="expand-more" size={28} color={COLORS.textPrimary}/>
+                  <Text style={styles.budgetLabel}>Ver más</Text>
+                </TouchableOpacity>
+            )}
+          </>
+          )
         }
-    </View>
-  ) : null }
-</View>
+            
+        {formData.type.toLowerCase() === 'ingreso' && (
+              // Por ahora, solo un texto ya que es una cuenta principal.
+              // Más adelante, mapear un array de 'accounts' similar a 'budgets'.
+            <View style={styles.accountSelectionPlaceholder}>
+              <Text>Ingreso a Cuenta Principal</Text>
+              {/* Aquí podrías tener un selector si tuvieras múltiples cuentas */}
+              {/* Por ejemplo, si tuvieras un estado 'selectedAccountId' y un array 'accounts' */}
+              <TouchableOpacity onPress={() => handleInputChange('account', 'ID_CUENTA_PRINCIPAL')}> 
+                <Text>Cuenta Principal</Text> 
+              </TouchableOpacity> 
+            </View>
+            ) 
+        }
+        
+        {formData.type.toLowerCase() === 'ahorro' && (
+          <View style={styles.budgetsContainer}>
+            {
+              visibleCategory.map((saving) => (
+                <TouchableOpacity
+                  key={saving.id}
+                  style={[
+                    styles.budgetIconWrapper,
+                    formData.budget_id === saving.id && { backgroundColor: saving.color },
+                  ]}
+                  onPress={() => {
+                    handleInputChange('budget_id', saving.id);
+                    handleInputChange('icon', saving.icon);
+                    handleInputChange('color', saving.color);
+                  }}
+                >
+            <MaterialIcons name={saving.icon} size={28} color="#5f5a67" />
+            <Text style={styles.budgetLabel}>{saving.name}</Text>
+            </TouchableOpacity>
+            ))}
+              {savings.length > 3 && !showAllSavings && (
+                <TouchableOpacity style={styles.showMoreButton} onPress={() => setShowAllSavings(true)}>
+                    <MaterialIcons name="expand-more" size={28} color="#5f5a67" />
+                    <Text style={styles.budgetLabel}>Ver más</Text>
+                </TouchableOpacity>
+            )}
+          </View>
+        )}
+      </View>
 
-
-
+      {/** SELECCIONAR FECHA */}
 
       <Text style={styles.sectionTitle}>Fecha</Text>
       <View style={styles.dateButtonsRow}>
@@ -361,6 +401,12 @@ budgetLabel: {
   textAlign: 'center',
   color: COLORS.textSecondary,
 },
+disabledOverlay: {
+    ...StyleSheet.absoluteFillObject, // Cubre completamente el componente padre
+    backgroundColor: 'rgba(230, 230, 230, 0.6)', // Un color gris semi-transparente
+    borderRadius: 8, // Para que coincida con el borde del dropdown
+  },
+
 });
 
 export default AddTransactionForm;

@@ -1,11 +1,14 @@
 import React, {useCallback} from 'react';
 import { ScrollView, StyleSheet, View, Alert } from 'react-native';
+
 import SingleBudgetCard from '../components/budgets/SingleBudgetCard';
+import TransactionCard from '../components/transactions/TransactionCard'
 
 import { useRoute } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 
 import { useManageBudgets } from '../hooks/useBudgetsData';
+import { useGetTransactions } from '../hooks/useTransactionData';
 
 const SingleBudgetScreen = () => {
 
@@ -13,7 +16,17 @@ const SingleBudgetScreen = () => {
   const route = useRoute();
 
   const { deleteBudget, isDeleting } = useManageBudgets();
+  const { data: transactions = [] } = useGetTransactions();
+
   const { budget } = route.params;
+
+  const showTransactions = () => {
+
+    const transactionList = transactions.find(b => b.budget_id === budget.id);
+    
+    
+    
+  }
 
   const handleDeletePress = useCallback(async () => {
     Alert.alert(
@@ -62,7 +75,11 @@ const handleEditPress = useCallback(() =>{
         onEdit={handleEditPress}
         onDelete={handleDeletePress}
       />
+      {
+        showTransactions()
+      }
     </ScrollView>
+    
   );
 };
 

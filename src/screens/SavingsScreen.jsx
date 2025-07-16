@@ -30,6 +30,7 @@ const SavingsScreen = () => {
                         title="Total"
                         used={savings.map(b => b.used).reduce((a, b) => a + b, 0)}
                         total={savings.map(b => b.total).reduce((a, b) => a + b, 0)}
+                        color={COLORS.primary}
                     />
                     {savings.map((saving, index) => (
                         <TouchableOpacity key={index} onPress={() => navigation.navigate('SingleSavingScreen', { saving })}>

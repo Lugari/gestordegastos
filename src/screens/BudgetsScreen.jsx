@@ -32,7 +32,7 @@ const BudgetsScreen = () => {
 
     const renderEmpty = () => (
         <View style={styles.emptyContainer}>
-            <MaterialIcons name="wallet" size={48} color="#cdd1c5" />
+            <MaterialIcons name="wallet" size={48} color={"#cdd1c5"} />
             <Text style={styles.emptyText}>No hay presupestos registrados</Text>
             <PrimaryButton onPress={()=> navigation.navigate('AddBudgetScreen')} title="Agregar Presupuesto"  />
         </View>
@@ -52,6 +52,7 @@ const BudgetsScreen = () => {
                     title="Total"
                     used={budgets.map(b => b.used).reduce((a, b) => a + b, 0)}
                     total={budgets.map(b => b.total).reduce((a, b) => a + b, 0)}
+                    color={COLORS.primary}
                 />
                 {budgets.map((budget, index) => (
                     <TouchableOpacity key={index} onPress={() => navigation.navigate('SingleBudgetScreen', { budget })}>
