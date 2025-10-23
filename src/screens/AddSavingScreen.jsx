@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 
 import { ScrollView, View, StyleSheet, Alert } from 'react-native';
 import AddSavingForm from '../components/savings/AddSavingForm';
@@ -15,11 +15,10 @@ const AddSavingScreen = () => {
 
   const toEdit = route.params?.toEdit || null;
 
-  if (toEdit) {
-    navigation.setOptions({ title: 'Editar Ahorro' });
-  } else {
-    navigation.setOptions({ title: 'Añadir Ahorro' });
-  }
+  useEffect(() => {
+    const title = toEdit ? 'Editar Ahorro' : 'Añadir Ahorro';
+    navigation.setOptions({ title });
+  }, [navigation, toEdit]);
 
   const {addSaving, updateSaving} = useManageSavings()
 

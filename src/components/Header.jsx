@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { 
     View, 
     Text, 
@@ -10,6 +10,9 @@ import {
     TextInput
 } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { AuthContext } from '../context/AuthContext';
+
+import { useNavigation } from '@react-navigation/native';
 
 import { COLORS, SIZES, FONTS } from '../constants/theme';
 
@@ -20,6 +23,9 @@ const Header = () => {
   const [isNameModalVisible, setNameModalVisible] = useState(false);
   const [username, setUsername] = useState('Usuario');
   const [newName, setNewName] = useState(username);
+  const { logout } = useContext(AuthContext);
+
+  const navigation = useNavigation();
 
 
    useEffect(() => {
@@ -53,6 +59,10 @@ const Header = () => {
     console.log('Navegar a Configuración');
     setModalVisible(false);
   };
+  const handleGoToReports = () => {
+    navigation.navigate("ReportsScreen")
+    setModalVisible(false);
+  }
 
   return (
     <>
@@ -98,6 +108,16 @@ const Header = () => {
               <TouchableOpacity style={styles.optionRow} onPress={handleGoToSettings}>
                 <MaterialIcons name="settings" size={24} color="#555" />
                 <Text style={styles.optionText}>Configuración</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.optionRow} onPress={handleGoToReports}>
+                <MaterialIcons name="settings" size={24} color="#555" />
+                <Text style={styles.optionText}>Reportes</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.optionRow} onPress={logout}>
+                <MaterialIcons name="logout" size={24} color="#555" />
+                <Text style={styles.optionText}>Logout</Text>
               </TouchableOpacity>
             </View>
           </Pressable>
