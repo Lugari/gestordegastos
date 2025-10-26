@@ -29,7 +29,7 @@ export const useManageTransactions = () => {
 
   // Mutación para AÑADIR
   const addMutation = useMutation({
-    mutationFn: async (transactionData) => {
+    mutationFn: async (transactionData) => { 
       
       const newTransaction = await TransactionService.addTransaction(transactionData)
 

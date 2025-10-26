@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"; 
 import * as Crypto from 'expo-crypto';
 
-const BUDGETS_KEY = "@budgets"; // Centralizamos la clave
+const BUDGETS_KEY = "@budgets"; // Centralizamos la clave 
 
 /**
  * Obtiene todos los presupuestos desde AsyncStorage.
