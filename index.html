@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestor de Gastos Personales</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;color:#1e293b;min-height:100vh}
+/* NAV */
+.navbar{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;display:flex;align-items:stretch;flex-wrap:wrap;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(79,70,229,.3)}
+.nav-brand{padding:1rem 1.5rem;font-size:1.1rem;font-weight:700;display:flex;align-items:center;gap:.5rem;white-space:nowrap}
+.nav-tabs{display:flex;flex:1;overflow-x:auto}
+.nav-tab{padding:.875rem 1.1rem;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.7);font-size:.85rem;font-weight:500;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap}
+.nav-tab:hover{color:#fff;background:rgba(255,255,255,.1)}
+.nav-tab.active{color:#fff;border-bottom-color:#fff}
+/* LAYOUT */
+.container{max-width:1200px;margin:0 auto;padding:1.5rem}
+.section{display:none}.section.active{display:block}
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem}
+.stat-card{background:#fff;border-radius:12px;padding:1.25rem;box-shadow:0 1px 4px rgba(0,0,0,.08);border-top:4px solid}
+.stat-card.c-balance{border-color:#4f46e5}.stat-card.c-income{border-color:#10b981}.stat-card.c-expense{border-color:#ef4444}.stat-card.c-savings{border-color:#f59e0b}.stat-card.c-debt{border-color:#8b5cf6}
+.stat-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:#64748b;margin-bottom:.4rem;font-weight:600}
+.stat-value{font-size:1.6rem;font-weight:800}
+.stat-card.c-balance .stat-value{color:#4f46e5}.stat-card.c-income .stat-value{color:#10b981}.stat-card.c-expense .stat-value{color:#ef4444}.stat-card.c-savings .stat-value{color:#f59e0b}.stat-card.c-debt .stat-value{color:#8b5cf6}
+.stat-sub{font-size:.75rem;color:#94a3b8;margin-top:.25rem}
+/* CARD */
+.card{background:#fff;border-radius:12px;padding:1.5rem;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:1rem}
+.card-title{font-size:1rem;font-weight:700;margin-bottom:1rem;color:#374151}
+/* SECTION HEADER */
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:.5rem}
+.section-header h2{font-size:1.4rem;font-weight:800}
+.btn-group{display:flex;gap:.5rem;flex-wrap:wrap}
+/* BUTTONS */
+.btn{padding:.5rem 1rem;border-radius:8px;border:none;cursor:pointer;font-size:.85rem;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:.4rem;line-height:1}
+.btn-primary{background:#4f46e5;color:#fff}.btn-primary:hover{background:#4338ca}
+.btn-success{background:#10b981;color:#fff}.btn-success:hover{background:#059669}
+.btn-danger{background:#ef4444;color:#fff}.btn-danger:hover{background:#dc2626}
+.btn-warning{background:#f59e0b;color:#fff}.btn-warning:hover{background:#d97706}
+.btn-secondary{background:#e2e8f0;color:#475569}.btn-secondary:hover{background:#cbd5e1}
+.btn-purple{background:#8b5cf6;color:#fff}.btn-purple:hover{background:#7c3aed}
+.btn-sm{padding:.3rem .7rem;font-size:.78rem}
+/* TABLE */
+.table-wrap{overflow-x:auto;border-radius:8px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:.7rem 1rem;background:#f8fafc;color:#64748b;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid #e2e8f0;font-weight:700}
+td{padding:.8rem 1rem;border-bottom:1px solid #f1f5f9;font-size:.88rem;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#fafbfd}
+.td-actions{display:flex;gap:.4rem}
+/* BADGE */
+.badge{display:inline-block;padding:.2rem .6rem;border-radius:999px;font-size:.72rem;font-weight:700}
+.badge-budget{background:#dbeafe;color:#1d4ed8}
+.badge-debt{background:#fee2e2;color:#dc2626}
+.badge-savings{background:#fef3c7;color:#b45309}
+.badge-income{background:#d1fae5;color:#059669}
+.badge-transfer{background:#f3e8ff;color:#7c3aed}
+/* AMOUNTS */
+.pos{color:#10b981;font-weight:700}.neg{color:#ef4444;font-weight:700}
+/* PROGRESS */
+.progress-bar{height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-top:.5rem}
+.progress-fill{height:100%;border-radius:999px;transition:width .5s}
+.progress-ok{background:#10b981}.progress-warn{background:#f59e0b}.progress-over{background:#ef4444}
+/* ACCOUNT CARDS */
+.accounts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;margin-bottom:1.5rem}
+.acc-card{background:#fff;border-radius:12px;padding:1.25rem;box-shadow:0 1px 4px rgba(0,0,0,.08);border-left:5px solid}
+.acc-name{font-weight:700;font-size:.95rem;margin-bottom:.25rem}
+.acc-balance{font-size:1.5rem;font-weight:800;margin-bottom:.75rem}
+.acc-actions{display:flex;gap:.4rem}
+/* SAVINGS CARDS */
+.savings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-bottom:1rem}
+.sav-card{background:#fff;border-radius:12px;padding:1.25rem;box-shadow:0 1px 4px rgba(0,0,0,.08);border-top:4px solid #f59e0b}
+.sav-title{font-weight:700;margin-bottom:.25rem}
+.sav-amounts{display:flex;justify-content:space-between;font-size:.8rem;color:#64748b;margin-top:.4rem}
+.sav-actions{display:flex;gap:.4rem;margin-top:.75rem}
+/* DEBT CARDS */
+.debt-cards{display:flex;flex-direction:column;gap:1rem;margin-bottom:1rem}
+.debt-card{background:#fff;border-radius:12px;padding:1.25rem;box-shadow:0 1px 4px rgba(0,0,0,.08);border-left:4px solid #ef4444}
+.debt-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem}
+.debt-name{font-weight:700}
+.debt-info{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.75rem;font-size:.82rem}
+.debt-info-item .label{color:#94a3b8;font-size:.72rem;text-transform:uppercase}
+.debt-info-item .value{font-weight:600}
+/* TRANSFER FORM */
+.transfer-box{background:#f8fafc;border-radius:12px;padding:1.25rem;border:2px dashed #e2e8f0;margin-bottom:1.5rem}
+.transfer-box h3{font-size:1rem;font-weight:700;margin-bottom:1rem;color:#374151}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:1rem;backdrop-filter:blur(2px)}
+.modal{background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+.modal h3{font-size:1.2rem;font-weight:800;margin-bottom:1.5rem;color:#1e293b}
+.modal-footer{display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.5rem;padding-top:1rem;border-top:1px solid #f1f5f9}
+/* FORM */
+.form-group{margin-bottom:1rem}
+label{display:block;font-size:.82rem;font-weight:600;color:#374151;margin-bottom:.35rem}
+input,select,textarea{width:100%;padding:.6rem .875rem;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;outline:none;transition:border-color .2s;font-family:inherit;background:#fff}
+input:focus,select:focus,textarea:focus{border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,.1)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+/* NOTIFICATION */
+.notif{position:fixed;top:1rem;right:1rem;padding:.875rem 1.5rem;border-radius:12px;color:#fff;font-weight:600;z-index:2000;transform:translateX(150%);transition:transform .3s;font-size:.9rem;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+.notif.show{transform:translateX(0)}
+.notif.success{background:#10b981}.notif.error{background:#ef4444}
+/* EMPTY */
+.empty{text-align:center;padding:3rem;color:#94a3b8}
+.empty .icon{font-size:3rem;margin-bottom:.75rem}
+/* RECENT */
+.recent-item{display:flex;justify-content:space-between;align-items:center;padding:.75rem 0;border-bottom:1px solid #f1f5f9}
+.recent-item:last-child{border-bottom:none}
+.ri-desc{font-weight:600;font-size:.88rem}.ri-meta{font-size:.75rem;color:#94a3b8;margin-top:.1rem}
+/* BUDGET ITEM */
+.budget-item{padding:.75rem 0;border-bottom:1px solid #f1f5f9}
+.budget-item:last-child{border-bottom:none}
+.budget-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem}
+.budget-name{font-weight:600;font-size:.9rem}
+/* DASHBOARD GRID */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+/* COLOR SWATCHES */
+.color-opts{display:flex;gap:.5rem;flex-wrap:wrap}
+.color-opt{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .2s}
+.color-opt.selected{border-color:#1e293b;transform:scale(1.15)}
+/* FILTER BAR */
+.filter-bar{display:flex;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.filter-bar input,.filter-bar select{width:auto;min-width:160px}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .form-row{grid-template-columns:1fr}
+  .dash-grid{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .debt-info{grid-template-columns:1fr 1fr}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr}
+  .container{padding:1rem}
+}
+/* ── DARK THEME ── */
+body.dark{background:#0f172a;color:#e2e8f0}
+body.dark .navbar{background:linear-gradient(135deg,#312e81,#4c1d95)}
+body.dark .card{background:#1e293b;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+body.dark .card-title{color:#e2e8f0}
+body.dark .stat-card{background:#1e293b}
+body.dark .stat-label{color:#94a3b8}
+body.dark .stat-sub{color:#64748b}
+body.dark .modal{background:#1e293b}
+body.dark .modal h3{color:#f1f5f9}
+body.dark .modal-footer{border-color:#334155}
+body.dark th{background:#162032;color:#94a3b8;border-color:#334155}
+body.dark td{border-color:#1e293b}
+body.dark tbody tr:hover td{background:#243044}
+body.dark input,body.dark select,body.dark textarea{background:#0f172a;border-color:#334155;color:#e2e8f0}
+body.dark input:focus,body.dark select:focus,body.dark textarea:focus{border-color:#818cf8;box-shadow:0 0 0 3px rgba(129,140,248,.15)}
+body.dark label{color:#cbd5e1}
+body.dark .btn-secondary{background:#334155;color:#94a3b8}
+body.dark .btn-secondary:hover{background:#3f5068}
+body.dark .acc-card{background:#1e293b;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+body.dark .sav-card{background:#1e293b}
+body.dark .debt-card{background:#1e293b}
+body.dark .progress-bar{background:#334155}
+body.dark .budget-item{border-color:#334155}
+body.dark .recent-item{border-color:#334155}
+body.dark .ri-meta{color:#64748b}
+body.dark .budget-name{color:#e2e8f0}
+body.dark .sav-amounts{color:#64748b}
+body.dark .debt-info-item .label{color:#64748b}
+body.dark .badge-budget{background:#1e3a5f;color:#93c5fd}
+body.dark .badge-debt{background:#3b1111;color:#fca5a5}
+body.dark .badge-savings{background:#3b2d00;color:#fcd34d}
+body.dark .transfer-box{background:#162032;border-color:#334155}
+body.dark .filter-bar input,body.dark .filter-bar select{background:#0f172a;border-color:#334155;color:#e2e8f0}
+body.dark .color-opt.selected{border-color:#e2e8f0}
+body.dark .section-header h2{color:#f1f5f9}
+body.dark .empty{color:#475569}
+body.dark .debt-name{color:#e2e8f0}
+/* ── THEME TOGGLE & DATA BUTTONS ── */
+.nav-actions{display:flex;align-items:center;gap:.5rem;padding:.5rem 1rem;margin-left:auto}
+.btn-icon{padding:.5rem .7rem;border-radius:8px;border:none;cursor:pointer;font-size:1rem;transition:all .2s;background:rgba(255,255,255,.15);color:#fff;line-height:1}
+.btn-icon:hover{background:rgba(255,255,255,.25)}
+/* ── IMPORT/EXPORT PANEL ── */
+.io-panel{background:#fff;border-radius:12px;padding:1.25rem;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:1.5rem;display:flex;flex-wrap:wrap;gap:.75rem;align-items:center}
+body.dark .io-panel{background:#1e293b}
+.io-panel span{font-size:.85rem;color:#64748b;font-weight:600}
+body.dark .io-panel span{color:#94a3b8}
+</style>
+<script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-brand">💰 GestorGastos</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showSection('dashboard')">Dashboard</button>
+    <button class="nav-tab" onclick="showSection('accounts')">Cuentas</button>
+    <button class="nav-tab" onclick="showSection('income')">Ingresos</button>
+    <button class="nav-tab" onclick="showSection('expenses')">Gastos</button>
+    <button class="nav-tab" onclick="showSection('budgets')">Presupuestos</button>
+    <button class="nav-tab" onclick="showSection('debts')">Deudas</button>
+    <button class="nav-tab" onclick="showSection('savings')">Ahorros</button>
+  </div>
+  <div class="nav-actions">
+    <button class="btn-icon" onclick="exportData()" title="Exportar a Excel">📥</button>
+    <label class="btn-icon" title="Importar desde Excel" style="cursor:pointer">📤<input type="file" id="import-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importData(this)"></label>
+    <button class="btn-icon" id="theme-btn" onclick="toggleTheme()" title="Cambiar tema">🌙</button>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="section active">
+    <div class="section-header"><h2>Dashboard</h2><span id="dash-date" style="color:#64748b;font-size:.9rem"></span></div>
+    <div class="stats-grid" id="dash-stats"></div>
+    <div class="dash-grid">
+      <div class="card">
+        <div class="card-title">Presupuestos del Mes</div>
+        <div id="dash-budgets"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Transacciones Recientes</div>
+        <div id="dash-recent"></div>
+      </div>
+    </div>
+    <div class="dash-grid" style="margin-top:1rem">
+      <div class="card">
+        <div class="card-title">Deudas Activas</div>
+        <div id="dash-debts"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Metas de Ahorro</div>
+        <div id="dash-savings"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACCOUNTS -->
+  <div id="accounts" class="section">
+    <div class="section-header">
+      <h2>Cuentas Bancarias</h2>
+      <div class="btn-group">
+        <button class="btn btn-purple" onclick="openTransferModal()">⇄ Transferir</button>
+        <button class="btn btn-primary" onclick="openAccountModal()">+ Nueva Cuenta</button>
+      </div>
+    </div>
+    <div class="accounts-grid" id="accounts-grid"></div>
+    <div class="card">
+      <div class="card-title">Historial de Transferencias</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fecha</th><th>Descripción</th><th>Desde</th><th>Hacia</th><th>Monto</th><th>Acciones</th></tr></thead>
+          <tbody id="transfers-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- INCOME -->
+  <div id="income" class="section">
+    <div class="section-header">
+      <h2>Ingresos</h2>
+      <button class="btn btn-success" onclick="openIncomeModal()">+ Nuevo Ingreso</button>
+    </div>
+    <div class="filter-bar">
+      <input type="month" id="income-filter-month" onchange="renderIncome()">
+      <select id="income-filter-account" onchange="renderIncome()"><option value="">Todas las cuentas</option></select>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fecha</th><th>Descripción</th><th>Cuenta</th><th>Monto</th><th>Acciones</th></tr></thead>
+          <tbody id="income-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPENSES -->
+  <div id="expenses" class="section">
+    <div class="section-header">
+      <h2>Gastos</h2>
+      <button class="btn btn-danger" onclick="openExpenseModal()">+ Nuevo Gasto</button>
+    </div>
+    <div class="filter-bar">
+      <input type="month" id="expense-filter-month" onchange="renderExpenses()">
+      <select id="expense-filter-type" onchange="renderExpenses()">
+        <option value="">Todos los tipos</option>
+        <option value="budget">Presupuesto</option>
+        <option value="debt">Pago de Deuda</option>
+        <option value="savings">Ahorro</option>
+      </select>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fecha</th><th>Descripción</th><th>Cuenta</th><th>Categoría</th><th>Tipo</th><th>Monto</th><th>Acciones</th></tr></thead>
+          <tbody id="expenses-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUDGETS -->
+  <div id="budgets" class="section">
+    <div class="section-header">
+      <h2>Presupuestos</h2>
+      <button class="btn btn-primary" onclick="openBudgetModal()">+ Nuevo Presupuesto</button>
+    </div>
+    <div class="filter-bar">
+      <input type="month" id="budget-filter-month" onchange="renderBudgets()">
+    </div>
+    <div id="budgets-list"></div>
+  </div>
+
+  <!-- DEBTS -->
+  <div id="debts" class="section">
+    <div class="section-header">
+      <h2>Deudas</h2>
+      <button class="btn btn-danger" onclick="openDebtModal()">+ Nueva Deuda</button>
+    </div>
+    <div class="debt-cards" id="debts-list"></div>
+  </div>
+
+  <!-- SAVINGS -->
+  <div id="savings" class="section">
+    <div class="section-header">
+      <h2>Metas de Ahorro</h2>
+      <button class="btn btn-warning" onclick="openSavingsModal()">+ Nueva Meta</button>
+    </div>
+    <div class="savings-grid" id="savings-grid"></div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3 id="modal-title">Formulario</h3>
+    <div id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="modal-save-btn" onclick="saveModal()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="notif" class="notif"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const COLORS = ['#4f46e5','#10b981','#ef4444','#f59e0b','#8b5cf6','#06b6d4','#ec4899','#84cc16','#f97316','#64748b'];
+
+let state = {
+  accounts:[],
+  income:[],
+  expenses:[],
+  budgets:[],
+  debts:[],
+  savings:[],
+  transfers:[]
+};
+
+function loadState(){
+  const saved = localStorage.getItem('gestor_v2');
+  if(saved) state = JSON.parse(saved);
+}
+function saveState(){ localStorage.setItem('gestor_v2', JSON.stringify(state)); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function today(){ return new Date().toISOString().slice(0,10); }
+function thisMonth(){ return new Date().toISOString().slice(0,7); }
+function fmt(n){ return new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(n); }
+function fmtDate(d){ if(!d) return ''; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; }
+
+// ─── CALCULATIONS ─────────────────────────────────────────────────────────────
+function getAccountBalance(id){
+  const acc = state.accounts.find(a=>a.id===id);
+  if(!acc) return 0;
+  let b = acc.initialBalance || 0;
+  state.income.filter(i=>i.accountId===id).forEach(i=>b+=i.amount);
+  state.expenses.filter(e=>e.accountId===id).forEach(e=>b-=e.amount);
+  state.transfers.filter(t=>t.toAccountId===id).forEach(t=>b+=t.amount);
+  state.transfers.filter(t=>t.fromAccountId===id).forEach(t=>b-=t.amount);
+  return b;
+}
+function getTotalBalance(){
+  return state.accounts.reduce((s,a)=>s+getAccountBalance(a.id),0);
+}
+function getMonthIncome(month){
+  return state.income.filter(i=>i.date.startsWith(month)).reduce((s,i)=>s+i.amount,0);
+}
+function getMonthExpenses(month, excSavings=false){
+  return state.expenses.filter(e=>e.date.startsWith(month)&&(!excSavings||e.type!=='savings')).reduce((s,e)=>s+e.amount,0);
+}
+function getBudgetSpent(budgetId, month=''){
+  return state.expenses.filter(e=>e.type==='budget'&&e.referenceId===budgetId&&(!month||e.date.startsWith(month))).reduce((s,e)=>s+e.amount,0);
+}
+function getDebtPaid(debtId){
+  return state.expenses.filter(e=>e.type==='debt'&&e.referenceId===debtId).reduce((s,e)=>s+e.amount,0);
+}
+function getSavingsCurrent(savId){
+  return state.expenses.filter(e=>e.type==='savings'&&e.referenceId===savId).reduce((s,e)=>s+e.amount,0);
+}
+function getTotalSavings(){
+  return state.savings.reduce((s,g)=>s+getSavingsCurrent(g.id),0);
+}
+function getAccountName(id){ const a=state.accounts.find(a=>a.id===id); return a?a.name:'—'; }
+function getAccountColor(id){ const a=state.accounts.find(a=>a.id===id); return a?a.color:'#64748b'; }
+function getBudgetName(id){ const b=state.budgets.find(b=>b.id===id); return b?b.name:'—'; }
+function getDebtName(id){ const d=state.debts.find(d=>d.id===id); return d?d.name:'—'; }
+function getSavingsName(id){ const s=state.savings.find(s=>s.id===id); return s?s.name:'—'; }
+function getRefName(type, id){
+  if(type==='budget') return getBudgetName(id);
+  if(type==='debt') return getDebtName(id);
+  if(type==='savings') return getSavingsName(id);
+  return '—';
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+let currentSection = 'dashboard';
+function showSection(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t=>{ if(t.textContent.trim()===getSectionLabel(id)) t.classList.add('active'); });
+  currentSection = id;
+  renderSection(id);
+}
+function getSectionLabel(id){
+  const map={dashboard:'Dashboard',accounts:'Cuentas',income:'Ingresos',expenses:'Gastos',budgets:'Presupuestos',debts:'Deudas',savings:'Ahorros'};
+  return map[id]||id;
+}
+function renderSection(id){
+  if(id==='dashboard') renderDashboard();
+  else if(id==='accounts') renderAccounts();
+  else if(id==='income') renderIncome();
+  else if(id==='expenses') renderExpenses();
+  else if(id==='budgets') renderBudgets();
+  else if(id==='debts') renderDebts();
+  else if(id==='savings') renderSavings();
+}
+
+// ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
+function notify(msg, type='success'){
+  const el=document.getElementById('notif');
+  el.textContent=msg; el.className=`notif ${type} show`;
+  setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+let modalAction = null;
+function openModal(title, bodyHTML, saveFn, btnLabel='Guardar', btnClass='btn-primary'){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-body').innerHTML=bodyHTML;
+  const btn=document.getElementById('modal-save-btn');
+  btn.textContent=btnLabel; btn.className=`btn ${btnClass}`;
+  modalAction=saveFn;
+  document.getElementById('modal').style.display='flex';
+}
+function closeModal(){ document.getElementById('modal').style.display='none'; modalAction=null; }
+function saveModal(){ if(modalAction) modalAction(); }
+
+// ─── ACCOUNTS ─────────────────────────────────────────────────────────────────
+function openAccountModal(id=null){
+  const acc = id ? state.accounts.find(a=>a.id===id) : null;
+  const color = acc?.color || COLORS[0];
+  const swatches = COLORS.map(c=>`<div class="color-opt${c===color?' selected':''}" style="background:${c}" onclick="selectColor(this,'${c}')" data-color="${c}"></div>`).join('');
+  const html=`
+    <div class="form-group"><label>Nombre de la cuenta</label><input id="acc-name" value="${acc?.name||''}" placeholder="Ej: Cuenta Corriente"></div>
+    <div class="form-group"><label>Saldo inicial (€)</label><input id="acc-init" type="number" step="0.01" value="${acc?.initialBalance||0}"></div>
+    <div class="form-group"><label>Color</label><div class="color-opts" id="color-picker">${swatches}</div><input type="hidden" id="acc-color" value="${color}"></div>
+  `;
+  openModal(acc?'Editar Cuenta':'Nueva Cuenta', html, ()=>saveAccount(id));
+}
+function selectColor(el, color){
+  document.querySelectorAll('#color-picker .color-opt').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('acc-color').value=color;
+}
+function saveAccount(id){
+  const name=document.getElementById('acc-name').value.trim();
+  const init=parseFloat(document.getElementById('acc-init').value)||0;
+  const color=document.getElementById('acc-color').value;
+  if(!name) return notify('Ingresa un nombre','error');
+  if(id){
+    const acc=state.accounts.find(a=>a.id===id);
+    acc.name=name; acc.color=color;
+    // Adjust initialBalance by difference to keep current balance consistent
+    const currBal=getAccountBalance(id);
+    const diff=init - (acc.initialBalance || 0);
+    acc.initialBalance = (acc.initialBalance||0)+diff;
+    notify('Cuenta actualizada');
+  } else {
+    state.accounts.push({id:uid(),name,initialBalance:init,color});
+    notify('Cuenta creada');
+  }
+  saveState(); closeModal(); renderSection(currentSection);
+}
+function deleteAccount(id){
+  if(!confirm('¿Eliminar esta cuenta? Se eliminarán todos sus movimientos asociados.')) return;
+  state.accounts=state.accounts.filter(a=>a.id!==id);
+  state.income=state.income.filter(i=>i.accountId!==id);
+  state.expenses=state.expenses.filter(e=>e.accountId!==id);
+  state.transfers=state.transfers.filter(t=>t.fromAccountId!==id&&t.toAccountId!==id);
+  saveState(); renderAccounts(); notify('Cuenta eliminada');
+}
+function renderAccounts(){
+  const grid=document.getElementById('accounts-grid');
+  if(!state.accounts.length){
+    grid.innerHTML=`<div class="empty"><div class="icon">🏦</div><p>No hay cuentas. Crea una para empezar.</p></div>`;
+  } else {
+    grid.innerHTML=state.accounts.map(a=>{
+      const bal=getAccountBalance(a.id);
+      return `<div class="acc-card" style="border-color:${a.color}">
+        <div class="acc-name">${a.name}</div>
+        <div class="acc-balance" style="color:${a.color}">${fmt(bal)}</div>
+        <div class="acc-actions">
+          <button class="btn btn-secondary btn-sm" onclick="openAccountModal('${a.id}')">✏️ Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteAccount('${a.id}')">🗑️</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  // Transfers table
+  const tbody=document.getElementById('transfers-tbody');
+  if(!state.transfers.length){
+    tbody.innerHTML=`<tr><td colspan="6" class="empty"><div class="icon" style="font-size:1.5rem;margin:0;margin-right:.5rem">⇄</div>Sin transferencias</td></tr>`;
+  } else {
+    tbody.innerHTML=[...state.transfers].sort((a,b)=>b.date.localeCompare(a.date)).map(t=>`
+      <tr>
+        <td>${fmtDate(t.date)}</td>
+        <td>${t.description||'Transferencia'}</td>
+        <td><span style="color:${getAccountColor(t.fromAccountId)};font-weight:600">${getAccountName(t.fromAccountId)}</span></td>
+        <td><span style="color:${getAccountColor(t.toAccountId)};font-weight:600">${getAccountName(t.toAccountId)}</span></td>
+        <td><span class="pos">${fmt(t.amount)}</span></td>
+        <td><div class="td-actions"><button class="btn btn-danger btn-sm" onclick="deleteTransfer('${t.id}')">🗑️</button></div></td>
+      </tr>`).join('');
+  }
+}
+function openTransferModal(){
+  if(state.accounts.length<2) return notify('Necesitas al menos 2 cuentas','error');
+  const opts=state.accounts.map(a=>`<option value="${a.id}">${a.name} (${fmt(getAccountBalance(a.id))})</option>`).join('');
+  const html=`
+    <div class="form-group"><label>Desde cuenta</label><select id="tr-from">${opts}</select></div>
+    <div class="form-group"><label>Hacia cuenta</label><select id="tr-to">${opts}</select></div>
+    <div class="form-row">
+      <div class="form-group"><label>Monto ($)</label><input id="tr-amount" type="number" step="0.01" min="0.01" placeholder="0.00"></div>
+      <div class="form-group"><label>Fecha</label><input id="tr-date" type="date" value="${today()}"></div>
+    </div>
+    <div class="form-group"><label>Descripción (opcional)</label><input id="tr-desc" placeholder="Ej: Transferencia a ahorros"></div>
+  `;
+  openModal('Transferir entre Cuentas', html, saveTransfer, 'Transferir','btn-purple');
+}
+function saveTransfer(){
+  const from=document.getElementById('tr-from').value;
+  const to=document.getElementById('tr-to').value;
+  const amount=parseFloat(document.getElementById('tr-amount').value);
+  const date=document.getElementById('tr-date').value;
+  const desc=document.getElementById('tr-desc').value.trim();
+  if(from===to) return notify('Las cuentas deben ser diferentes','error');
+  if(!amount||amount<=0) return notify('Ingresa un monto válido','error');
+  if(!date) return notify('Selecciona una fecha','error');
+  if(getAccountBalance(from)<amount) return notify('Saldo insuficiente en la cuenta origen','error');
+  state.transfers.push({id:uid(),fromAccountId:from,toAccountId:to,amount,date,description:desc});
+  saveState(); closeModal(); renderAccounts(); notify('Transferencia realizada');
+}
+function deleteTransfer(id){
+  if(!confirm('¿Eliminar esta transferencia?')) return;
+  state.transfers=state.transfers.filter(t=>t.id!==id);
+  saveState(); renderAccounts(); notify('Transferencia eliminada');
+}
+
+// ─── INCOME ───────────────────────────────────────────────────────────────────
+function openIncomeModal(id=null){
+  const inc=id?state.income.find(i=>i.id===id):null;
+  const accOpts=state.accounts.map(a=>`<option value="${a.id}"${inc?.accountId===a.id?' selected':''}>${a.name}</option>`).join('');
+  if(!accOpts) return notify('Crea una cuenta bancaria primero','error');
+  const html=`
+    <div class="form-group"><label>Descripción</label><input id="inc-desc" value="${inc?.description||''}" placeholder="Ej: Salario mensual"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Monto ($)</label><input id="inc-amount" type="number" step="0.01" min="0.01" value="${inc?.amount||''}"></div>
+      <div class="form-group"><label>Fecha</label><input id="inc-date" type="date" value="${inc?.date||today()}"></div>
+    </div>
+    <div class="form-group"><label>Cuenta bancaria</label><select id="inc-account">${accOpts}</select></div>
+  `;
+  openModal(inc?'Editar Ingreso':'Nuevo Ingreso', html, ()=>saveIncome(id), 'Guardar','btn-success');
+}
+function saveIncome(id){
+  const desc=document.getElementById('inc-desc').value.trim();
+  const amount=parseFloat(document.getElementById('inc-amount').value);
+  const date=document.getElementById('inc-date').value;
+  const accountId=document.getElementById('inc-account').value;
+  if(!desc) return notify('Ingresa una descripción','error');
+  if(!amount||amount<=0) return notify('Ingresa un monto válido','error');
+  if(!date) return notify('Selecciona una fecha','error');
+  if(id){
+    const inc=state.income.find(i=>i.id===id);
+    Object.assign(inc,{description:desc,amount,date,accountId});
+    notify('Ingreso actualizado');
+  } else {
+    state.income.push({id:uid(),description:desc,amount,date,accountId});
+    notify('Ingreso registrado');
+  }
+  saveState(); closeModal(); renderSection(currentSection);
+}
+function deleteIncome(id){
+  if(!confirm('¿Eliminar este ingreso?')) return;
+  state.income=state.income.filter(i=>i.id!==id);
+  saveState(); renderIncome(); notify('Ingreso eliminado');
+}
+function renderIncome(){
+  populateAccountFilter('income-filter-account');
+  const month=document.getElementById('income-filter-month').value;
+  const accFilter=document.getElementById('income-filter-account').value;
+  let items=[...state.income].sort((a,b)=>b.date.localeCompare(a.date));
+  if(month) items=items.filter(i=>i.date.startsWith(month));
+  if(accFilter) items=items.filter(i=>i.accountId===accFilter);
+  const tbody=document.getElementById('income-tbody');
+  if(!items.length){
+    tbody.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="icon">💵</div><p>Sin ingresos</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML=items.map(i=>`
+    <tr>
+      <td>${fmtDate(i.date)}</td>
+      <td>${i.description}</td>
+      <td><span style="color:${getAccountColor(i.accountId)};font-weight:600">${getAccountName(i.accountId)}</span></td>
+      <td><span class="pos">+${fmt(i.amount)}</span></td>
+      <td><div class="td-actions">
+        <button class="btn btn-secondary btn-sm" onclick="openIncomeModal('${i.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteIncome('${i.id}')">🗑️</button>
+      </div></td>
+    </tr>`).join('');
+}
+function populateAccountFilter(elId){
+  const sel=document.getElementById(elId);
+  const cur=sel.value;
+  sel.innerHTML=`<option value="">Todas las cuentas</option>`+state.accounts.map(a=>`<option value="${a.id}"${cur===a.id?' selected':''}>${a.name}</option>`).join('');
+}
+
+// ─── EXPENSES ─────────────────────────────────────────────────────────────────
+function openExpenseModal(id=null){
+  const exp=id?state.expenses.find(e=>e.id===id):null;
+  const accOpts=state.accounts.map(a=>`<option value="${a.id}"${exp?.accountId===a.id?' selected':''}>${a.name} (${fmt(getAccountBalance(a.id))})</option>`).join('');
+  if(!accOpts) return notify('Crea una cuenta bancaria primero','error');
+  const budgetOpts=state.budgets.map(b=>`<option value="${b.id}"${exp?.referenceId===b.id&&exp?.type==='budget'?' selected':''}>${b.name}</option>`).join('');
+  const debtOpts=state.debts.map(d=>`<option value="${d.id}"${exp?.referenceId===d.id&&exp?.type==='debt'?' selected':''}>${d.name}</option>`).join('');
+  const savOpts=state.savings.map(s=>`<option value="${s.id}"${exp?.referenceId===s.id&&exp?.type==='savings'?' selected':''}>${s.name}</option>`).join('');
+  const type=exp?.type||'budget';
+  const html=`
+    <div class="form-group"><label>Descripción</label><input id="exp-desc" value="${exp?.description||''}" placeholder="Ej: Supermercado"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Monto (€)</label><input id="exp-amount" type="number" step="0.01" min="0.01" value="${exp?.amount||''}"></div>
+      <div class="form-group"><label>Fecha</label><input id="exp-date" type="date" value="${exp?.date||today()}"></div>
+    </div>
+    <div class="form-group"><label>Cuenta bancaria</label><select id="exp-account">${accOpts}</select></div>
+    <div class="form-group"><label>Tipo de gasto</label>
+      <select id="exp-type" onchange="updateExpenseRef()">
+        <option value="budget"${type==='budget'?' selected':''}>Presupuesto</option>
+        <option value="debt"${type==='debt'?' selected':''}>Pago de Deuda</option>
+        <option value="savings"${type==='savings'?' selected':''}>Ahorro</option>
+      </select>
+    </div>
+    <div class="form-group" id="exp-ref-group">
+      <label id="exp-ref-label">Presupuesto</label>
+      <select id="exp-ref">
+        <optgroup label="Presupuestos" id="ref-budget-group">${budgetOpts||'<option disabled>Sin presupuestos</option>'}</optgroup>
+      </select>
+    </div>
+  `;
+  openModal(exp?'Editar Gasto':'Nuevo Gasto', html, ()=>saveExpense(id), 'Guardar','btn-danger');
+  setTimeout(()=>{
+    updateExpenseRef();
+    if(exp) document.getElementById('exp-type').value=exp.type;
+    updateExpenseRef();
+    if(exp) document.getElementById('exp-ref').value=exp.referenceId||'';
+  },10);
+}
+function updateExpenseRef(){
+  const type=document.getElementById('exp-type')?.value;
+  if(!type) return;
+  const label=document.getElementById('exp-ref-label');
+  const sel=document.getElementById('exp-ref');
+  const budgetOpts=state.budgets.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  const debtOpts=state.debts.map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
+  const savOpts=state.savings.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  if(type==='budget'){
+    label.textContent='Presupuesto';
+    sel.innerHTML=budgetOpts||'<option disabled>Sin presupuestos creados</option>';
+  } else if(type==='debt'){
+    label.textContent='Deuda';
+    sel.innerHTML=debtOpts||'<option disabled>Sin deudas creadas</option>';
+  } else {
+    label.textContent='Meta de Ahorro';
+    sel.innerHTML=savOpts||'<option disabled>Sin metas de ahorro creadas</option>';
+  }
+}
+function saveExpense(id){
+  const desc=document.getElementById('exp-desc').value.trim();
+  const amount=parseFloat(document.getElementById('exp-amount').value);
+  const date=document.getElementById('exp-date').value;
+  const accountId=document.getElementById('exp-account').value;
+  const type=document.getElementById('exp-type').value;
+  const referenceId=document.getElementById('exp-ref').value;
+  if(!desc) return notify('Ingresa una descripción','error');
+  if(!amount||amount<=0) return notify('Ingresa un monto válido','error');
+  if(!date) return notify('Selecciona una fecha','error');
+  if(!referenceId) return notify(`Selecciona un ${type==='budget'?'presupuesto':type==='debt'?'deuda':'meta de ahorro'}`,'error');
+  // Warn if insufficient balance (but don't block)
+  const bal=getAccountBalance(accountId);
+  if(id){
+    const exp=state.expenses.find(e=>e.id===id);
+    Object.assign(exp,{description:desc,amount,date,accountId,type,referenceId});
+    notify('Gasto actualizado');
+  } else {
+    if(bal<amount) return notify('Saldo insuficiente en la cuenta seleccionada','error');
+    state.expenses.push({id:uid(),description:desc,amount,date,accountId,type,referenceId});
+    notify('Gasto registrado');
+  }
+  saveState(); closeModal(); renderSection(currentSection);
+}
+function deleteExpense(id){
+  if(!confirm('¿Eliminar este gasto?')) return;
+  state.expenses=state.expenses.filter(e=>e.id!==id);
+  saveState(); renderExpenses(); notify('Gasto eliminado');
+}
+function renderExpenses(){
+  const month=document.getElementById('expense-filter-month').value;
+  const typeFilter=document.getElementById('expense-filter-type').value;
+  let items=[...state.expenses].sort((a,b)=>b.date.localeCompare(a.date));
+  if(month) items=items.filter(e=>e.date.startsWith(month));
+  if(typeFilter) items=items.filter(e=>e.type===typeFilter);
+  const tbody=document.getElementById('expenses-tbody');
+  if(!items.length){
+    tbody.innerHTML=`<tr><td colspan="7"><div class="empty"><div class="icon">💸</div><p>Sin gastos</p></div></td></tr>`;
+    return;
+  }
+  const typeLabel={budget:'Presupuesto',debt:'Pago de Deuda',savings:'Ahorro'};
+  const badgeClass={budget:'badge-budget',debt:'badge-debt',savings:'badge-savings'};
+  tbody.innerHTML=items.map(e=>`
+    <tr>
+      <td>${fmtDate(e.date)}</td>
+      <td>${e.description}</td>
+      <td><span style="color:${getAccountColor(e.accountId)};font-weight:600">${getAccountName(e.accountId)}</span></td>
+      <td>${getRefName(e.type,e.referenceId)}</td>
+      <td><span class="badge ${badgeClass[e.type]}">${typeLabel[e.type]}</span></td>
+      <td><span class="neg">-${fmt(e.amount)}</span></td>
+      <td><div class="td-actions">
+        <button class="btn btn-secondary btn-sm" onclick="openExpenseModal('${e.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteExpense('${e.id}')">🗑️</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+// ─── BUDGETS ──────────────────────────────────────────────────────────────────
+function openBudgetModal(id=null){
+  const b=id?state.budgets.find(b=>b.id===id):null;
+  const html=`
+    <div class="form-group"><label>Nombre del presupuesto</label><input id="bud-name" value="${b?.name||''}" placeholder="Ej: Alimentación"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Monto límite (€)</label><input id="bud-amount" type="number" step="0.01" min="0.01" value="${b?.amount||''}"></div>
+      <div class="form-group"><label>Período</label>
+        <select id="bud-period">
+          <option value="monthly"${(!b||b.period==='monthly')?' selected':''}>Mensual</option>
+          <option value="weekly"${b?.period==='weekly'?' selected':''}>Semanal</option>
+          <option value="yearly"${b?.period==='yearly'?' selected':''}>Anual</option>
+        </select>
+      </div>
+    </div>
+  `;
+  openModal(b?'Editar Presupuesto':'Nuevo Presupuesto', html, ()=>saveBudget(id));
+}
+function saveBudget(id){
+  const name=document.getElementById('bud-name').value.trim();
+  const amount=parseFloat(document.getElementById('bud-amount').value);
+  const period=document.getElementById('bud-period').value;
+  if(!name) return notify('Ingresa un nombre','error');
+  if(!amount||amount<=0) return notify('Ingresa un monto válido','error');
+  if(id){
+    Object.assign(state.budgets.find(b=>b.id===id),{name,amount,period});
+    notify('Presupuesto actualizado');
+  } else {
+    state.budgets.push({id:uid(),name,amount,period});
+    notify('Presupuesto creado');
+  }
+  saveState(); closeModal(); renderSection(currentSection);
+}
+function deleteBudget(id){
+  if(!confirm('¿Eliminar este presupuesto? Los gastos asociados quedarán sin categoría.')) return;
+  state.budgets=state.budgets.filter(b=>b.id!==id);
+  state.expenses.filter(e=>e.type==='budget'&&e.referenceId===id).forEach(e=>e.referenceId=null);
+  saveState(); renderBudgets(); notify('Presupuesto eliminado');
+}
+function renderBudgets(){
+  const month=document.getElementById('budget-filter-month').value||thisMonth();
+  document.getElementById('budget-filter-month').value=month;
+  const list=document.getElementById('budgets-list');
+  if(!state.budgets.length){
+    list.innerHTML=`<div class="card"><div class="empty"><div class="icon">📊</div><p>No hay presupuestos creados.</p></div></div>`;
+    return;
+  }
+  const periodLabel={monthly:'Mensual',weekly:'Semanal',yearly:'Anual'};
+  list.innerHTML=state.budgets.map(b=>{
+    const spent=getBudgetSpent(b.id, month);
+    const pct=Math.min((spent/b.amount)*100,100);
+    const over=spent>b.amount;
+    const fillClass=pct<70?'progress-ok':pct<100?'progress-warn':'progress-over';
+    return `<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
+        <div>
+          <div style="font-weight:700;font-size:1rem">${b.name}</div>
+          <div style="font-size:.78rem;color:#94a3b8">${periodLabel[b.period]}</div>
+        </div>
+        <div style="display:flex;gap:.4rem">
+          <button class="btn btn-secondary btn-sm" onclick="openBudgetModal('${b.id}')">✏️ Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteBudget('${b.id}')">🗑️</button>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:.35rem">
+        <span>Gastado: <strong class="${over?'neg':''}">${fmt(spent)}</strong></span>
+        <span>Límite: <strong>${fmt(b.amount)}</strong></span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill ${fillClass}" style="width:${pct}%"></div></div>
+      ${over?`<div style="color:#ef4444;font-size:.78rem;margin-top:.35rem;font-weight:600">⚠️ Excedido por ${fmt(spent-b.amount)}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ─── DEBTS ────────────────────────────────────────────────────────────────────
+function openDebtModal(id=null){
+  const d=id?state.debts.find(d=>d.id===id):null;
+  const html=`
+    <div class="form-group"><label>Nombre / Acreedor</label><input id="dbt-name" value="${d?.name||''}" placeholder="Ej: Banco Nacional - Hipoteca"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Monto total ($)</label><input id="dbt-total" type="number" step="0.01" min="0.01" value="${d?.totalAmount||''}"></div>
+      <div class="form-group"><label>Interés anual (%)</label><input id="dbt-interest" type="number" step="0.01" min="0" value="${d?.interestRate||0}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Fecha de vencimiento</label><input id="dbt-due" type="date" value="${d?.dueDate||''}"></div>
+      <div class="form-group"><label>Notas</label><input id="dbt-notes" value="${d?.notes||''}" placeholder="Opcional"></div>
+    </div>
+  `;
+  openModal(d?'Editar Deuda':'Nueva Deuda', html, ()=>saveDebt(id), 'Guardar','btn-danger');
+}
+function saveDebt(id){
+  const name=document.getElementById('dbt-name').value.trim();
+  const totalAmount=parseFloat(document.getElementById('dbt-total').value);
+  const interestRate=parseFloat(document.getElementById('dbt-interest').value)||0;
+  const dueDate=document.getElementById('dbt-due').value;
+  const notes=document.getElementById('dbt-notes').value.trim();
+  if(!name) return notify('Ingresa un nombre','error');
+  if(!totalAmount||totalAmount<=0) return notify('Ingresa un monto válido','error');
+  if(id){
+    Object.assign(state.debts.find(d=>d.id===id),{name,totalAmount,interestRate,dueDate,notes});
+    notify('Deuda actualizada');
+  } else {
+    state.debts.push({id:uid(),name,totalAmount,interestRate,dueDate,notes});
+    notify('Deuda registrada');
+  }
+  saveState(); closeModal(); renderSection(currentSection);
+}
+function deleteDebt(id){
+  if(!confirm('¿Eliminar esta deuda?')) return;
+  state.debts=state.debts.filter(d=>d.id!==id);
+  saveState(); renderDebts(); notify('Deuda eliminada');
+}
+function renderDebts(){
+  const list=document.getElementById('debts-list');
+  if(!state.debts.length){
+    list.innerHTML=`<div class="card"><div class="empty"><div class="icon">💳</div><p>No hay deudas registradas.</p></div></div>`;
+    return;
+  }
+  list.innerHTML=state.debts.map(d=>{
+    const paid=getDebtPaid(d.id);
+    const remaining=Math.max(d.totalAmount-paid,0);
+    const pct=Math.min((paid/d.totalAmount)*100,100);
+    const done=remaining<=0;
+    return `<div class="debt-card" style="border-color:${done?'#10b981':'#ef4444'}">
+      <div class="debt-header">
+        <div>
+          <div class="debt-name">${d.name} ${done?'<span style="color:#10b981">✓ Pagada</span>':''}</div>
+          ${d.dueDate?`<div style="font-size:.75rem;color:#94a3b8">Vence: ${fmtDate(d.dueDate)}</div>`:''}
+        </div>
+        <div style="display:flex;gap:.4rem">
+          <button class="btn btn-secondary btn-sm" onclick="openDebtModal('${d.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteDebt('${d.id}')">🗑️</button>
+        </div>
+      </div>
+      <div class="debt-info">
+        <div class="debt-info-item"><div class="label">Total</div><div class="value">${fmt(d.totalAmount)}</div></div>
+        <div class="debt-info-item"><div class="label">Pagado</div><div class="value pos">${fmt(paid)}</div></div>
+        <div class="debt-info-item"><div class="label">Pendiente</div><div class="value ${done?'pos':'neg'}">${fmt(remaining)}</div></div>
+      </div>
+      ${d.interestRate?`<div style="font-size:.78rem;color:#94a3b8;margin-bottom:.5rem">Interés: ${d.interestRate}% anual</div>`:''}
+      <div class="progress-bar"><div class="progress-fill ${done?'progress-ok':pct>=50?'progress-warn':'progress-over'}" style="width:${pct}%"></div></div>
+      <div style="font-size:.75rem;color:#64748b;margin-top:.35rem">${pct.toFixed(1)}% pagado</div>
+      ${d.notes?`<div style="font-size:.78rem;color:#94a3b8;margin-top:.5rem">${d.notes}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ─── SAVINGS ──────────────────────────────────────────────────────────────────
+function openSavingsModal(id=null){
+  const s=id?state.savings.find(s=>s.id===id):null;
+  const html=`
+    <div class="form-group"><label>Nombre de la meta</label><input id="sav-name" value="${s?.name||''}" placeholder="Ej: Vacaciones en Europa"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Meta (€)</label><input id="sav-target" type="number" step="0.01" min="0.01" value="${s?.targetAmount||''}"></div>
+      <div class="form-group"><label>Fecha objetivo</label><input id="sav-deadline" type="date" value="${s?.deadline||''}"></div>
+    </div>
+    <div class="form-group"><label>Descripción (opcional)</label><input id="sav-desc" value="${s?.description||''}" placeholder="Detalles de la meta..."></div>
+  `;
+  openModal(s?'Editar Meta':'Nueva Meta de Ahorro', html, ()=>saveSavings(id), 'Guardar','btn-warning');
+}
+function saveSavings(id){
+  const name=document.getElementById('sav-name').value.trim();
+  const targetAmount=parseFloat(document.getElementById('sav-target').value);
+  const deadline=document.getElementById('sav-deadline').value;
+  const description=document.getElementById('sav-desc').value.trim();
+  if(!name) return notify('Ingresa un nombre','error');
+  if(!targetAmount||targetAmount<=0) return notify('Ingresa un monto válido','error');
+  if(id){
+    Object.assign(state.savings.find(s=>s.id===id),{name,targetAmount,deadline,description});
+    notify('Meta actualizada');
+  } else {
+    state.savings.push({id:uid(),name,targetAmount,deadline,description});
+    notify('Meta creada');
+  }
+  saveState(); closeModal(); renderSection(currentSection);
+}
+function deleteSavings(id){
+  if(!confirm('¿Eliminar esta meta de ahorro?')) return;
+  state.savings=state.savings.filter(s=>s.id!==id);
+  saveState(); renderSavings(); notify('Meta eliminada');
+}
+function renderSavings(){
+  const grid=document.getElementById('savings-grid');
+  if(!state.savings.length){
+    grid.innerHTML=`<div class="card" style="grid-column:1/-1"><div class="empty"><div class="icon">🎯</div><p>No hay metas de ahorro. Crea una para empezar.</p></div></div>`;
+    return;
+  }
+  grid.innerHTML=state.savings.map(s=>{
+    const current=getSavingsCurrent(s.id);
+    const pct=Math.min((current/s.targetAmount)*100,100);
+    const done=current>=s.targetAmount;
+    return `<div class="sav-card">
+      <div class="sav-title">${s.name} ${done?'✅':''}</div>
+      ${s.description?`<div style="font-size:.78rem;color:#94a3b8;margin-bottom:.35rem">${s.description}</div>`:''}
+      ${s.deadline?`<div style="font-size:.75rem;color:#64748b">Objetivo: ${fmtDate(s.deadline)}</div>`:''}
+      <div class="progress-bar" style="margin-top:.75rem"><div class="progress-fill" style="width:${pct}%;background:#f59e0b"></div></div>
+      <div class="sav-amounts">
+        <span>Ahorrado: <strong>${fmt(current)}</strong></span>
+        <span>Meta: <strong>${fmt(s.targetAmount)}</strong></span>
+      </div>
+      <div style="font-size:.75rem;color:#64748b;margin-top:.25rem">${pct.toFixed(1)}% completado ${!done?`· Faltan ${fmt(s.targetAmount-current)}`:''}</div>
+      <div class="sav-actions">
+        <button class="btn btn-secondary btn-sm" onclick="openSavingsModal('${s.id}')">✏️ Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteSavings('${s.id}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+function renderDashboard(){
+  const m=thisMonth();
+  document.getElementById('dash-date').textContent=new Date().toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  // Stats
+  const totalBal=getTotalBalance();
+  const monthInc=getMonthIncome(m);
+  const monthExp=getMonthExpenses(m,true); // exclude savings
+  const totalSav=getTotalSavings();
+  const totalDebt=state.debts.reduce((s,d)=>s+Math.max(d.totalAmount-getDebtPaid(d.id),0),0);
+  document.getElementById('dash-stats').innerHTML=`
+    <div class="stat-card c-balance"><div class="stat-label">Balance Total Cuentas</div><div class="stat-value">${fmt(totalBal)}</div><div class="stat-sub">${state.accounts.length} cuenta(s)</div></div>
+    <div class="stat-card c-income"><div class="stat-label">Ingresos del Mes</div><div class="stat-value">${fmt(monthInc)}</div><div class="stat-sub">${state.income.filter(i=>i.date.startsWith(m)).length} transacciones</div></div>
+    <div class="stat-card c-expense"><div class="stat-label">Gastos del Mes</div><div class="stat-value">${fmt(monthExp)}</div><div class="stat-sub">Sin incluir ahorros</div></div>
+    <div class="stat-card c-savings"><div class="stat-label">Total Ahorrado</div><div class="stat-value">${fmt(totalSav)}</div><div class="stat-sub">${state.savings.length} meta(s)</div></div>
+    <div class="stat-card c-debt"><div class="stat-label">Deuda Pendiente</div><div class="stat-value">${fmt(totalDebt)}</div><div class="stat-sub">${state.debts.filter(d=>getDebtPaid(d.id)<d.totalAmount).length} activa(s)</div></div>
+  `;
+  // Budgets
+  const blist=document.getElementById('dash-budgets');
+  if(!state.budgets.length){
+    blist.innerHTML=`<div style="color:#94a3b8;font-size:.85rem">No hay presupuestos.</div>`;
+  } else {
+    blist.innerHTML=state.budgets.slice(0,5).map(b=>{
+      const spent=getBudgetSpent(b.id,m);
+      const pct=Math.min((spent/b.amount)*100,100);
+      const over=spent>b.amount;
+      const fillClass=pct<70?'progress-ok':pct<100?'progress-warn':'progress-over';
+      return `<div class="budget-item">
+        <div class="budget-header">
+          <span class="budget-name">${b.name}</span>
+          <span style="font-size:.82rem;${over?'color:#ef4444;font-weight:700':''}">${fmt(spent)} / ${fmt(b.amount)}</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill ${fillClass}" style="width:${pct}%"></div></div>
+      </div>`;
+    }).join('');
+  }
+  // Recent transactions
+  const allTx=[
+    ...state.income.map(i=>({...i,_type:'income'})),
+    ...state.expenses.map(e=>({...e,_type:'expense'})),
+    ...state.transfers.map(t=>({...t,_type:'transfer',description:t.description||'Transferencia'}))
+  ].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8);
+  const rlist=document.getElementById('dash-recent');
+  if(!allTx.length){
+    rlist.innerHTML=`<div style="color:#94a3b8;font-size:.85rem">Sin transacciones.</div>`;
+  } else {
+    rlist.innerHTML=allTx.map(t=>{
+      const isInc=t._type==='income';
+      const isTr=t._type==='transfer';
+      const amtStr=isTr?`⇄ ${fmt(t.amount)}`:isInc?`+${fmt(t.amount)}`:`-${fmt(t.amount)}`;
+      const amtClass=isTr?'':isInc?'pos':'neg';
+      const meta=isTr?`${getAccountName(t.fromAccountId)} → ${getAccountName(t.toAccountId)}`
+        :isInc?getAccountName(t.accountId):`${getAccountName(t.accountId)} · ${getRefName(t.type,t.referenceId)}`;
+      return `<div class="recent-item">
+        <div><div class="ri-desc">${t.description}</div><div class="ri-meta">${fmtDate(t.date)} · ${meta}</div></div>
+        <span class="${amtClass}" style="font-weight:700;white-space:nowrap">${amtStr}</span>
+      </div>`;
+    }).join('');
+  }
+  // Dashboard debts
+  const dlist=document.getElementById('dash-debts');
+  const activeDebts=state.debts.filter(d=>getDebtPaid(d.id)<d.totalAmount);
+  if(!activeDebts.length){
+    dlist.innerHTML=`<div style="color:#94a3b8;font-size:.85rem">Sin deudas activas. 🎉</div>`;
+  } else {
+    dlist.innerHTML=activeDebts.slice(0,4).map(d=>{
+      const paid=getDebtPaid(d.id);
+      const rem=d.totalAmount-paid;
+      const pct=Math.min((paid/d.totalAmount)*100,100);
+      return `<div class="budget-item">
+        <div class="budget-header"><span class="budget-name">${d.name}</span><span class="neg" style="font-size:.82rem">${fmt(rem)}</span></div>
+        <div class="progress-bar"><div class="progress-fill progress-warn" style="width:${pct}%"></div></div>
+      </div>`;
+    }).join('');
+  }
+  // Dashboard savings
+  const slist=document.getElementById('dash-savings');
+  if(!state.savings.length){
+    slist.innerHTML=`<div style="color:#94a3b8;font-size:.85rem">Sin metas de ahorro.</div>`;
+  } else {
+    slist.innerHTML=state.savings.slice(0,4).map(s=>{
+      const cur=getSavingsCurrent(s.id);
+      const pct=Math.min((cur/s.targetAmount)*100,100);
+      return `<div class="budget-item">
+        <div class="budget-header"><span class="budget-name">${s.name}</span><span style="font-size:.82rem;color:#f59e0b;font-weight:600">${fmt(cur)} / ${fmt(s.targetAmount)}</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:#f59e0b"></div></div>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ─── DARK THEME ───────────────────────────────────────────────────────────────
+function toggleTheme(){
+  const dark=document.body.classList.toggle('dark');
+  localStorage.setItem('gestor_theme', dark?'dark':'light');
+  document.getElementById('theme-btn').textContent = dark ? '☀️' : '🌙';
+}
+function initTheme(){
+  const saved=localStorage.getItem('gestor_theme');
+  if(saved==='dark'){
+    document.body.classList.add('dark');
+    document.getElementById('theme-btn').textContent='☀️';
+  }
+}
+
+// ─── EXPORT ───────────────────────────────────────────────────────────────────
+function exportData(){
+  if(typeof XLSX==='undefined') return notify('Librería de Excel no cargada','error');
+  const wb = XLSX.utils.book_new();
+
+  // Hoja: Cuentas
+  const accRows = state.accounts.map(a=>({
+    'Nombre': a.name,
+    'Saldo Inicial ($)': a.initialBalance||0,
+    'Saldo Actual ($)': getAccountBalance(a.id),
+    'Color': a.color
+  }));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(accRows.length?accRows:[{Nombre:'',['Saldo Inicial ($)']:0,['Saldo Actual ($)']:0,Color:''}]), 'Cuentas');
+
+  // Hoja: Ingresos
+  const incRows = state.income.map(i=>({
+    'Fecha': i.date,
+    'Descripción': i.description,
+    'Monto ($)': i.amount,
+    'Cuenta': getAccountName(i.accountId)
+  }));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(incRows.length?incRows:[{Fecha:'',Descripción:'',['Monto ($)']:0,Cuenta:''}]), 'Ingresos');
+
+  // Hoja: Gastos
+  const typeLabel={budget:'Presupuesto',debt:'Pago de Deuda',savings:'Ahorro'};
+  const expRows = state.expenses.map(e=>({
+    'Fecha': e.date,
+    'Descripción': e.description,
+    'Monto ($)': e.amount,
+    'Cuenta': getAccountName(e.accountId),
+    'Tipo': typeLabel[e.type]||e.type,
+    'Categoría': getRefName(e.type, e.referenceId)
+  }));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(expRows.length?expRows:[{Fecha:'',Descripción:'',['Monto ($)']:0,Cuenta:'',Tipo:'',Categoría:''}]), 'Gastos');
+
+  // Hoja: Presupuestos
+  const periodLabel={monthly:'Mensual',weekly:'Semanal',yearly:'Anual'};
+  const budRows = state.budgets.map(b=>({
+    'Nombre': b.name,
+    'Límite ($)': b.amount,
+    'Período': periodLabel[b.period]||b.period,
+    'Gastado este mes ($)': getBudgetSpent(b.id, thisMonth()),
+    'Disponible ($)': Math.max(b.amount - getBudgetSpent(b.id, thisMonth()), 0)
+  }));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(budRows.length?budRows:[{Nombre:'',['Límite ($)']:0}]), 'Presupuestos');
+
+  // Hoja: Deudas
+  const dbtRows = state.debts.map(d=>{
+    const paid=getDebtPaid(d.id);
+    return {
+      'Nombre/Acreedor': d.name,
+      'Monto Total ($)': d.totalAmount,
+      'Pagado ($)': paid,
+      'Pendiente ($)': Math.max(d.totalAmount-paid,0),
+      'Interés Anual (%)': d.interestRate||0,
+      'Vencimiento': d.dueDate||'',
+      'Notas': d.notes||''
+    };
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dbtRows.length?dbtRows:[{'Nombre/Acreedor':'',['Monto Total ($)']:0}]), 'Deudas');
+
+  // Hoja: Ahorros
+  const savRows = state.savings.map(s=>{
+    const cur=getSavingsCurrent(s.id);
+    return {
+      'Nombre': s.name,
+      'Meta ($)': s.targetAmount,
+      'Ahorrado ($)': cur,
+      'Pendiente ($)': Math.max(s.targetAmount-cur,0),
+      'Progreso (%)': parseFloat(((cur/s.targetAmount)*100).toFixed(1)),
+      'Fecha Objetivo': s.deadline||'',
+      'Descripción': s.description||''
+    };
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(savRows.length?savRows:[{Nombre:'',['Meta ($)']:0}]), 'Ahorros');
+
+  // Hoja: Transferencias
+  const trRows = state.transfers.map(t=>({
+    'Fecha': t.date,
+    'Descripción': t.description||'',
+    'Cuenta Origen': getAccountName(t.fromAccountId),
+    'Cuenta Destino': getAccountName(t.toAccountId),
+    'Monto ($)': t.amount
+  }));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(trRows.length?trRows:[{Fecha:'',Descripción:'',['Cuenta Origen']:'',['Cuenta Destino']:'',['Monto ($)']:0}]), 'Transferencias');
+
+  // Aplicar estilos de ancho a columnas
+  [wb.Sheets['Cuentas'],wb.Sheets['Ingresos'],wb.Sheets['Gastos'],wb.Sheets['Presupuestos'],
+   wb.Sheets['Deudas'],wb.Sheets['Ahorros'],wb.Sheets['Transferencias']].forEach(ws=>{
+    if(!ws) return;
+    const range = XLSX.utils.decode_range(ws['!ref']||'A1');
+    const colWidths=[];
+    for(let C=range.s.c;C<=range.e.c;C++){
+      let max=10;
+      for(let R=range.s.r;R<=range.e.r;R++){
+        const cell=ws[XLSX.utils.encode_cell({r:R,c:C})];
+        if(cell&&cell.v) max=Math.max(max,String(cell.v).length+2);
+      }
+      colWidths.push({wch:Math.min(max,40)});
+    }
+    ws['!cols']=colWidths;
+  });
+
+  const fecha=new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `GestorGastos_${fecha}.xlsx`);
+  notify('Exportación completada ✓');
+}
+
+// ─── IMPORT ───────────────────────────────────────────────────────────────────
+function importData(input){
+  const file=input.files[0];
+  if(!file){ input.value=''; return; }
+  if(typeof XLSX==='undefined'){ notify('Librería de Excel no cargada','error'); input.value=''; return; }
+
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const sheets={};
+      wb.SheetNames.forEach(n=>{ sheets[n]=XLSX.utils.sheet_to_json(wb.Sheets[n],{defval:''}); });
+
+      if(!confirm('⚠️ Esta acción reemplazará TODOS los datos actuales con los del archivo.\n\n¿Deseas continuar?')){
+        input.value=''; return;
+      }
+
+      const newState={accounts:[],income:[],expenses:[],budgets:[],debts:[],savings:[],transfers:[]};
+
+      // Helper para limpiar valores numéricos
+      const num=v=>parseFloat(v)||0;
+      const str=v=>String(v||'').trim();
+
+      // Importar Cuentas
+      const accMap={}; // nombre → id generado
+      (sheets['Cuentas']||[]).forEach(r=>{
+        if(!str(r['Nombre'])) return;
+        const id=uid();
+        accMap[str(r['Nombre'])]=id;
+        newState.accounts.push({id,name:str(r['Nombre']),initialBalance:num(r['Saldo Inicial ($)']),color:str(r['Color'])||COLORS[0]});
+      });
+
+      // Importar Presupuestos
+      const periodMap={'Mensual':'monthly','Semanal':'weekly','Anual':'yearly'};
+      const budMap={};
+      (sheets['Presupuestos']||[]).forEach(r=>{
+        if(!str(r['Nombre'])) return;
+        const id=uid();
+        budMap[str(r['Nombre'])]=id;
+        newState.budgets.push({id,name:str(r['Nombre']),amount:num(r['Límite ($)']),period:periodMap[str(r['Período'])]||'monthly'});
+      });
+
+      // Importar Deudas
+      const dbtMap={};
+      (sheets['Deudas']||[]).forEach(r=>{
+        if(!str(r['Nombre/Acreedor'])) return;
+        const id=uid();
+        dbtMap[str(r['Nombre/Acreedor'])]=id;
+        newState.debts.push({id,name:str(r['Nombre/Acreedor']),totalAmount:num(r['Monto Total ($)']),interestRate:num(r['Interés Anual (%)']),dueDate:str(r['Vencimiento']),notes:str(r['Notas'])});
+      });
+
+      // Importar Ahorros
+      const savMap={};
+      (sheets['Ahorros']||[]).forEach(r=>{
+        if(!str(r['Nombre'])) return;
+        const id=uid();
+        savMap[str(r['Nombre'])]=id;
+        newState.savings.push({id,name:str(r['Nombre']),targetAmount:num(r['Meta ($)']),deadline:str(r['Fecha Objetivo']),description:str(r['Descripción'])});
+      });
+
+      // Importar Ingresos
+      (sheets['Ingresos']||[]).forEach(r=>{
+        if(!str(r['Descripción'])&&!num(r['Monto ($)'])) return;
+        const accountId=accMap[str(r['Cuenta'])]||'';
+        newState.income.push({id:uid(),description:str(r['Descripción']),amount:num(r['Monto ($)']),date:str(r['Fecha'])||today(),accountId});
+      });
+
+      // Importar Gastos
+      const typeRevMap={'Presupuesto':'budget','Pago de Deuda':'debt','Ahorro':'savings'};
+      (sheets['Gastos']||[]).forEach(r=>{
+        if(!str(r['Descripción'])&&!num(r['Monto ($)'])) return;
+        const accountId=accMap[str(r['Cuenta'])]||'';
+        const type=typeRevMap[str(r['Tipo'])]||'budget';
+        const catName=str(r['Categoría']);
+        const refMap={budget:budMap,debt:dbtMap,savings:savMap};
+        const referenceId=(refMap[type]||{})[catName]||'';
+        newState.expenses.push({id:uid(),description:str(r['Descripción']),amount:num(r['Monto ($)']),date:str(r['Fecha'])||today(),accountId,type,referenceId});
+      });
+
+      // Importar Transferencias
+      (sheets['Transferencias']||[]).forEach(r=>{
+        if(!num(r['Monto ($)'])) return;
+        const fromAccountId=accMap[str(r['Cuenta Origen'])]||'';
+        const toAccountId=accMap[str(r['Cuenta Destino'])]||'';
+        newState.transfers.push({id:uid(),fromAccountId,toAccountId,amount:num(r['Monto ($)']),date:str(r['Fecha'])||today(),description:str(r['Descripción'])});
+      });
+
+      state=newState;
+      saveState();
+      initFilters();
+      renderSection(currentSection);
+      notify(`Importación exitosa: ${newState.accounts.length} cuentas, ${newState.income.length} ingresos, ${newState.expenses.length} gastos`);
+    } catch(err){
+      notify('Error al leer el archivo: '+err.message,'error');
+      console.error(err);
+    }
+    input.value='';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────────────
+function initFilters(){
+  const m=thisMonth();
+  ['income-filter-month','expense-filter-month','budget-filter-month'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value=m;
+  });
+}
+
+loadState();
+initTheme();
+initFilters();
+renderDashboard();
+
+// Keyboard shortcut: Escape closes modal
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+</script>
+</body>
+</html>
