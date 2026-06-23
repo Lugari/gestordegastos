@@ -8,6 +8,7 @@ import { useTheme } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 
 import { useManageSavings } from '../hooks/useSavingsData';
+import { useIsDesktop } from '../hooks/useResponsive';
 
 const SingleSavingScreen = () => {
     const route = useRoute();
@@ -15,6 +16,7 @@ const SingleSavingScreen = () => {
     const { t } = useTranslation()
 
     const navigation = useNavigation();
+    const isDesktop = useIsDesktop();
     
     const {deleteSaving} = useManageSavings()
     const { saving } = route.params;
@@ -43,7 +45,7 @@ const SingleSavingScreen = () => {
     
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView contentContainerStyle={[styles.content, isDesktop && styles.contentDesktop]}>
         <SingleSavingCard
             saving={saving}
             onEdit={() => navigation.navigate('AddSavingScreen', { toEdit: saving })}
@@ -63,6 +65,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         backgroundColor: '#ffffff',
         flexGrow: 1,
+    },
+    contentDesktop: {
+        width: '100%',
+        maxWidth: 640,
+        alignSelf: 'center',
     },
 });
 export default SingleSavingScreen;

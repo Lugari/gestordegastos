@@ -11,6 +11,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useGetTransactions } from '../hooks/useTransactionData';
 import { useGetBudgets } from '../hooks/useBudgetsData';
 import { useGetSavings } from '../hooks/useSavingsData';
+import { useIsDesktop } from '../hooks/useResponsive';
 
 
 
@@ -18,6 +19,7 @@ import { useGetSavings } from '../hooks/useSavingsData';
 const TransactionHistoryScreen = () => {
 
   const navigation = useNavigation();
+  const isDesktop = useIsDesktop();
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState('Mes')
 
@@ -120,6 +122,7 @@ const TransactionHistoryScreen = () => {
 
   return (
     <View style={styles.container}>
+      <View style={[styles.content, isDesktop && styles.contentDesktop]}>
       <View style={styles.header}>
         <SearchInput
           placeholder="Buscar por categoría, monto, tipo..."
@@ -157,6 +160,8 @@ const TransactionHistoryScreen = () => {
         showsVerticalScrollIndicator={false}
       />
 
+      </View>
+
       <FAB
         onPress={() => navigation.navigate('AddTransactionScreen')}
         style={styles.addButton}
@@ -169,6 +174,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    alignItems: 'center',
+  },
+  content: {
+    flex: 1,
+    width: '100%',
+  },
+  contentDesktop: {
+    maxWidth: 860,
+    paddingHorizontal: 8,
   },
   header: {
     flexDirection: 'row',

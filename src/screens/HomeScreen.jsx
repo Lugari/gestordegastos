@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ScrollView, View, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { ScrollView, View, TouchableOpacity, ActivityIndicator, Image, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 
@@ -7,15 +7,19 @@ import { useGetBudgets } from '../hooks/useBudgetsData';
 import { useGetTransactions } from '../hooks/useTransactionData';
 import { useGetSavings } from '../hooks/useSavingsData';
 import { useGetDebts } from '../hooks/useDebtsData';
+import { useIsDesktop } from '../hooks/useResponsive';
 
 import Header from '../components/Header';
 import CardBox from '../components/CardBox';
 import CategoryBar from '../components/CategoryBar';
 
+import { COLORS } from '../constants/theme';
+
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
+  const isDesktop = useIsDesktop();
 
   const { data: transactions = [], isLoading: isLoadingTrasactions, error: transactionsError, refetch: refetchTransactions } = useGetTransactions();
   const { data: budgets = [], isLoading: isLoadingBudgets, error: budgetsError, refetch: refetchBudgets } = useGetBudgets();
@@ -83,6 +87,76 @@ const HomeScreen = () => {
     return <ActivityIndicator />;
   }
 
+  const balanceText = totalBalance >= 0
+    ? '$' + totalBalance.toLocaleString('es-CO')
+    : '-$' + Math.abs(totalBalance).toLocaleString('es-CO');
+
+  // --- Diseño de escritorio: dashboard centrado en grilla ---
+  if (isDesktop) {
+    return (
+      <ScrollView style={{ flex: 1, backgroundColor: COLORS.background }} contentContainerStyle={dStyles.scroll}>
+        <View style={dStyles.page}>
+          <Header username="Usuario" />
+
+          <View style={dStyles.toReports}>
+            <TouchableOpacity style={dStyles.reportsLink} onPress={() => navigation.navigate('ReportsScreen')}>
+              <MaterialIcons name="bar-chart" size={20} color={COLORS.textSecondary} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Fila principal: balance grande + ingresos/egresos */}
+          <View style={dStyles.row}>
+            <TouchableOpacity style={{ flex: 2 }} onPress={() => navigation.navigate('TransactionHistoryScreen')}>
+              <CardBox title="Balance total" amount={balanceText} seeMore="Historial de transacciones" />
+            </TouchableOpacity>
+
+            <View style={dStyles.stackColumn}>
+              <TouchableOpacity onPress={() => navigation.navigate('AddTransactionScreen', { transactionType: 'ingreso' })}>
+                <CardBox title="Ingresos" amount={'$' + totalIncome.toLocaleString('es-CO')} seeMore={<MaterialIcons name="add" size={20} color="#4AD14A" />} size="s" color="#4AD14A" />
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => navigation.navigate('AddTransactionScreen', { transactionType: 'gasto' })}>
+                <CardBox title="Egresos" amount={'$' + Math.abs(totalExpenses).toLocaleString('es-CO')} seeMore={<MaterialIcons name="add" size={20} color="#D76A61" />} size="s" color="#D76A61" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Fila presupuestos + ahorros */}
+          <View style={dStyles.row}>
+            <TouchableOpacity style={{ flex: 1 }} onPress={() => navigation.navigate('BudgetsScreen')}>
+              <CardBox title="Presupuesto" amount={
+                <>
+                  {topBudgets.map((budget) => (
+                    <CategoryBar key={budget.id} name={budget.name} total={budget.total} used={budget.used} color={budget.color} />
+                  ))}
+                </>
+              } seeMore={<MaterialIcons name="expand-more" size={24} color="black" />} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={{ flex: 1 }} onPress={() => navigation.navigate('SavingsScreen')}>
+              <CardBox title="Ahorros" amount={
+                <>
+                  {topSavings.map((saving) => (
+                    <CategoryBar key={saving.id} name={saving.name} total={saving.total} used={saving.used} color={saving.color} />
+                  ))}
+                </>
+              } seeMore={<MaterialIcons name="expand-more" size={24} color="black" />} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Fila deudas */}
+          <View style={dStyles.row}>
+            <TouchableOpacity style={{ flex: 1 }} onPress={() => navigation.navigate('DebtsScreen')}>
+              <CardBox title="Deudas" amount={'$' + totalDebts.toLocaleString('es-CO')} seeMore="Ver deudas" size="s" color="#D76A61" />
+            </TouchableOpacity>
+            <View style={{ flex: 1 }} />
+          </View>
+        </View>
+      </ScrollView>
+    );
+  }
+
+  // --- Diseño móvil original ---
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <GestureDetector gesture={fling}>
@@ -99,7 +173,7 @@ const HomeScreen = () => {
             <Header username="Usuario" />
 
             <TouchableOpacity onPress={() => navigation.navigate('TransactionHistoryScreen')}>
-              <CardBox title="Balance total" amount={totalBalance >= 0 ? "$" + totalBalance.toLocaleString('es-CO') : "-$" + Math.abs(totalBalance).toLocaleString('es-CO')} seeMore="Historial de transacciones" />
+              <CardBox title="Balance total" amount={balanceText} seeMore="Historial de transacciones" />
             </TouchableOpacity>
 
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 20 }}>
@@ -137,17 +211,48 @@ const HomeScreen = () => {
               <TouchableOpacity onPress={() => navigation.navigate('DebtsScreen')}>
                 <CardBox title="Deudas" amount={'$' + totalDebts.toLocaleString('es-CO')} seeMore="Ver deudas" size="s" color="#D76A61" />
               </TouchableOpacity>
-              
+
               <TouchableOpacity onPress={() => navigation.navigate('AddTransactionScreen', { transactionType: 'gasto' })}>
                 <CardBox title="Egresos" amount={'$' + Math.abs(totalExpenses).toLocaleString('es-CO')} seeMore={<MaterialIcons name="add" size={20} color="#D76A61" />} size="s" color="#D76A61" />
               </TouchableOpacity>
             </View>
-            
+
           </View>
         </ScrollView>
       </GestureDetector>
     </GestureHandlerRootView>
   );
 };
+
+const dStyles = StyleSheet.create({
+  scroll: {
+    alignItems: 'center',
+    paddingVertical: 32,
+    paddingHorizontal: 24,
+  },
+  page: {
+    width: '100%',
+    maxWidth: 1080,
+    gap: 20,
+  },
+  toReports: {
+    alignItems: 'flex-end',
+    marginTop: -8,
+  },
+  reportsLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 20,
+    alignItems: 'stretch',
+  },
+  stackColumn: {
+    flex: 1,
+    gap: 20,
+  },
+});
 
 export default HomeScreen;

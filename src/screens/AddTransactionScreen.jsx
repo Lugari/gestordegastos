@@ -1,10 +1,13 @@
 import { useCallback } from "react";
-import AddTransactionForm from "../components/transactions/AddTransactionForm";  
+import AddTransactionForm from "../components/transactions/AddTransactionForm";
 
-import { StyleSheet, ScrollView, Alert } from "react-native";
+import { StyleSheet, ScrollView, View, Alert } from "react-native";
 
 import { useNavigation } from "@react-navigation/native";
 import { useRoute } from "@react-navigation/native";
+
+import { useIsDesktop } from "../hooks/useResponsive";
+import { COLORS, SIZES } from "../constants/theme";
 
 import { useManageTransactions } from "../hooks/useTransactionData";
 import { useGetBudgets, useManageBudgets } from "../hooks/useBudgetsData";
@@ -13,6 +16,7 @@ import { useGetSavings, useManageSavings} from "../hooks/useSavingsData"
 const AddTransactionScreen = () => {
 
     const navigation = useNavigation();
+    const isDesktop = useIsDesktop();
 
     const route = useRoute();
     const { transaction } = route.params || {};
@@ -50,9 +54,23 @@ const AddTransactionScreen = () => {
     }, [addTransaction, updateTransaction, updateBudget, updateSaving, transaction, budgets, savings, navigation])
 
 
+    const formEl = (
+        <AddTransactionForm transactionToEdit={transaction} onCancel={handleCancel} onSubmit={handleSubmit} budgets={budgets} savings={savings}/>
+    );
+
+    if (isDesktop) {
+        return (
+            <ScrollView style={styles.desktopRoot} contentContainerStyle={styles.desktopScroll}>
+                <View style={styles.card}>
+                    {formEl}
+                </View>
+            </ScrollView>
+        );
+    }
+
     return (
         <ScrollView contentContainerStyle={styles.container}>
-        <AddTransactionForm transactionToEdit={transaction} onCancel={handleCancel} onSubmit={handleSubmit} budgets={budgets} savings={savings}/>
+        {formEl}
         </ScrollView>
     );
     }
@@ -62,6 +80,28 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         backgroundColor: "#fff",
         flexGrow: 1,
+    },
+    desktopRoot: {
+        flex: 1,
+        backgroundColor: COLORS.background,
+    },
+    desktopScroll: {
+        alignItems: "center",
+        paddingVertical: 40,
+        paddingHorizontal: 20,
+    },
+    card: {
+        width: "100%",
+        maxWidth: 560,
+        backgroundColor: "#fff",
+        borderRadius: SIZES.radius * 1.6,
+        paddingHorizontal: SIZES.padding,
+        paddingBottom: SIZES.padding,
+        shadowColor: COLORS.textPrimary,
+        shadowOpacity: 0.1,
+        shadowOffset: { width: 0, height: 6 },
+        shadowRadius: 20,
+        elevation: 4,
     },
 });
 export default AddTransactionScreen;

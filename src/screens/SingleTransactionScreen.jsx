@@ -4,6 +4,7 @@ import { useRoute } from '@react-navigation/native'
 
 import { useManageBudgets, useGetBudgets } from '../hooks/useBudgetsData'
 import { useManageTransactions } from '../hooks/useTransactionData'
+import { useIsDesktop } from '../hooks/useResponsive'
 
 
 import { useNavigation } from '@react-navigation/native'
@@ -14,6 +15,7 @@ import SingleTransactionCard from '../components/transactions/SingleTransactionC
 const SingleTransactionScreen = () => {
 
   const route = useRoute()
+  const isDesktop = useIsDesktop()
   const { transaction, categoryName, categoryIcon, categoryColor } = route.params
 
   const { deleteTransaction } = useManageTransactions()
@@ -50,7 +52,7 @@ const SingleTransactionScreen = () => {
   }, [transaction, deleteTransaction, updateBudget, budgets, navigation])
  
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={[styles.container, isDesktop && styles.containerDesktop]}>
       <SingleTransactionCard
         id={transaction.id}
         amount={transaction.amount}
@@ -74,6 +76,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: '#fff',
     flexGrow: 1,
+  },
+  containerDesktop: {
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
   },
 })
 

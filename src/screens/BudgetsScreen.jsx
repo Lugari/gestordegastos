@@ -11,13 +11,15 @@ import {SIZES, COLORS} from '../constants/theme';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { useGetBudgets } from '../hooks/useBudgetsData';
+import { useIsDesktop } from '../hooks/useResponsive';
 
 
 
 
 const BudgetsScreen = () => {
-    
+
     const navigation = useNavigation();
+    const isDesktop = useIsDesktop();
 
     const { data: budgets = [], isLoading: isLoadingBudgets, error: budgetsError, refetch: refetchBudgets } = useGetBudgets();
 
@@ -47,7 +49,7 @@ const BudgetsScreen = () => {
     );
     const renderBudgets = () => (
         <View style={styles.container}>
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <ScrollView contentContainerStyle={[styles.scrollContainer, isDesktop && styles.scrollContainerDesktop]}>
                 <BudgetProgressCard
                     title="Total"
                     used={budgets.map(b => b.used).reduce((a, b) => a + b, 0)}
@@ -93,6 +95,11 @@ const styles = StyleSheet.create({
     },
     scrollContainer: {
         padding: SIZES.padding,
+    },
+    scrollContainerDesktop: {
+        width: '100%',
+        maxWidth: 760,
+        alignSelf: 'center',
     },
     emptyContainer: {
         backgroundColor: COLORS.background,

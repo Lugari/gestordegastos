@@ -1,13 +1,22 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
 import { PieChart, LineChart } from 'react-native-chart-kit';
 import { useGetTransactions } from '../hooks/useTransactionData';
 import { useGetBudgets } from '../hooks/useBudgetsData';
+import { useIsDesktop } from '../hooks/useResponsive';
 import { COLORS, SIZES } from '../constants/theme';
 
-const screenWidth = Dimensions.get('window').width;
+// En escritorio acotamos el ancho de los gráficos para que no se deformen.
+const MAX_CONTENT_WIDTH = 720;
 
 const ReportsScreen = () => {
+  const { width } = useWindowDimensions();
+  const isDesktop = useIsDesktop();
+
+  // Ancho disponible para los gráficos, acotado en escritorio.
+  const contentWidth = Math.min(width, MAX_CONTENT_WIDTH);
+  const chartWidth = contentWidth - SIZES.padding * 2;
+
   const { data: transactions = [], isLoading: isLoadingTransactions } = useGetTransactions();
   const { data: budgets = [], isLoading: isLoadingBudgets } = useGetBudgets();
 
@@ -84,7 +93,7 @@ const ReportsScreen = () => {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={isDesktop && styles.contentDesktop}>
       <Text style={styles.header}>Reportes</Text>
 
       <View style={styles.chartContainer}>
@@ -92,7 +101,7 @@ const ReportsScreen = () => {
         {expenseData.length > 0 ? (
           <PieChart
             data={expenseData}
-            width={screenWidth - SIZES.padding * 2}
+            width={chartWidth}
             height={220}
             chartConfig={{
               color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
@@ -112,7 +121,7 @@ const ReportsScreen = () => {
         {trendData.labels.length > 0 ? (
           <LineChart
             data={trendData}
-            width={screenWidth - SIZES.padding * 2}
+            width={chartWidth}
             height={250}
             chartConfig={{
               backgroundColor: COLORS.background,
@@ -139,6 +148,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
     padding: SIZES.padding,
+  },
+  contentDesktop: {
+    width: '100%',
+    maxWidth: MAX_CONTENT_WIDTH,
+    alignSelf: 'center',
   },
   header: {
     fontSize: SIZES.font * 2,

@@ -9,11 +9,13 @@ import { useNavigation } from '@react-navigation/native';
 
 import { useManageBudgets } from '../hooks/useBudgetsData';
 import { useGetTransactions } from '../hooks/useTransactionData';
+import { useIsDesktop } from '../hooks/useResponsive';
 
 const SingleBudgetScreen = () => {
 
   const navigation = useNavigation();
   const route = useRoute();
+  const isDesktop = useIsDesktop();
 
   const { deleteBudget, isDeleting } = useManageBudgets();
   const { data: transactions = [] } = useGetTransactions();
@@ -58,8 +60,9 @@ const handleEditPress = useCallback(() =>{
 
   return (
       
-      <FlatList 
+      <FlatList
         style={styles.container}
+        contentContainerStyle={isDesktop && styles.listDesktop}
         data= {showTransactions}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={
@@ -99,6 +102,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     backgroundColor: '#ffffff',
     flexGrow: 1,
+  },
+  listDesktop: {
+    width: '100%',
+    maxWidth: 760,
+    alignSelf: 'center',
+    paddingHorizontal: 16,
   },
 });
 

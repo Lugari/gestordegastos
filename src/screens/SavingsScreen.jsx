@@ -11,6 +11,7 @@ import PrimaryButton from '../components/PrimaryButton';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { useGetSavings } from "../hooks/useSavingsData";
+import { useIsDesktop } from '../hooks/useResponsive';
 
 import { useTranslation } from 'react-i18next';
 import { COLORS, SIZES } from "../constants/theme";
@@ -18,6 +19,7 @@ import { COLORS, SIZES } from "../constants/theme";
 const SavingsScreen = () => {
 
     const navigation = useNavigation();
+    const isDesktop = useIsDesktop();
     const { colors } = useTheme();
     const { t } = useTranslation();
 
@@ -25,7 +27,7 @@ const SavingsScreen = () => {
 
     const renderSavings = () => (
             <View style={styles.container}>
-                <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <ScrollView contentContainerStyle={[styles.scrollContainer, isDesktop && styles.scrollContainerDesktop]}>
                     <BudgetProgressCard
                         title="Total"
                         used={savings.map(b => b.used).reduce((a, b) => a + b, 0)}
@@ -94,6 +96,11 @@ const styles = StyleSheet.create({
     },
     scrollContainer: {
         padding: SIZES.padding,
+    },
+    scrollContainerDesktop: {
+        width: '100%',
+        maxWidth: 760,
+        alignSelf: 'center',
     },
     emptyContainer: {
         backgroundColor: COLORS.background,

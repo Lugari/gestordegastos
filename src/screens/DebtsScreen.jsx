@@ -6,15 +6,17 @@ import FAB from '../components/FAB';
 import PrimaryButton from '../components/PrimaryButton';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useGetDebts } from "../hooks/useDebtsData";
+import { useIsDesktop } from '../hooks/useResponsive';
 import { COLORS, SIZES } from "../constants/theme";
 
 const DebtsScreen = () => {
     const navigation = useNavigation();
+    const isDesktop = useIsDesktop();
     const { data: debts = [], isLoading: isLoadingDebts, error: debtsError } = useGetDebts();
 
     const renderDebts = () => (
         <View style={styles.container}>
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <ScrollView contentContainerStyle={[styles.scrollContainer, isDesktop && styles.scrollContainerDesktop]}>
                 {debts.map((debt, index) => (
                     <TouchableOpacity key={index} onPress={() => navigation.navigate('SingleDebtScreen', { debt })}>
                         <DebtCard
@@ -70,6 +72,11 @@ const styles = StyleSheet.create({
     },
     scrollContainer: {
         padding: SIZES.padding,
+    },
+    scrollContainerDesktop: {
+        width: '100%',
+        maxWidth: 760,
+        alignSelf: 'center',
     },
     emptyContainer: {
         backgroundColor: COLORS.background,

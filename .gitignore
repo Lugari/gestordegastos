@@ -32,9 +32,14 @@ yarn-error.*
 # local env files
 .env*.local
 .env
+.claude/
+Project plan/
 
 # typescript
 *.tsbuildinfo
+
+
+
 
 android
 ios
