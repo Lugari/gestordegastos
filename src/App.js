@@ -1,8 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthProvider, AuthContext } from './context/AuthContext';
+
+import { migrateLegacyData } from './services/migrateBuckets';
 
 import HomeScreen from "./screens/HomeScreen";
 import TransactionHistoryScreen from "./screens/TransactionHistoryScreen";
@@ -61,6 +63,18 @@ const AppNavigator = () => {
 };
 
 export default function App() {
+  // Ejecuta la migración al modelo unificado una sola vez, antes de montar la app,
+  // para que los hooks (que en fases siguientes leerán de @buckets) tengan los datos listos.
+  const [migrationReady, setMigrationReady] = useState(false);
+
+  useEffect(() => {
+    migrateLegacyData().finally(() => setMigrationReady(true));
+  }, []);
+
+  if (!migrationReady) {
+    return null;
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
