@@ -1,40 +1,13 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import * as DebtService from "../services/debtService";
+import { useGetBuckets, useManageBuckets } from './useBucketData';
+import { KIND } from '../constants/bucketKinds';
 
-export const useGetDebts = () => {
-    return useQuery({
-        queryKey: ["debts"],
-        queryFn: DebtService.getAllDebts
-    });
-}
+// Envoltorio del modelo unificado: deudas = buckets de kind 'debt'.
+// Conserva la clave legada ['debts'] y la misma API para no tocar las pantallas.
+
+export const useGetDebts = () => useGetBuckets(KIND.DEBT, ['debts']);
 
 export const useManageDebts = () => {
-    const queryClient = useQueryClient();
-
-    const mutationOptions = {
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['debts'] });
-            queryClient.invalidateQueries({ queryKey: ['transactions'] });
-        },
-        onError: (error) => {
-            console.error("Error in debt mutation:", error);
-        },
-    };
-
-    const addMutation = useMutation({
-        mutationFn: DebtService.addDebt,
-        ...mutationOptions,
-    });
-
-    const deleteMutation = useMutation({
-        mutationFn: DebtService.deleteDebtById,
-        ...mutationOptions,
-    });
-
-    const updateMutation = useMutation({
-        mutationFn: (variables) => DebtService.updateDebtById(variables.id, variables.updates),
-        ...mutationOptions,
-    });
+    const { addMutation, deleteMutation, updateMutation } = useManageBuckets(KIND.DEBT, ['debts']);
 
     return {
         addDebt: addMutation.mutateAsync,
@@ -44,4 +17,4 @@ export const useManageDebts = () => {
         isDeleting: deleteMutation.isPending,
         isUpdating: updateMutation.isPending,
     };
-}
+};

@@ -1,45 +1,13 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useGetBuckets, useManageBuckets } from './useBucketData';
+import { KIND } from '../constants/bucketKinds';
 
-import * as BudgetService from "../services/budgetService";
+// Envoltorio del modelo unificado: presupuestos = buckets de kind 'budget'.
+// Conserva la clave legada ['budgets'] y la misma API para no tocar las pantallas.
 
-export const useGetBudgets = () => {
-    return useQuery({
-        queryKey: ["budgets"],
-        queryFn: BudgetService.getAllBudgets
-
-    });
-}
+export const useGetBudgets = () => useGetBuckets(KIND.BUDGET, ['budgets']);
 
 export const useManageBudgets = () => {
-    const queryClient = useQueryClient();
-
-    const mutationOptions = {
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['budgets'] }); 
-            queryClient.invalidateQueries({ queryKey: ['transactions'] });
-        },
-        onError: (error) => {
-            console.error("Error en la mutación del presupuesto:", error);
-        },
-    };
-
-    const addMutation = useMutation({
-        mutationFn: BudgetService.addBudget, 
-        ...mutationOptions,
-    });
-
-    const deleteMutation = useMutation({
-        mutationFn: BudgetService.deleteBudgetById,
-        ...mutationOptions,
-        onSuccess: (data) => {
-            queryClient.invalidateQueries(["budgets"]);
-        },
-    });
-
-    const updateMutation = useMutation({
-        mutationFn: (variables) => BudgetService.updateBudgetById(variables.id, variables.updates),
-        ...mutationOptions,
-    });
+    const { addMutation, deleteMutation, updateMutation } = useManageBuckets(KIND.BUDGET, ['budgets']);
 
     return {
         addBudget: addMutation.mutateAsync,
@@ -49,4 +17,4 @@ export const useManageBudgets = () => {
         isDeleting: deleteMutation.isPending,
         isUpdating: updateMutation.isPending,
     };
-}
+};

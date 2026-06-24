@@ -1,45 +1,13 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useGetBuckets, useManageBuckets } from './useBucketData';
+import { KIND } from '../constants/bucketKinds';
 
-import * as SavingService from "../services/savingService";
+// Envoltorio del modelo unificado: ahorros = buckets de kind 'saving'.
+// Conserva la clave legada ['savings'] y la misma API para no tocar las pantallas.
 
-export const useGetSavings = () => {
-    return useQuery({
-        queryKey: ["savings"],
-        queryFn: SavingService.getAllSavings
-
-    });
-}
+export const useGetSavings = () => useGetBuckets(KIND.SAVING, ['savings']);
 
 export const useManageSavings = () => {
-    const queryClient = useQueryClient();
-
-    const mutationOptions = {
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['savings'] }); 
-            queryClient.invalidateQueries({ queryKey: ['transactions'] });
-        },
-        onError: (error) => {
-            console.error("Error en la mutación del presupuesto:", error);
-        },
-    };
-
-    const addMutation = useMutation({
-        mutationFn: SavingService.addSaving,
-        ...mutationOptions,
-    });
-
-    const deleteMutation = useMutation({
-        mutationFn: SavingService.deleteSavingById,
-        ...mutationOptions,
-        onSuccess: (data) => {
-            queryClient.invalidateQueries(["savings"]);
-        },
-    });
-
-    const updateMutation = useMutation({
-        mutationFn: (variables) => SavingService.updateSavingById(variables.id, variables.updates),
-        ...mutationOptions,
-    });
+    const { addMutation, deleteMutation, updateMutation } = useManageBuckets(KIND.SAVING, ['savings']);
 
     return {
         addSaving: addMutation.mutateAsync,
@@ -49,4 +17,4 @@ export const useManageSavings = () => {
         isDeleting: deleteMutation.isPending,
         isUpdating: updateMutation.isPending,
     };
-}
+};

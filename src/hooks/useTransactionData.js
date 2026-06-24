@@ -1,14 +1,31 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import * as TransactionService from '../services/transactionService'; 
-import * as SavingService from '../services/savingService'; 
-import * as BudgetService from '../services/budgetService';
+import * as TransactionService from '../services/transactionService';
+import * as BucketService from '../services/bucketService';
+import { getStrategy } from '../domain/strategyByKind';
+import { kindFromTransactionType } from '../constants/bucketKinds';
 
 export const useGetTransactions = () => {
   return useQuery({
-    queryKey: ['transactions'], 
+    queryKey: ['transactions'],
     queryFn: TransactionService.getAllTransactions,
   });
   // devuelve { data, isLoading, isError, error, refetch, ... }
+};
+
+// Ajusta el saldo "usado" del bucket destino aplicando la estrategia del kind.
+// `signedAmount` es positivo al añadir una transacción y negativo al revertirla.
+// Funciona para cualquier kind (presupuesto, ahorro, deuda, inversión) sin ramas por tipo.
+const applyBucketDelta = async (targetId, targetKind, signedAmount) => {
+  if (!targetId || !targetKind) return;
+  const strategy = getStrategy(targetKind);
+  if (!strategy?.applyTransaction) return;
+
+  const buckets = await BucketService.getAllBuckets();
+  const bucket = buckets.find((b) => b.id === targetId);
+  if (!bucket) return;
+
+  const patch = strategy.applyTransaction(bucket, signedAmount);
+  await BucketService.updateBucketById(targetId, patch);
 };
 
 export const useManageTransactions = () => {
@@ -16,65 +33,46 @@ export const useManageTransactions = () => {
 
   const mutationOptions = {
     onSuccess: () => {
-      // invalida la query para que React Query la vuelva a cargar automáticamente
+      // invalida las queries para que React Query las recargue automáticamente
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['savings'] });
+      queryClient.invalidateQueries({ queryKey: ['debts'] });
     },
     onError: (error) => {
-      // Puedes manejar errores globalmente aquí si quieres (ej. mostrar notificación)
-      console.error("Error en la mutación de transacción:", error);
+      console.error('Error en la mutación de transacción:', error);
     },
   };
 
   // Mutación para AÑADIR
   const addMutation = useMutation({
-    mutationFn: async (transactionData) => { 
-      
-      const newTransaction = await TransactionService.addTransaction(transactionData)
+    mutationFn: async (transactionData) => {
+      // Vínculo unificado: derivamos el bucket destino a partir del tipo.
+      const targetKind = kindFromTransactionType(transactionData.type);
+      const targetId = transactionData.budget_id ?? null;
 
-      if (transactionData.type.toLowerCase() === 'gasto' && transactionData.budget_id) {
-        const budgets = queryClient.getQueryData(['budgets'])
-        const budget = budgets.find(b => b.id === transactionData.budget_id);
-        if (budget) {
-          const newUsedAmount = (budget.used || 0) + transactionData.amount
-          await BudgetService.updateBudgetById(transactionData.budget_id, { used: newUsedAmount }); 
-        }
-      }else if (transactionData.type.toLowerCase() === 'ahorro' && transactionData.budget_id) {
-        const savings = queryClient.getQueryData(['savings'])
-        const saving = savings.find(s => s.id === transactionData.budget_id)
-        if (saving){
-          const newUsedAmount = (saving.used || 0) + transactionData.amount
-          await SavingService.updateSavingById(transactionData.budget_id, { used: newUsedAmount})
-        }
-      }
-      return newTransaction
+      // Persistimos target_id/target_kind en la transacción (modelo unificado).
+      const enriched = { ...transactionData, target_id: targetId, target_kind: targetKind };
+      const newTransaction = await TransactionService.addTransaction(enriched);
+
+      // Ajuste de saldo del bucket, agnóstico al tipo.
+      await applyBucketDelta(targetId, targetKind, transactionData.amount);
+
+      return newTransaction;
     },
-    ...mutationOptions
+    ...mutationOptions,
   });
 
   // Mutación para BORRAR
   const deleteMutation = useMutation({
-    mutationFn: async ({transactionId, budgetId, amount, type}) => {
-      if(type === 'gasto' && budgetId){         // Si es un gasto lo descuenta del monto total usado del presupuesto
-        const budgets = queryClient.getQueryData(['budgets'])
-        const budget = budgets.find(b => b.id === budgetId)
-        if (budget) {
-          const newUsedAmount = Math.max(0, (budget.used || 0) - amount)
-          await BudgetService.updateBudgetById(budgetId, { used: newUsedAmount})
-        }
-      }else if(type === 'ahorro' && budgetId){ //Si es un ahorro lo descuenta del monto toal ahorrado
-        const savings = queryClient.getQueryData(['budgets'])
-        const saving = savings.find(b => b.id === budgetId)
-        if (saving) {
-          const newUsedAmount = Math.max(0, (saving.used || 0) - amount)
-          await SavingService.updateSavingById(budgetId, { used: newUsedAmount})
-        }
-      }
-      await TransactionService.deleteTransactionById(transactionId) // elimina la transacción
+    mutationFn: async ({ transactionId, budgetId, amount, type, targetKind }) => {
+      // Acepta targetKind explícito o lo deriva del tipo (compatibilidad).
+      const kind = targetKind ?? kindFromTransactionType(type);
+      await applyBucketDelta(budgetId, kind, -amount); // revierte el saldo
+      await TransactionService.deleteTransactionById(transactionId);
     },
     ...mutationOptions,
-  })
+  });
 
   // Mutación para ACTUALIZAR
   const updateMutation = useMutation({
