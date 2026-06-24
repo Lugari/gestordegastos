@@ -21,6 +21,9 @@ import ReportsScreen from "./screens/ReportsScreen";
 import DebtsScreen from "./screens/DebtsScreen";
 import AddDebtScreen from "./screens/AddDebtScreen";
 import SingleDebtScreen from "./screens/SingleDebtScreen";
+import InvestmentsScreen from "./screens/InvestmentsScreen";
+import AddInvestmentScreen from "./screens/AddInvestmentScreen";
+import SingleInvestmentScreen from "./screens/SingleInvestmentScreen";
 
 import '../i18n';
 
@@ -55,6 +58,9 @@ const AppNavigator = () => {
             <Stack.Screen name="DebtsScreen" component={DebtsScreen} options={{ title: "Deudas" }} />
             <Stack.Screen name="AddDebtScreen" component={AddDebtScreen} options={{ title: "Añadir Deuda" }} />
             <Stack.Screen name="SingleDebtScreen" component={SingleDebtScreen} options={{ title: "Detalles de Deuda" }} />
+            <Stack.Screen name="InvestmentsScreen" component={InvestmentsScreen} options={{ title: "Inversiones" }} />
+            <Stack.Screen name="AddInvestmentScreen" component={AddInvestmentScreen} options={{ title: "Añadir Inversión" }} />
+            <Stack.Screen name="SingleInvestmentScreen" component={SingleInvestmentScreen} options={{ title: "Detalles de Inversión" }} />
           </>
         )}
       </Stack.Navigator>

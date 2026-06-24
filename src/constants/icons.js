@@ -44,3 +44,14 @@ export const SAVING_ICONS = [
   'diamond',          // Lujos o Regalos Grandes
   'trending-up',      // Inversiones
 ];
+
+export const INVESTMENT_ICONS = [
+  'trending-up',        // Crecimiento / Acciones
+  'show-chart',         // Mercado / Índices
+  'account-balance',    // Renta fija / Bonos
+  'savings',            // Fondos
+  'currency-exchange',  // Divisas
+  'paid',               // Dividendos
+  'real-estate-agent',  // Bienes raíces
+  'diamond',            // Activos alternativos
+];
