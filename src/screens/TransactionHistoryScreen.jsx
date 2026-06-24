@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import SearchInput from '../components/SearchInput';
 import TransactionCard from '../components/transactions/TransactionCard';
 import DateFilterTabs from '../components/DateFilterTabs';
+import DateRangePickerModal from '../components/DateRangePickerModal';
 import FAB from '../components/FAB';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
@@ -12,6 +13,9 @@ import { useGetTransactions } from '../hooks/useTransactionData';
 import { useGetBudgets } from '../hooks/useBudgetsData';
 import { useGetSavings } from '../hooks/useSavingsData';
 import { useIsDesktop } from '../hooks/useResponsive';
+import { getDateRange, isWithinRange } from '../utils/dateRange';
+
+import { COLORS, SIZES } from '../constants/theme';
 
 
 
@@ -22,6 +26,8 @@ const TransactionHistoryScreen = () => {
   const isDesktop = useIsDesktop();
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState('Mes')
+  const [customRange, setCustomRange] = useState(null); // { start, end }
+  const [rangeModalVisible, setRangeModalVisible] = useState(false);
 
   const { data: transactions = [], isLoading: isLoadingTransactions, error: transactionsError, refetch: refetchTransactions } = useGetTransactions();
   const { data: budgets = [], isLoading: isLoadingBudgets, error: budgetsError, refetch: refetchBudgets } = useGetBudgets();
@@ -40,9 +46,14 @@ const TransactionHistoryScreen = () => {
 
 
   const filteredTransactions = useMemo(() => {
-    
+
+    const range = getDateRange(dateFilter, customRange);
+
     const filtered = transactions.filter(transaction => {
-      
+
+      // Filtro por rango de fechas (periodo o rango personalizado).
+      if (!isWithinRange(transaction.date, range)) return false;
+
       const searchTerm = searchQuery.toLowerCase();
       const noteMatch = transaction.note?.toLowerCase().includes(searchTerm);
       const amountMatch = transaction.amount.toString().includes(searchTerm);
@@ -53,7 +64,7 @@ const TransactionHistoryScreen = () => {
 
     return [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date));
 
- }, [transactions, searchQuery, dateFilter]);
+ }, [transactions, searchQuery, dateFilter, customRange]);
 
  const isLoading = isLoadingTransactions || isLoadingBudgets;
  const error = transactionsError || budgetsError;
@@ -143,13 +154,23 @@ const TransactionHistoryScreen = () => {
         activeFilter={dateFilter}
         onSelectFilter={(value) => {
           if (value === 'Personalizado') {
-            // TODO: Implementar selector de fecha personalizado
+            setRangeModalVisible(true);
           } else {
             setDateFilter(value);
           }
         }}
         showCustom
       />
+
+      {dateFilter === 'Personalizado' && customRange && (
+        <TouchableOpacity style={styles.rangeChip} onPress={() => setRangeModalVisible(true)}>
+          <MaterialIcons name="date-range" size={16} color={COLORS.textSecondary} />
+          <Text style={styles.rangeChipText}>
+            {formattedDate(customRange.start)} — {formattedDate(customRange.end)}
+          </Text>
+          <MaterialIcons name="edit" size={14} color={COLORS.textSecondary} />
+        </TouchableOpacity>
+      )}
 
       <FlatList
         data={filteredTransactions}
@@ -161,6 +182,18 @@ const TransactionHistoryScreen = () => {
       />
 
       </View>
+
+      <DateRangePickerModal
+        visible={rangeModalVisible}
+        initialStart={customRange?.start}
+        initialEnd={customRange?.end}
+        onCancel={() => setRangeModalVisible(false)}
+        onApply={(range) => {
+          setCustomRange(range);
+          setDateFilter('Personalizado');
+          setRangeModalVisible(false);
+        }}
+      />
 
       <FAB
         onPress={() => navigation.navigate('AddTransactionScreen')}
@@ -195,6 +228,22 @@ const styles = StyleSheet.create({
   },
   filterButton: {
     padding: 8,
+  },
+  rangeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'center',
+    gap: 6,
+    backgroundColor: COLORS.primary + '40',
+    borderRadius: SIZES.radius,
+    paddingHorizontal: SIZES.padding * 0.75,
+    paddingVertical: SIZES.padding * 0.4,
+    marginBottom: 8,
+  },
+  rangeChipText: {
+    fontSize: SIZES.font * 0.95,
+    color: COLORS.textSecondary,
+    fontWeight: '600',
   },
   listContent: {
     padding: 16,
