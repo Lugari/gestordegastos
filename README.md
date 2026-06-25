@@ -1,4 +1,4 @@
-# 💰 Gestor de Gastos
+# Gestor de Gastos
 
 Aplicación móvil de finanzas personales construida con **React Native + Expo**. Permite registrar transacciones, gestionar presupuestos, fijar metas de ahorro, llevar el control de deudas y visualizar reportes — todo almacenado de forma local en el dispositivo.
 
@@ -6,23 +6,23 @@ Aplicación móvil de finanzas personales construida con **React Native + Expo**
 
 ---
 
-## ✨ Funcionalidades
+## Funcionalidades
 
 | Módulo | Descripción |
 |--------|-------------|
-| 🔐 **Autenticación** | Login básico con persistencia de sesión vía token en `AsyncStorage` (`AuthContext`). |
-| 💸 **Transacciones** | Alta, edición y eliminación de movimientos clasificados como *ingreso*, *gasto* o *ahorro*. Cada transacción puede vincularse a un presupuesto o meta. |
-| 📊 **Presupuestos** | Creación de presupuestos por categoría con seguimiento de monto total y usado. Se descuentan automáticamente al registrar gastos asociados. |
-| 🎯 **Metas de Ahorro** | Definición de objetivos de ahorro con progreso (total vs. acumulado). |
-| 🏦 **Deudas** | Registro de deudas con monto total, tasa de interés (APR) y número de cuotas. |
-| 🏷️ **Categorías** | Gestión de categorías personalizadas con selector de iconos. |
-| 📈 **Reportes** | Gráficos de distribución de gastos (pastel) y tendencia ingresos vs. egresos (líneas) con `react-native-chart-kit`. |
-| 🏠 **Inicio (Home)** | Resumen de balance total, ingresos, gastos y vista rápida de los principales presupuestos y metas. |
-| 🌐 **Internacionalización** | Soporte para español (por defecto) e inglés mediante `i18next`. |
+| **Autenticación** | Login básico con persistencia de sesión vía token en `AsyncStorage` (`AuthContext`). |
+| **Transacciones** | Alta, edición y eliminación de movimientos clasificados como *ingreso*, *gasto* o *ahorro*. Cada transacción puede vincularse a un presupuesto o meta. |
+| **Presupuestos** | Creación de presupuestos por categoría con seguimiento de monto total y usado. Se descuentan automáticamente al registrar gastos asociados. |
+| **Metas de Ahorro** | Definición de objetivos de ahorro con progreso (total vs. acumulado). |
+| **Deudas** | Registro de deudas con monto total, tasa de interés (APR) y número de cuotas. |
+| **Categorías** | Gestión de categorías personalizadas con selector de iconos. |
+| **Reportes** | Gráficos de distribución de gastos (pastel) y tendencia ingresos vs. egresos (líneas) con `react-native-chart-kit`. |
+| **Inicio (Home)** | Resumen de balance total, ingresos, gastos y vista rápida de los principales presupuestos y metas. |
+| **Internacionalización** | Soporte para español (por defecto) e inglés mediante `i18next`. |
 
 ---
 
-## 🛠️ Tecnologías y herramientas
+## Tecnologías y herramientas
 
 - **[Expo](https://expo.dev/) SDK 53** + **React Native 0.79** (con `expo-dev-client`)
 - **React 19**
@@ -38,7 +38,7 @@ Aplicación móvil de finanzas personales construida con **React Native + Expo**
 
 ---
 
-## 📁 Estructura del proyecto
+## Estructura del proyecto
 
 ```
 src/
@@ -75,7 +75,7 @@ Pantallas (screens)  →  Hooks (React Query)  →  Servicios  →  AsyncStorage
 
 ---
 
-## 🚀 Puesta en marcha
+## Puesta en marcha
 
 ### Requisitos previos
 
@@ -123,19 +123,15 @@ eas build --profile production   # Producción (auto-incremento de versión)
 
 ---
 
-## 🌍 Internacionalización
+## Internacionalización
 
 Los textos se gestionan con `i18next` (`i18n.js`). Idioma por defecto: **español**, con *fallback* a inglés. Para añadir nuevas traducciones, amplía el objeto `resources` en `i18n.js`.
 
 ---
 
-## 📝 Notas
+## Notas
 
 - La carpeta `src/api/` (`api.js` con `axios` y `db.json`) corresponde a una **capa de datos legada** pensada para un backend tipo *json-server*. La versión actual de la app opera de forma totalmente **local** a través de los servicios sobre `AsyncStorage`.
 - El login actual es de demostración: acepta cualquier email/contraseña y guarda el email como token de sesión.
 
 ---
-
-## 📄 Licencia
-
-Distribuido bajo licencia **0BSD**.

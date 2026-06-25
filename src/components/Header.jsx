@@ -1,22 +1,32 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { 
-    View, 
-    Text, 
-    StyleSheet, 
-    TouchableOpacity, 
-    Modal, 
-    Pressable, 
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    Modal,
+    Pressable,
     Dimensions,
-    TextInput
+    TextInput,
+    Platform,
+    Alert
 } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useQueryClient } from '@tanstack/react-query';
 import { AuthContext } from '../context/AuthContext';
 
 import { useNavigation } from '@react-navigation/native';
 
+import { importData } from '../services/dataTransfer';
 import { COLORS, SIZES, FONTS } from '../constants/theme';
 
 const { width } = Dimensions.get('window');
+
+// Feedback multiplataforma (Alert.alert es no-op en react-native-web).
+const notify = (title, message) => {
+  if (Platform.OS === 'web') window.alert(`${title}\n\n${message}`);
+  else Alert.alert(title, message);
+};
 
 const Header = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -26,6 +36,7 @@ const Header = () => {
   const { logout } = useContext(AuthContext);
 
   const navigation = useNavigation();
+  const queryClient = useQueryClient();
 
 
    useEffect(() => {
@@ -63,6 +74,54 @@ const Header = () => {
     navigation.navigate("ReportsScreen")
     setModalVisible(false);
   }
+
+  // Aplica el contenido del JSON y refresca la UI.
+  const applyImport = async (text) => {
+    try {
+      const { imported } = await importData(text);
+      await queryClient.invalidateQueries(); // refresca presupuestos, ahorros, etc.
+      notify('Importación exitosa', `Se cargaron: ${imported.join(', ')}.`);
+    } catch (e) {
+      notify('Error al importar', e.message || 'No se pudo leer el archivo.');
+    }
+  };
+
+  const handleImportData = () => {
+    setModalVisible(false);
+
+    if (Platform.OS === 'web') {
+      // En web usamos el selector de archivos nativo del navegador.
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'application/json,.json';
+      input.onchange = (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => applyImport(reader.result);
+        reader.onerror = () => notify('Error al importar', 'No se pudo leer el archivo.');
+        reader.readAsText(file);
+      };
+      input.click();
+      return;
+    }
+
+    // En móvil usamos el document picker de Expo.
+    (async () => {
+      try {
+        const DocumentPicker = require('expo-document-picker');
+        const FileSystem = require('expo-file-system');
+        const result = await DocumentPicker.getDocumentAsync({ type: 'application/json', copyToCacheDirectory: true });
+        if (result.canceled) return;
+        const uri = result.assets?.[0]?.uri;
+        if (!uri) return;
+        const text = await FileSystem.readAsStringAsync(uri);
+        await applyImport(text);
+      } catch (e) {
+        notify('Error al importar', e.message || 'No se pudo abrir el archivo.');
+      }
+    })();
+  };
 
   return (
     <>
@@ -113,6 +172,11 @@ const Header = () => {
               <TouchableOpacity style={styles.optionRow} onPress={handleGoToReports}>
                 <MaterialIcons name="settings" size={24} color="#555" />
                 <Text style={styles.optionText}>Reportes</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.optionRow} onPress={handleImportData}>
+                <MaterialIcons name="file-upload" size={24} color="#555" />
+                <Text style={styles.optionText}>Importar datos</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.optionRow} onPress={logout}>
