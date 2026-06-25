@@ -16,12 +16,15 @@ import TransactionTypeDropdown from './TransactionTypeDropdown';
 import PrimaryButton from '../PrimaryButton';
 import SecondaryButton from '../SecondaryButton';
 import { SIZES, COLORS } from '../../constants/theme';
-import { money } from '../../utils/formatMoney';
+import { formatMoney } from '../../utils/formatMoney';
+import { CURRENCIES } from '../../constants/currencies';
+import { useCurrency } from '../../context/CurrencyContext';
 
 
 const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionToEdit }) => {
 
   const route = useRoute();
+  const { baseCurrency } = useCurrency();
 
   const [isEditing, setIsEditing] = useState(false);
   const [activeDate, setActiveDate] = useState(0); // 'Hoy' es el botón activo por defecto
@@ -38,6 +41,7 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
     budget_id: '',
     icon: '',
     color: '#b1c3cb',
+    currency: baseCurrency,
   });
 
    const visibleCategory = useMemo(() => {
@@ -68,9 +72,9 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
         notes: transactionToEdit.notes,
         date: new Date(transactionToEdit.date),
         budget_id: transactionToEdit.budget_id,
-        icon: transactionToEdit.icon, 
+        icon: transactionToEdit.icon,
         color: transactionToEdit.color || '#b1c3cb',
-    
+        currency: transactionToEdit.currency || baseCurrency,
       });
       setIsEditing(true);
     }
@@ -93,7 +97,7 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
   const formatCurrency = (value) => {
   const number = typeof value === 'string' ? parseInt(value.replace(/\D/g, '')) : value;
   if (isNaN(number)) return '';
-  return money(number);
+  return formatMoney(number, formData.currency);
 };
 
 const handleCurrencyInput = (text) => {
@@ -120,6 +124,7 @@ const handleCurrencyInput = (text) => {
       type: formData.type.toLowerCase(),
       account: formData.account,
       amount: parseFloat(formData.amount),
+      currency: formData.currency,
       notes: formData.notes.trim(),
       date: formData.date.toISOString(),
       budget_id: formData.budget_id,
@@ -128,7 +133,7 @@ const handleCurrencyInput = (text) => {
     }
 
     await onSubmit(transactionData)
- 
+
     setFormData({
       type: 'gasto',
       account:'',
@@ -138,6 +143,7 @@ const handleCurrencyInput = (text) => {
       icon: '',
       color: '#b1c3cb',
       budget_id: null,
+      currency: formData.currency,
     });
 
   };
@@ -167,6 +173,22 @@ const handleCurrencyInput = (text) => {
         value={formatCurrency(formData.amount)}
         onChangeText={(value) => handleCurrencyInput(value)}
       />
+
+      <Text style={styles.sectionTitle}>Moneda</Text>
+      <View style={styles.currencyRow}>
+        {CURRENCIES.map((c) => {
+          const active = formData.currency === c.code;
+          return (
+            <TouchableOpacity
+              key={c.code}
+              style={[styles.currencyChip, active && styles.currencyChipActive]}
+              onPress={() => handleInputChange('currency', c.code)}
+            >
+              <Text style={[styles.currencyChipText, active && styles.currencyChipTextActive]}>{c.code}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
       <Text style={styles.sectionTitle}>Categoria</Text>
       <View style={styles.budgetsContainer}>
@@ -316,6 +338,30 @@ const styles = StyleSheet.create({
   container: {
     padding: SIZES.padding,
     borderRadius: SIZES.radius,
+  },
+  currencyRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  currencyChip: {
+    paddingHorizontal: SIZES.padding,
+    paddingVertical: SIZES.padding * 0.4,
+    borderRadius: SIZES.radius,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.background,
+  },
+  currencyChipActive: {
+    backgroundColor: COLORS.primary,
+  },
+  currencyChipText: {
+    fontSize: SIZES.font,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  currencyChipTextActive: {
+    color: COLORS.textPrimary,
   },
   sectionTitle: {
     fontSize: SIZES.font,
