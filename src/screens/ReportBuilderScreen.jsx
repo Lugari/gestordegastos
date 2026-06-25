@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Platform, Alert, useWindowDimensions } from 'react-native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import DateFilterTabs from '../components/DateFilterTabs';
 import DateRangePickerModal from '../components/DateRangePickerModal';
@@ -13,9 +14,16 @@ import { useGetSavings } from '../hooks/useSavingsData';
 import { useReportData } from '../hooks/useReportData';
 import { useIsDesktop } from '../hooks/useResponsive';
 import { defaultReportConfig, REPORT_MODES } from '../constants/reportTypes';
+import { exportReport } from '../utils/reportExport';
 import { COLORS, SIZES } from '../constants/theme';
 
 const MAX_CONTENT_WIDTH = 760;
+
+// Feedback multiplataforma (Alert.alert es no-op en react-native-web).
+const notify = (title, message) => {
+  if (Platform.OS === 'web') window.alert(`${title}\n\n${message}`);
+  else Alert.alert(title, message);
+};
 
 const money = (n) => (n < 0 ? '-$' : '$') + Math.abs(n).toLocaleString('es-CO');
 
@@ -37,6 +45,19 @@ const ReportBuilderScreen = () => {
 
   const report = useReportData(config);
 
+  const periodLabel =
+    config.range.preset === 'Personalizado' && config.range.start
+      ? `${new Date(config.range.start).toLocaleDateString('es-CO')} — ${new Date(config.range.end).toLocaleDateString('es-CO')}`
+      : config.range.preset;
+
+  const handleExport = async (format) => {
+    try {
+      await exportReport(format, report, { title: 'Reporte personalizado', period: periodLabel });
+    } catch (e) {
+      notify('No se pudo exportar', e.message || 'Error desconocido.');
+    }
+  };
+
   const patch = (changes) => setConfig((prev) => ({ ...prev, ...changes }));
 
   const onSelectPreset = (value) => {
@@ -51,6 +72,26 @@ const ReportBuilderScreen = () => {
     <View style={styles.root}>
       <ScrollView contentContainerStyle={[styles.content, isDesktop && styles.contentDesktop]}>
         <Text style={styles.title}>Reporte personalizado</Text>
+
+        {/* Exportar */}
+        <View style={styles.exportRow}>
+          <TouchableOpacity
+            style={[styles.exportBtn, report.count === 0 && styles.exportBtnDisabled]}
+            disabled={report.count === 0}
+            onPress={() => handleExport('csv')}
+          >
+            <MaterialIcons name="table-chart" size={18} color={COLORS.textPrimary} />
+            <Text style={styles.exportText}>Exportar CSV</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.exportBtn, report.count === 0 && styles.exportBtnDisabled]}
+            disabled={report.count === 0}
+            onPress={() => handleExport('pdf')}
+          >
+            <MaterialIcons name="picture-as-pdf" size={18} color={COLORS.textPrimary} />
+            <Text style={styles.exportText}>Exportar PDF</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Período */}
         <Text style={styles.section}>PERÍODO</Text>
@@ -137,6 +178,28 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.textPrimary,
     marginBottom: SIZES.padding,
+  },
+  exportRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  exportBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: COLORS.secondary,
+    borderRadius: SIZES.radius,
+    paddingVertical: SIZES.padding * 0.6,
+  },
+  exportBtnDisabled: {
+    opacity: 0.4,
+  },
+  exportText: {
+    fontSize: SIZES.font,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
   },
   section: {
     fontSize: SIZES.font,
