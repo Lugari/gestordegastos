@@ -37,7 +37,7 @@ const Header = () => {
   const [username, setUsername] = useState('Usuario');
   const [newName, setNewName] = useState(username);
   const { logout } = useContext(AuthContext);
-  const { currency, setCurrency } = useCurrency();
+  const { currency, setCurrency, baseCurrency, setBaseCurrency, ratesUpdatedAt, refreshRates, loadingRates } = useCurrency();
 
   const navigation = useNavigation();
   const queryClient = useQueryClient();
@@ -243,7 +243,27 @@ const Header = () => {
       >
         <Pressable style={styles.centeredOverlay} onPress={() => setCurrencyModalVisible(false)}>
           <Pressable style={styles.nameModalContent}>
-            <Text style={styles.nameModalTitle}>Seleccionar moneda</Text>
+            <Text style={styles.nameModalTitle}>Moneda</Text>
+
+            {/* Moneda base (en la que están guardados los datos) */}
+            <Text style={styles.currencySection}>MONEDA BASE (TUS DATOS)</Text>
+            <View style={styles.codeRow}>
+              {CURRENCIES.map((c) => {
+                const active = c.code === baseCurrency;
+                return (
+                  <TouchableOpacity
+                    key={c.code}
+                    style={[styles.codeChip, active && styles.codeChipActive]}
+                    onPress={() => setBaseCurrency(c.code)}
+                  >
+                    <Text style={[styles.codeChipText, active && styles.codeChipTextActive]}>{c.code}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Moneda de visualización */}
+            <Text style={styles.currencySection}>MOSTRAR EN</Text>
             {CURRENCIES.map((c) => {
               const active = c.code === currency;
               return (
@@ -258,6 +278,18 @@ const Header = () => {
                 </TouchableOpacity>
               );
             })}
+
+            {/* Estado de las tasas */}
+            <View style={styles.ratesRow}>
+              <Text style={styles.ratesText}>
+                {ratesUpdatedAt
+                  ? `Tasas: ${new Date(ratesUpdatedAt).toLocaleDateString('es-CO')}`
+                  : 'Tasas: respaldo (sin conexión)'}
+              </Text>
+              <TouchableOpacity onPress={refreshRates} disabled={loadingRates}>
+                <Text style={styles.ratesRefresh}>{loadingRates ? 'Actualizando…' : 'Actualizar'}</Text>
+              </TouchableOpacity>
+            </View>
           </Pressable>
         </Pressable>
       </Modal>
@@ -372,6 +404,54 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     color: COLORS.textSecondary,
+  },
+  currencySection: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: COLORS.neutral,
+    marginTop: 14,
+    marginBottom: 6,
+  },
+  codeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  codeChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: SIZES.radius,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  codeChipActive: {
+    backgroundColor: COLORS.primary,
+  },
+  codeChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  codeChipTextActive: {
+    color: COLORS.textPrimary,
+  },
+  ratesRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    paddingTop: 12,
+  },
+  ratesText: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+  },
+  ratesRefresh: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: COLORS.success,
   },
   input: {
     height: 50,
