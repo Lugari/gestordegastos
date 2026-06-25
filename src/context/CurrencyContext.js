@@ -14,6 +14,7 @@ const CurrencyContext = createContext({
   setCurrency: () => {},
   setBaseCurrency: () => {},
   format: (amount) => formatMoney(amount, DEFAULT_CURRENCY),
+  formatIn: (amount, code) => formatMoney(amount, code),
   convert: (amount) => amount,
   rates: null,
   ratesUpdatedAt: null,
@@ -92,6 +93,10 @@ export const CurrencyProvider = ({ children }) => {
     [baseCurrency, currency, rates],
   );
 
+  // Formatea un monto en una moneda específica, sin conversión (p. ej. para
+  // mostrar una transacción en su moneda original).
+  const formatIn = useCallback((amount, code) => formatMoney(amount, code || baseCurrency), [baseCurrency]);
+
   return (
     <CurrencyContext.Provider
       value={{
@@ -100,6 +105,7 @@ export const CurrencyProvider = ({ children }) => {
         setCurrency,
         setBaseCurrency,
         format,
+        formatIn,
         convert,
         rates,
         ratesUpdatedAt,
