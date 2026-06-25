@@ -16,6 +16,7 @@ import SingleBudgetScreen from "./screens/SingleBudgetScreen";
 import SingleSavingScreen from "./screens/SingleSavingScreen";
 import LoginScreen from "./screens/LoginScreen";
 import ReportsScreen from "./screens/ReportsScreen";
+import ReportBuilderScreen from "./screens/ReportBuilderScreen";
 import SingleDebtScreen from "./screens/SingleDebtScreen";
 import SingleInvestmentScreen from "./screens/SingleInvestmentScreen";
 
@@ -42,6 +43,7 @@ const AppNavigator = () => {
           <>
             <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }} />
             <Stack.Screen name="ReportsScreen" component={ReportsScreen} options={{ title: "Reportes" }} />
+            <Stack.Screen name="ReportBuilderScreen" component={ReportBuilderScreen} options={{ title: "Reporte personalizado" }} />
             <Stack.Screen name="TransactionHistoryScreen" component={TransactionHistoryScreen} options={{ title: "Transacciones" }} />
             <Stack.Screen name="SingleTransactionScreen" component={SingleTransactionScreen} options={{ title: "Detalles de Transacción" }} />
             <Stack.Screen name="AddTransactionScreen" component={AddTransactionScreen} options={{ title: "Añadir Transacción" }} />

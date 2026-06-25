@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { PieChart, LineChart } from 'react-native-chart-kit';
 import { useGetTransactions } from '../hooks/useTransactionData';
 import { useGetBudgets } from '../hooks/useBudgetsData';
@@ -13,6 +15,7 @@ import { COLORS, SIZES } from '../constants/theme';
 const MAX_CONTENT_WIDTH = 720;
 
 const ReportsScreen = () => {
+  const navigation = useNavigation();
   const { width } = useWindowDimensions();
   const isDesktop = useIsDesktop();
 
@@ -113,6 +116,11 @@ const ReportsScreen = () => {
     <ScrollView style={styles.container} contentContainerStyle={isDesktop && styles.contentDesktop}>
       <Text style={styles.header}>Reportes</Text>
 
+      <TouchableOpacity style={styles.customButton} onPress={() => navigation.navigate('ReportBuilderScreen')}>
+        <MaterialIcons name="tune" size={20} color={COLORS.textPrimary} />
+        <Text style={styles.customButtonText}>Reporte personalizado</Text>
+      </TouchableOpacity>
+
       <View style={styles.netWorthCard}>
         <Text style={styles.netWorthLabel}>PATRIMONIO NETO</Text>
         <Text style={[styles.netWorthValue, { color: netWorth.net >= 0 ? COLORS.success : COLORS.danger }]}>
@@ -186,6 +194,21 @@ const styles = StyleSheet.create({
     fontSize: SIZES.font * 2,
     fontWeight: 'bold',
     marginBottom: SIZES.padding,
+  },
+  customButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: COLORS.primary,
+    borderRadius: SIZES.radius,
+    paddingVertical: SIZES.padding * 0.75,
+    marginBottom: SIZES.padding * 1.5,
+  },
+  customButtonText: {
+    fontSize: SIZES.font,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
   },
   netWorthCard: {
     backgroundColor: '#fff',
