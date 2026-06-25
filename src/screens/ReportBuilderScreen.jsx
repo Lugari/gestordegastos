@@ -1,10 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 
 import DateFilterTabs from '../components/DateFilterTabs';
 import DateRangePickerModal from '../components/DateRangePickerModal';
 import TypeToggle from '../components/reports/TypeToggle';
 import CategoryMultiSelect from '../components/reports/CategoryMultiSelect';
+import ReportSummary from '../components/reports/ReportSummary';
+import ReportDetailed from '../components/reports/ReportDetailed';
 
 import { useGetBudgets } from '../hooks/useBudgetsData';
 import { useGetSavings } from '../hooks/useSavingsData';
@@ -13,10 +15,14 @@ import { useIsDesktop } from '../hooks/useResponsive';
 import { defaultReportConfig, REPORT_MODES } from '../constants/reportTypes';
 import { COLORS, SIZES } from '../constants/theme';
 
+const MAX_CONTENT_WIDTH = 760;
+
 const money = (n) => (n < 0 ? '-$' : '$') + Math.abs(n).toLocaleString('es-CO');
 
 const ReportBuilderScreen = () => {
   const isDesktop = useIsDesktop();
+  const { width } = useWindowDimensions();
+  const chartWidth = Math.min(width, MAX_CONTENT_WIDTH) - SIZES.padding * 2;
 
   const [config, setConfig] = useState(defaultReportConfig);
   const [rangeModalVisible, setRangeModalVisible] = useState(false);
@@ -87,17 +93,15 @@ const ReportBuilderScreen = () => {
           })}
         </View>
 
-        {/* Resumen en vivo */}
-        <View style={styles.summary}>
-          <Text style={styles.summaryCount}>{report.count} transacciones</Text>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryItem}>Ingresos: <Text style={{ color: COLORS.success }}>{money(report.totalIncome)}</Text></Text>
-            <Text style={styles.summaryItem}>Gastos: <Text style={{ color: COLORS.danger }}>{money(report.totalExpense)}</Text></Text>
-          </View>
-          <Text style={styles.summaryNet}>Neto: {money(report.net)}</Text>
-        </View>
+        {/* Reporte en vivo según el modo */}
+        <View style={styles.divider} />
+        {config.mode === 'simple' ? (
+          <ReportSummary report={report} chartWidth={chartWidth} />
+        ) : (
+          <ReportDetailed report={report} chartWidth={chartWidth} />
+        )}
 
-        <Text style={styles.note}>La vista {config.mode === 'simple' ? 'Simple' : 'Detallada'} y la exportación llegan en las siguientes fases.</Text>
+        <Text style={styles.note}>La exportación (CSV/PDF) llega en la siguiente fase.</Text>
       </ScrollView>
 
       <DateRangePickerModal
@@ -176,6 +180,11 @@ const styles = StyleSheet.create({
   },
   modeLabelActive: {
     color: COLORS.textPrimary,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: COLORS.lightGray,
+    marginTop: SIZES.padding * 1.5,
   },
   summary: {
     marginTop: SIZES.padding * 1.5,
