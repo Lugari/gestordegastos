@@ -8,12 +8,13 @@ import TypeToggle from '../components/reports/TypeToggle';
 import CategoryMultiSelect from '../components/reports/CategoryMultiSelect';
 import ReportSummary from '../components/reports/ReportSummary';
 import ReportDetailed from '../components/reports/ReportDetailed';
+import FreelancerReport from '../components/reports/FreelancerReport';
 
 import { useGetBudgets } from '../hooks/useBudgetsData';
 import { useGetSavings } from '../hooks/useSavingsData';
 import { useReportData } from '../hooks/useReportData';
 import { useIsDesktop } from '../hooks/useResponsive';
-import { defaultReportConfig, REPORT_MODES } from '../constants/reportTypes';
+import { defaultReportConfig, freelancerConfig, REPORT_MODES, REPORT_TEMPLATES } from '../constants/reportTypes';
 import { exportReport } from '../utils/reportExport';
 import { COLORS, SIZES } from '../constants/theme';
 
@@ -45,6 +46,28 @@ const ReportBuilderScreen = () => {
 
   const report = useReportData(config);
 
+  const isFreelancer = config.template === 'freelancer';
+
+  // Cálculo fiscal de la plantilla freelancer.
+  const expenseCategories = useMemo(() => report.byCategory.filter((c) => c.type === 'gasto'), [report.byCategory]);
+  const freelancer = useMemo(() => {
+    const deductibleSet = new Set(config.deductibleCategoryIds);
+    const deductibleTotal = expenseCategories
+      .filter((c) => deductibleSet.has(c.id))
+      .reduce((a, c) => a + c.total, 0);
+    const grossIncome = report.totalIncome;
+    const taxableBase = Math.max(0, grossIncome - deductibleTotal);
+    const tax = Math.round((taxableBase * (Number(config.taxRate) || 0)) / 100);
+    return {
+      grossIncome,
+      deductibleTotal,
+      taxableBase,
+      tax,
+      afterTax: grossIncome - report.totalExpense - tax,
+      count: report.count,
+    };
+  }, [expenseCategories, config.deductibleCategoryIds, config.taxRate, report.totalIncome, report.totalExpense, report.count]);
+
   const periodLabel =
     config.range.preset === 'Personalizado' && config.range.start
       ? `${new Date(config.range.start).toLocaleDateString('es-CO')} — ${new Date(config.range.end).toLocaleDateString('es-CO')}`
@@ -52,13 +75,41 @@ const ReportBuilderScreen = () => {
 
   const handleExport = async (format) => {
     try {
-      await exportReport(format, report, { title: 'Reporte personalizado', period: periodLabel });
+      const taxRows = isFreelancer
+        ? [
+            ['Ingreso bruto', freelancer.grossIncome],
+            ['Gastos deducibles', freelancer.deductibleTotal],
+            ['Base gravable', freelancer.taxableBase],
+            ['Tasa', `${config.taxRate}%`],
+            ['Impuesto estimado', freelancer.tax],
+            ['Resultado después de impuestos', freelancer.afterTax],
+          ]
+        : undefined;
+      const title = isFreelancer ? 'Reporte freelancer (impuestos)' : 'Reporte personalizado';
+      await exportReport(format, report, { title, period: periodLabel, taxRows });
     } catch (e) {
       notify('No se pudo exportar', e.message || 'Error desconocido.');
     }
   };
 
   const patch = (changes) => setConfig((prev) => ({ ...prev, ...changes }));
+
+  const onSelectTemplate = (value) => {
+    if (value === 'freelancer') {
+      // Por defecto, todas las categorías de gasto se marcan como deducibles.
+      setConfig(freelancerConfig(budgets.map((b) => b.id)));
+    } else {
+      patch({ template: null });
+    }
+  };
+
+  const toggleDeductible = (id) =>
+    setConfig((prev) => ({
+      ...prev,
+      deductibleCategoryIds: prev.deductibleCategoryIds.includes(id)
+        ? prev.deductibleCategoryIds.filter((v) => v !== id)
+        : [...prev.deductibleCategoryIds, id],
+    }));
 
   const onSelectPreset = (value) => {
     if (value === 'Personalizado') {
@@ -93,6 +144,23 @@ const ReportBuilderScreen = () => {
           </TouchableOpacity>
         </View>
 
+        {/* Plantilla */}
+        <Text style={styles.section}>PLANTILLA</Text>
+        <View style={styles.modeRow}>
+          {REPORT_TEMPLATES.map((tpl) => {
+            const active = config.template === tpl.value;
+            return (
+              <TouchableOpacity
+                key={tpl.label}
+                style={[styles.modeChip, active && styles.modeChipActive]}
+                onPress={() => onSelectTemplate(tpl.value)}
+              >
+                <Text style={[styles.modeLabel, active && styles.modeLabelActive]}>{tpl.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
         {/* Período */}
         <Text style={styles.section}>PERÍODO</Text>
         <DateFilterTabs activeFilter={config.range.preset} onSelectFilter={onSelectPreset} showCustom />
@@ -117,32 +185,43 @@ const ReportBuilderScreen = () => {
           onChange={(categoryIds) => patch({ categoryIds })}
         />
 
-        {/* Modo */}
-        <Text style={styles.section}>MODO</Text>
-        <View style={styles.modeRow}>
-          {REPORT_MODES.map((m) => {
-            const active = config.mode === m.value;
-            return (
-              <TouchableOpacity
-                key={m.value}
-                style={[styles.modeChip, active && styles.modeChipActive]}
-                onPress={() => patch({ mode: m.value })}
-              >
-                <Text style={[styles.modeLabel, active && styles.modeLabelActive]}>{m.label}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        {/* Modo (oculto con la plantilla freelancer, que define su propia vista) */}
+        {!isFreelancer && (
+          <>
+            <Text style={styles.section}>MODO</Text>
+            <View style={styles.modeRow}>
+              {REPORT_MODES.map((m) => {
+                const active = config.mode === m.value;
+                return (
+                  <TouchableOpacity
+                    key={m.value}
+                    style={[styles.modeChip, active && styles.modeChipActive]}
+                    onPress={() => patch({ mode: m.value })}
+                  >
+                    <Text style={[styles.modeLabel, active && styles.modeLabelActive]}>{m.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </>
+        )}
 
-        {/* Reporte en vivo según el modo */}
+        {/* Reporte en vivo */}
         <View style={styles.divider} />
-        {config.mode === 'simple' ? (
+        {isFreelancer ? (
+          <FreelancerReport
+            summary={freelancer}
+            expenseCategories={expenseCategories}
+            deductibleIds={config.deductibleCategoryIds}
+            taxRate={config.taxRate}
+            onToggleDeductible={toggleDeductible}
+            onChangeRate={(rate) => patch({ taxRate: rate })}
+          />
+        ) : config.mode === 'simple' ? (
           <ReportSummary report={report} chartWidth={chartWidth} />
         ) : (
           <ReportDetailed report={report} chartWidth={chartWidth} />
         )}
-
-        <Text style={styles.note}>La exportación (CSV/PDF) llega en la siguiente fase.</Text>
       </ScrollView>
 
       <DateRangePickerModal
