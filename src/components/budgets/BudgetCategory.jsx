@@ -2,10 +2,12 @@ import { View, Text, StyleSheet } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 import {COLORS, SIZES} from '../../constants/theme';
+import { useCurrency } from '../../context/CurrencyContext';
 import { useEffect, useState} from 'react';
 
 const BudgetCategory = ({ name, used, total, color }) => {
 
+  const { format } = useCurrency();
   const [percentage, setPercentage] = useState(0);
   const isComplete = percentage >= 1;
   useEffect(() => {
@@ -21,7 +23,7 @@ const BudgetCategory = ({ name, used, total, color }) => {
       <View style={styles.header}>
         <Text style={styles.title}>{name.toUpperCase()}</Text>
         <Text style={styles.amount}>
-          <Text style={styles.highlight}>${used.toLocaleString('es-CO')}</Text> / ${total.toLocaleString('es-CO')}
+          <Text style={styles.highlight}>{format(used)}</Text> / {format(total)}
         </Text>
       </View>
 

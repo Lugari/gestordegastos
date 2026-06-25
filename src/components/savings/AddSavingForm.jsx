@@ -14,6 +14,7 @@ import PrimaryButton from '../PrimaryButton';
 import SecondaryButton from '../SecondaryButton';
 import IconPicker from '../IconPicker';
 import { SIZES, COLORS} from '../../constants/theme';
+import { money } from '../../utils/formatMoney';
 import { SAVING_ICONS } from '../../constants/icons';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -63,11 +64,7 @@ const AddSavingForm = ({ onSubmit, onCancel, toEdit }) => {
   const formatCurrency = (value) => {
   const number = typeof value === 'string' ? parseInt(value.replace(/\D/g, '')) : value;
   if (isNaN(number)) return '';
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    maximumFractionDigits: 0,
-  }).format(number);
+  return money(number);
 };
 
 const handleCurrencyInput = (text) => {

@@ -3,11 +3,13 @@ import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { ProgressChart } from 'react-native-chart-kit';
 
 import { COLORS, SIZES } from '../../constants/theme';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const screenWidth = Dimensions.get('window').width;
 
 const BudgetProgressCard = ({ title, used, total, color="#3498db" }) => {
 
+  const { format } = useCurrency();
   const [percentage, setPercentage] = useState(0);
 
   useEffect(() => {
@@ -62,8 +64,8 @@ const BudgetProgressCard = ({ title, used, total, color="#3498db" }) => {
 
 
       <Text style={[styles.amount, { color }]}>
-        ${used.toLocaleString('es-CO')} 
-        <Text style={styles.total}> / ${total.toLocaleString('es-CO')}</Text>
+        {format(used)}
+        <Text style={styles.total}> / {format(total)}</Text>
       </Text>
     </View>
   );

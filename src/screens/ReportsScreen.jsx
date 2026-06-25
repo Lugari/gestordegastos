@@ -9,6 +9,7 @@ import { useGetSavings } from '../hooks/useSavingsData';
 import { useGetDebts } from '../hooks/useDebtsData';
 import { useGetInvestments } from '../hooks/useInvestmentsData';
 import { useIsDesktop } from '../hooks/useResponsive';
+import { useCurrency } from '../context/CurrencyContext';
 import { COLORS, SIZES } from '../constants/theme';
 
 // En escritorio acotamos el ancho de los gráficos para que no se deformen.
@@ -38,7 +39,7 @@ const ReportsScreen = () => {
     return { assets, liabilities, net: assets - liabilities };
   }, [savings, investments, debts]);
 
-  const money = (n) => (n < 0 ? '-$' : '$') + Math.abs(n).toLocaleString('es-CO');
+  const { format: money } = useCurrency();
 
   const expenseData = useMemo(() => {
     if (!transactions.length || !budgets.length) {

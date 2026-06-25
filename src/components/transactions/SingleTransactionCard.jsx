@@ -2,6 +2,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import PrimaryButton from '../PrimaryButton';
 import SecondaryButton from '../SecondaryButton';
 import { SIZES, COLORS } from '../../constants/theme';
+import { useCurrency } from '../../context/CurrencyContext';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
@@ -23,6 +24,8 @@ const SingleTransactionCard = ({
   onDelete,
 }) => {
 
+  const { format } = useCurrency();
+
   const formattedDate = new Date(date).toLocaleDateString('es-ES', {
     year: 'numeric',
     month: '2-digit',
@@ -33,7 +36,7 @@ const SingleTransactionCard = ({
   return (
     <View style={styles.card}>
       <Text style={[styles.amount, {  color: typeColors[type] }]}>
-        {type.toLowerCase === 'gasto' ? '-' : '+'}${amount.toLocaleString('es-CO')}
+        {type.toLowerCase() === 'gasto' ? '-' : '+'}{format(amount)}
       </Text>
 
       <Text style={[styles.label, { color: typeColors[type] }]}>

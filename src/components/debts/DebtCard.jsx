@@ -1,12 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { COLORS, SIZES } from '../../constants/theme';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const DebtCard = ({ name, total }) => {
+  const { format } = useCurrency();
   return (
     <View style={styles.card}>
       <Text style={styles.title}>{name.toUpperCase()}</Text>
-      <Text style={styles.amount}>${total.toLocaleString('es-CO')}</Text>
+      <Text style={styles.amount}>{format(total)}</Text>
     </View>
   );
 };

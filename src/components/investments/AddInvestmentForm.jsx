@@ -5,6 +5,7 @@ import PrimaryButton from '../PrimaryButton';
 import SecondaryButton from '../SecondaryButton';
 import IconPicker from '../IconPicker';
 import { SIZES, COLORS } from '../../constants/theme';
+import { money } from '../../utils/formatMoney';
 import { INVESTMENT_ICONS } from '../../constants/icons';
 
 const colorOptions = ['#A77DDB', '#F9DC5C', '#F38BA0', '#b1c3cb', '#b3e6b3', '#edbcbc'];
@@ -39,11 +40,7 @@ const AddInvestmentForm = ({ onSubmit, onCancel, toEdit }) => {
   const formatCurrency = (value) => {
     const number = typeof value === 'string' ? parseInt(value.replace(/\D/g, '')) : value;
     if (isNaN(number)) return '';
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      maximumFractionDigits: 0,
-    }).format(number);
+    return money(number);
   };
 
   const handleCurrencyInput = (text) => {

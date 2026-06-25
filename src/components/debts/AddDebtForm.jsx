@@ -15,6 +15,7 @@ import SecondaryButton from '../SecondaryButton';
 import TransactionTypeDropdown from '../transactions/TransactionTypeDropdown';
 
 import { COLORS, SIZES } from '../../constants/theme';
+import { money } from '../../utils/formatMoney';
 
 const debtTypes = ['credit card', 'free investment', 'vehicle', 'mortgage loan', 'estudies', 'other'];
 
@@ -52,11 +53,7 @@ const AddDebtForm = ({ onCancel, onSubmit, toEdit }) => {
   const formatCurrency = (value) => {
     const number = typeof value === 'string' ? parseInt(value.replace(/\D/g, '')) : value;
     if (isNaN(number)) return '';
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      maximumFractionDigits: 0,
-    }).format(number);
+    return money(number);
   };
 
   const handleCurrencyInput = (text) => {

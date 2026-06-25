@@ -4,7 +4,7 @@ import { LineChart } from 'react-native-chart-kit';
 import { COLORS, SIZES } from '../../constants/theme';
 import { TX_TYPES } from '../../constants/reportTypes';
 
-const money = (n) => (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString('es-CO');
+import { money } from '../../utils/formatMoney';
 const typeColor = (t) => TX_TYPES.find((x) => x.value === t)?.color || COLORS.neutral;
 const formatDate = (d) => new Date(d).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
 

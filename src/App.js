@@ -3,6 +3,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthProvider, AuthContext } from './context/AuthContext';
+import { CurrencyProvider } from './context/CurrencyContext';
 
 import { migrateLegacyData } from './services/migrateBuckets';
 
@@ -81,9 +82,11 @@ export default function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AppNavigator />
-      </AuthProvider>
+      <CurrencyProvider>
+        <AuthProvider>
+          <AppNavigator />
+        </AuthProvider>
+      </CurrencyProvider>
     </QueryClientProvider>
   );
 }

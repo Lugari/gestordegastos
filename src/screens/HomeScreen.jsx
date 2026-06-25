@@ -9,6 +9,7 @@ import { useGetSavings } from '../hooks/useSavingsData';
 import { useGetDebts } from '../hooks/useDebtsData';
 import { useGetInvestments } from '../hooks/useInvestmentsData';
 import { useIsDesktop } from '../hooks/useResponsive';
+import { useCurrency } from '../context/CurrencyContext';
 
 import Header from '../components/Header';
 import CardBox from '../components/CardBox';
@@ -21,6 +22,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 const HomeScreen = () => {
   const navigation = useNavigation();
   const isDesktop = useIsDesktop();
+  const { format } = useCurrency();
 
   const { data: transactions = [], isLoading: isLoadingTrasactions, error: transactionsError, refetch: refetchTransactions } = useGetTransactions();
   const { data: budgets = [], isLoading: isLoadingBudgets, error: budgetsError, refetch: refetchBudgets } = useGetBudgets();
@@ -93,9 +95,7 @@ const HomeScreen = () => {
     return <ActivityIndicator />;
   }
 
-  const balanceText = totalBalance >= 0
-    ? '$' + totalBalance.toLocaleString('es-CO')
-    : '-$' + Math.abs(totalBalance).toLocaleString('es-CO');
+  const balanceText = format(totalBalance);
 
   // --- Diseño de escritorio: dashboard centrado en grilla ---
   if (isDesktop) {
@@ -118,11 +118,11 @@ const HomeScreen = () => {
 
             <View style={dStyles.stackColumn}>
               <TouchableOpacity onPress={() => navigation.navigate('AddTransactionScreen', { transactionType: 'ingreso' })}>
-                <CardBox title="Ingresos" amount={'$' + totalIncome.toLocaleString('es-CO')} seeMore={<MaterialIcons name="add" size={20} color="#4AD14A" />} size="s" color="#4AD14A" />
+                <CardBox title="Ingresos" amount={format(totalIncome)} seeMore={<MaterialIcons name="add" size={20} color="#4AD14A" />} size="s" color="#4AD14A" />
               </TouchableOpacity>
 
               <TouchableOpacity onPress={() => navigation.navigate('AddTransactionScreen', { transactionType: 'gasto' })}>
-                <CardBox title="Egresos" amount={'$' + Math.abs(totalExpenses).toLocaleString('es-CO')} seeMore={<MaterialIcons name="add" size={20} color="#D76A61" />} size="s" color="#D76A61" />
+                <CardBox title="Egresos" amount={format(Math.abs(totalExpenses))} seeMore={<MaterialIcons name="add" size={20} color="#D76A61" />} size="s" color="#D76A61" />
               </TouchableOpacity>
             </View>
           </View>
@@ -153,10 +153,10 @@ const HomeScreen = () => {
           {/* Fila deudas + inversiones */}
           <View style={dStyles.row}>
             <TouchableOpacity style={{ flex: 1 }} onPress={() => navigation.navigate('DebtsScreen')}>
-              <CardBox title="Deudas" amount={'$' + totalDebts.toLocaleString('es-CO')} seeMore="Ver deudas" size="s" color="#D76A61" />
+              <CardBox title="Deudas" amount={format(totalDebts)} seeMore="Ver deudas" size="s" color="#D76A61" />
             </TouchableOpacity>
             <TouchableOpacity style={{ flex: 1 }} onPress={() => navigation.navigate('InvestmentsScreen')}>
-              <CardBox title="Inversiones" amount={'$' + totalInvestments.toLocaleString('es-CO')} seeMore="Ver inversiones" size="s" color="#4AD14A" />
+              <CardBox title="Inversiones" amount={format(totalInvestments)} seeMore="Ver inversiones" size="s" color="#4AD14A" />
             </TouchableOpacity>
           </View>
         </View>
@@ -186,11 +186,11 @@ const HomeScreen = () => {
 
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 20 }}>
               <TouchableOpacity onPress={() => navigation.navigate('AddTransactionScreen', { transactionType: 'ingreso' })}>
-                <CardBox title="Ingresos" amount={"$" + totalIncome.toLocaleString('es-CO')} seeMore={<MaterialIcons name="add" size={20} color="#4AD14A" />} size="s" color="#4AD14A" />
+                <CardBox title="Ingresos" amount={format(totalIncome)} seeMore={<MaterialIcons name="add" size={20} color="#4AD14A" />} size="s" color="#4AD14A" />
               </TouchableOpacity>
 
               <TouchableOpacity onPress={() => navigation.navigate('AddTransactionScreen', { transactionType: 'gasto' })}>
-                <CardBox title="Egresos" amount={'$' + Math.abs(totalExpenses).toLocaleString('es-CO')} seeMore={<MaterialIcons name="add" size={20} color="#D76A61" />} size="s" color="#D76A61" />
+                <CardBox title="Egresos" amount={format(Math.abs(totalExpenses))} seeMore={<MaterialIcons name="add" size={20} color="#D76A61" />} size="s" color="#D76A61" />
               </TouchableOpacity>
             </View>
 
@@ -217,11 +217,11 @@ const HomeScreen = () => {
 
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 20 }}>
               <TouchableOpacity onPress={() => navigation.navigate('DebtsScreen')}>
-                <CardBox title="Deudas" amount={'$' + totalDebts.toLocaleString('es-CO')} seeMore="Ver deudas" size="s" color="#D76A61" />
+                <CardBox title="Deudas" amount={format(totalDebts)} seeMore="Ver deudas" size="s" color="#D76A61" />
               </TouchableOpacity>
 
               <TouchableOpacity onPress={() => navigation.navigate('InvestmentsScreen')}>
-                <CardBox title="Inversiones" amount={'$' + totalInvestments.toLocaleString('es-CO')} seeMore="Ver inversiones" size="s" color="#4AD14A" />
+                <CardBox title="Inversiones" amount={format(totalInvestments)} seeMore="Ver inversiones" size="s" color="#4AD14A" />
               </TouchableOpacity>
             </View>
 

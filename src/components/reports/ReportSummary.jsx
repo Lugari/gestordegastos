@@ -2,8 +2,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
 
 import { COLORS, SIZES } from '../../constants/theme';
-
-const money = (n) => (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString('es-CO');
+import { money } from '../../utils/formatMoney';
 
 const KpiCard = ({ label, value, color }) => (
   <View style={styles.kpi}>

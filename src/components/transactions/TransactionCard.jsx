@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, Image } from 'react-native';
 
 import { SIZES, COLORS } from '../../constants/theme';
+import { useCurrency } from '../../context/CurrencyContext';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
@@ -13,6 +14,7 @@ const typeColors = {
 };
 
 const TransactionCard = ({ name, date, amount, type = 'gasto', icon, color}) => {
+  const { format } = useCurrency();
 
 
 
@@ -33,7 +35,7 @@ const TransactionCard = ({ name, date, amount, type = 'gasto', icon, color}) => 
         <Text style={styles.subInfoText}>{type.toUpperCase()} • {date}</Text>
         </View>
       </View>
-      <Text style={[styles.amountText, { color: typeColors[type.toLowerCase()] ?? '#000' }]}>{type.toLowerCase() === 'gasto' ? '-' : '+'}${amount.toLocaleString('es-CO')}</Text>
+      <Text style={[styles.amountText, { color: typeColors[type.toLowerCase()] ?? '#000' }]}>{type.toLowerCase() === 'gasto' ? '-' : '+'}{format(amount)}</Text>
     </View>
   );
 };

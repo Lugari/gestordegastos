@@ -6,8 +6,10 @@ import SecondaryButton from '../SecondaryButton';
 import BudgetProgressCard from '../budgets/BudgetProgressCard';
 
 import { COLORS, SIZES } from '../../constants/theme';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const SingleInvestmentCard = ({ investment, onEdit, onDelete }) => {
+  const { format } = useCurrency();
   const formatDate = (date) =>
     new Date(date).toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' });
 
@@ -30,14 +32,14 @@ const SingleInvestmentCard = ({ investment, onEdit, onDelete }) => {
         </View>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>RETORNO EST. / AÑO</Text>
-          <Text style={styles.sectionValue}>${estimatedReturn.toLocaleString('es-CO')}</Text>
+          <Text style={styles.sectionValue}>{format(estimatedReturn)}</Text>
         </View>
       </View>
 
       <Text style={styles.section}>
         Te faltan{' '}
         <Text style={{ fontSize: SIZES.font * 1.2, fontWeight: 'bold' }}>
-          ${remaining.toLocaleString('es-CO')}
+          {format(remaining)}
         </Text>{' '}
         para alcanzar tu meta de inversión.
       </Text>

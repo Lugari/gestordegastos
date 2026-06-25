@@ -7,13 +7,15 @@ import BudgetProgressCard from '../budgets/BudgetProgressCard';
 
 
 import {COLORS, SIZES} from '../../constants/theme'
+import { useCurrency } from '../../context/CurrencyContext';
 
 const SingleSavingCard = ({
   saving,
   onEdit,
   onDelete
 }) => {
-    
+    const { format } = useCurrency();
+
     const percentage = saving.used / saving.total;
 
     const formatDate = (date) => {
@@ -67,28 +69,28 @@ const SingleSavingCard = ({
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Diario: </Text>
               <View style={styles.iconRow}>
-                <Text style={[styles.sectionValue, {fontSize: SIZES.font * 1.3,fontWeight: '600'}]}>${calculateScheduledSaving('daily').toLocaleString('es-CO')}</Text>  
+                <Text style={[styles.sectionValue, {fontSize: SIZES.font * 1.3,fontWeight: '600'}]}>{format(calculateScheduledSaving('daily'))}</Text>
               </View>
             </View>
 
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Semanal</Text>
               <View style={styles.iconRow}>
-                <Text style={[styles.sectionValue, {fontSize: SIZES.font * 1.3,fontWeight: '600'}]}> ${calculateScheduledSaving('weekly').toLocaleString('es-CO')} </Text>
+                <Text style={[styles.sectionValue, {fontSize: SIZES.font * 1.3,fontWeight: '600'}]}> {format(calculateScheduledSaving('weekly'))} </Text>
               </View>
             </View>
 
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Mensual: </Text>
               <View style={styles.iconRow}>
-            <Text style={[styles.sectionValue, {fontSize: SIZES.font * 1.3,fontWeight: '600'}]}>${calculateScheduledSaving('monthly').toLocaleString('es-CO')}</Text>
+            <Text style={[styles.sectionValue, {fontSize: SIZES.font * 1.3,fontWeight: '600'}]}>{format(calculateScheduledSaving('monthly'))}</Text>
               </View>
             </View>
 
           </View>
       </View>
 
-      <Text style={styles.section}>Te faltan <Text style={{fontSize: SIZES.font *1.2,fontWeight: 'bold'}}>${(saving.total-saving.used).toLocaleString('es-CO')}</Text> para cumplir tu meta de ahorro!</Text>
+      <Text style={styles.section}>Te faltan <Text style={{fontSize: SIZES.font *1.2,fontWeight: 'bold'}}>{format(saving.total-saving.used)}</Text> para cumplir tu meta de ahorro!</Text>
 
       <View style={styles.row}>
         <View style={styles.section}>

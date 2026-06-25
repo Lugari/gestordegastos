@@ -18,6 +18,8 @@ import { AuthContext } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 
 import { importData } from '../services/dataTransfer';
+import { useCurrency } from '../context/CurrencyContext';
+import { CURRENCIES } from '../constants/currencies';
 import { COLORS, SIZES, FONTS } from '../constants/theme';
 
 const { width } = Dimensions.get('window');
@@ -31,9 +33,11 @@ const notify = (title, message) => {
 const Header = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [isNameModalVisible, setNameModalVisible] = useState(false);
+  const [isCurrencyModalVisible, setCurrencyModalVisible] = useState(false);
   const [username, setUsername] = useState('Usuario');
   const [newName, setNewName] = useState(username);
   const { logout } = useContext(AuthContext);
+  const { currency, setCurrency } = useCurrency();
 
   const navigation = useNavigation();
   const queryClient = useQueryClient();
@@ -74,6 +78,16 @@ const Header = () => {
     navigation.navigate("ReportsScreen")
     setModalVisible(false);
   }
+
+  const openCurrencyModal = () => {
+    setModalVisible(false);
+    setCurrencyModalVisible(true);
+  };
+
+  const handleSelectCurrency = (code) => {
+    setCurrency(code);
+    setCurrencyModalVisible(false);
+  };
 
   // Aplica el contenido del JSON y refresca la UI.
   const applyImport = async (text) => {
@@ -174,6 +188,11 @@ const Header = () => {
                 <Text style={styles.optionText}>Reportes</Text>
               </TouchableOpacity>
 
+              <TouchableOpacity style={styles.optionRow} onPress={openCurrencyModal}>
+                <MaterialIcons name="attach-money" size={24} color="#555" />
+                <Text style={styles.optionText}>Moneda ({currency})</Text>
+              </TouchableOpacity>
+
               <TouchableOpacity style={styles.optionRow} onPress={handleImportData}>
                 <MaterialIcons name="file-upload" size={24} color="#555" />
                 <Text style={styles.optionText}>Importar datos</Text>
@@ -212,6 +231,33 @@ const Header = () => {
                 <Text style={[styles.buttonText, { color: '#fff' }]}>Guardar</Text>
               </TouchableOpacity>
             </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isCurrencyModalVisible}
+        onRequestClose={() => setCurrencyModalVisible(false)}
+      >
+        <Pressable style={styles.centeredOverlay} onPress={() => setCurrencyModalVisible(false)}>
+          <Pressable style={styles.nameModalContent}>
+            <Text style={styles.nameModalTitle}>Seleccionar moneda</Text>
+            {CURRENCIES.map((c) => {
+              const active = c.code === currency;
+              return (
+                <TouchableOpacity
+                  key={c.code}
+                  style={[styles.currencyRow, active && styles.currencyRowActive]}
+                  onPress={() => handleSelectCurrency(c.code)}
+                >
+                  <Text style={styles.currencyCode}>{c.symbol} {c.code}</Text>
+                  <Text style={styles.currencyName}>{c.name}</Text>
+                  {active && <MaterialIcons name="check" size={20} color={COLORS.success} />}
+                </TouchableOpacity>
+              );
+            })}
           </Pressable>
         </Pressable>
       </Modal>
@@ -304,6 +350,28 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
     color: '#333',
+  },
+  currencyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderRadius: SIZES.radius,
+  },
+  currencyRowActive: {
+    backgroundColor: COLORS.primary + '33',
+  },
+  currencyCode: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+    width: 70,
+  },
+  currencyName: {
+    flex: 1,
+    fontSize: 14,
+    color: COLORS.textSecondary,
   },
   input: {
     height: 50,

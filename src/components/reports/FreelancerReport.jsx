@@ -2,8 +2,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-nativ
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { COLORS, SIZES } from '../../constants/theme';
-
-const money = (n) => (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString('es-CO');
+import { money } from '../../utils/formatMoney';
 
 const Row = ({ label, value, color, bold }) => (
   <View style={[styles.row, bold && styles.rowBold]}>

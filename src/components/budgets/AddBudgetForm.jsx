@@ -15,6 +15,7 @@ import SecondaryButton from '../SecondaryButton';
 import IconPicker from '../IconPicker';
 
 import { COLORS, SIZES } from '../../constants/theme';
+import { money } from '../../utils/formatMoney';
 import { BUDGET_ICONS } from '../../constants/icons';
 
 import { useNavigation } from '@react-navigation/native';
@@ -64,11 +65,7 @@ const AddBudgetForm = ({onCancel, onSubmit, toEdit}) => {
   const formatCurrency = (value) => {
   const number = typeof value === 'string' ? parseInt(value.replace(/\D/g, '')) : value;
   if (isNaN(number)) return '';
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    maximumFractionDigits: 0,
-  }).format(number);
+  return money(number);
 };
 
 const handleCurrencyInput = (text) => {

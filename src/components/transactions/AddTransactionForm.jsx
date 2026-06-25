@@ -16,6 +16,7 @@ import TransactionTypeDropdown from './TransactionTypeDropdown';
 import PrimaryButton from '../PrimaryButton';
 import SecondaryButton from '../SecondaryButton';
 import { SIZES, COLORS } from '../../constants/theme';
+import { money } from '../../utils/formatMoney';
 
 
 const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionToEdit }) => {
@@ -92,11 +93,7 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
   const formatCurrency = (value) => {
   const number = typeof value === 'string' ? parseInt(value.replace(/\D/g, '')) : value;
   if (isNaN(number)) return '';
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    maximumFractionDigits: 0,
-  }).format(number);
+  return money(number);
 };
 
 const handleCurrencyInput = (text) => {

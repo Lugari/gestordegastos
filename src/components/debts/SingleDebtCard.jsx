@@ -4,8 +4,10 @@ import { MaterialIcons } from '@expo/vector-icons';
 import PrimaryButton from '../PrimaryButton';
 import SecondaryButton from '../SecondaryButton';
 import { COLORS, SIZES } from '../../constants/theme';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const SingleDebtCard = ({ debt, onEdit, onDelete }) => {
+  const { format } = useCurrency();
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('es-CO', {
       year: 'numeric',
@@ -17,7 +19,7 @@ const SingleDebtCard = ({ debt, onEdit, onDelete }) => {
   return (
     <View style={styles.card}>
       <Text style={styles.title}>{debt.name.toUpperCase()}</Text>
-      <Text style={styles.amount}>${debt.total.toLocaleString('es-CO')}</Text>
+      <Text style={styles.amount}>{format(debt.total)}</Text>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>TIPO</Text>

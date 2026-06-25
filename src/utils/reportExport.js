@@ -1,12 +1,12 @@
 import { Platform } from 'react-native';
 
 import { INCOME_CATEGORY } from '../constants/reportTypes';
+import { money } from './formatMoney';
 
 // Exportación de reportes a CSV y PDF, multiplataforma:
 // - Web: descarga de Blob (CSV) / ventana de impresión (PDF).
 // - Nativo (Expo): expo-file-system + expo-sharing (CSV) y expo-print (PDF).
 
-const money = (n) => '$' + Math.round(Number(n) || 0).toLocaleString('es-CO');
 const csvEscape = (s) => `"${String(s ?? '').replace(/"/g, '""')}"`;
 const fmtDate = (d) => new Date(d).toLocaleDateString('es-CO');
 
