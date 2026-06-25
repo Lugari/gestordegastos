@@ -44,3 +44,6 @@ export const getActiveCurrency = () => activeDisplay;
 export const money = (amount) =>
   formatMoney(convertAmount(amount, activeBase, activeDisplay, activeRates), activeDisplay);
 
+// Convierte un monto desde su moneda de origen a la moneda base (para agregar).
+export const toBase = (amount, from) => convertAmount(amount, from || activeBase, activeBase, activeRates);
+
