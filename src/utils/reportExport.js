@@ -24,6 +24,7 @@ export const buildCSV = (report, meta) => {
   const lines = [];
   lines.push(`${csvEscape(meta.title)}`);
   lines.push(`Periodo,${csvEscape(meta.period)}`);
+  if (meta.currency) lines.push(`Moneda,${csvEscape(meta.currency)}`);
   lines.push('');
   lines.push('Resumen,Monto');
   lines.push(`Ingresos,${report.totalIncome}`);
@@ -83,7 +84,7 @@ export const buildHTML = (report, meta) => {
     .green{color:#228B22;} .red{color:#D76A61;}
   </style></head><body>
     <h1>${meta.title}</h1>
-    <p class="muted">${meta.period}</p>
+    <p class="muted">${meta.period}${meta.currency ? ` · Valores en ${meta.currency}` : ''}</p>
     <div class="kpis">
       <div class="kpi"><b>INGRESOS</b><span class="green">${money(report.totalIncome)}</span></div>
       <div class="kpi"><b>GASTOS</b><span class="red">${money(report.totalExpense)}</span></div>
