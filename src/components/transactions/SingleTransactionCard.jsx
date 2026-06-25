@@ -14,9 +14,10 @@ const typeColors = {
 
 const SingleTransactionCard = ({
   amount,
+  currency,
   type = 'gasto',
   budget,
-  date, 
+  date,
   icon,
   color,
   notes,
@@ -24,7 +25,10 @@ const SingleTransactionCard = ({
   onDelete,
 }) => {
 
-  const { format } = useCurrency();
+  const { formatIn, convert, currency: displayCurrency } = useCurrency();
+
+  const txCurrency = currency || displayCurrency;
+  const showConverted = txCurrency !== displayCurrency;
 
   const formattedDate = new Date(date).toLocaleDateString('es-ES', {
     year: 'numeric',
@@ -36,8 +40,13 @@ const SingleTransactionCard = ({
   return (
     <View style={styles.card}>
       <Text style={[styles.amount, {  color: typeColors[type] }]}>
-        {type.toLowerCase() === 'gasto' ? '-' : '+'}{format(amount)}
+        {type.toLowerCase() === 'gasto' ? '-' : '+'}{formatIn(amount, txCurrency)}
       </Text>
+      {showConverted && (
+        <Text style={styles.converted}>
+          ≈ {formatIn(convert(amount, txCurrency, displayCurrency), displayCurrency)} {displayCurrency}
+        </Text>
+      )}
 
       <Text style={[styles.label, { color: typeColors[type] }]}>
         {type.toUpperCase()}
@@ -97,6 +106,11 @@ const styles = StyleSheet.create({
   amount: {
     fontSize: SIZES.font *2,
     fontWeight: 'bold',
+  },
+  converted: {
+    fontSize: SIZES.font,
+    color: COLORS.textSecondary,
+    marginTop: 2,
   },
   label: {
     fontSize: SIZES.font * 1.2,

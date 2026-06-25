@@ -13,8 +13,8 @@ const typeColors = {
   ahorro: COLORS.primary,
 };
 
-const TransactionCard = ({ name, date, amount, type = 'gasto', icon, color}) => {
-  const { format } = useCurrency();
+const TransactionCard = ({ name, date, amount, currency, type = 'gasto', icon, color}) => {
+  const { formatIn } = useCurrency();
 
 
 
@@ -35,7 +35,7 @@ const TransactionCard = ({ name, date, amount, type = 'gasto', icon, color}) => 
         <Text style={styles.subInfoText}>{type.toUpperCase()} • {date}</Text>
         </View>
       </View>
-      <Text style={[styles.amountText, { color: typeColors[type.toLowerCase()] ?? '#000' }]}>{type.toLowerCase() === 'gasto' ? '-' : '+'}{format(amount)}</Text>
+      <Text style={[styles.amountText, { color: typeColors[type.toLowerCase()] ?? '#000' }]}>{type.toLowerCase() === 'gasto' ? '-' : '+'}{formatIn(amount, currency)}</Text>
     </View>
   );
 };
