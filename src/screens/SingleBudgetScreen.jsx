@@ -84,6 +84,7 @@ const handleEditPress = useCallback(() =>{
             name={budget.name}
             date={new Date(item.date).toLocaleDateString('es-CO')}
             amount={item.amount}
+            currency={item.currency}
             type={item.type}
             icon={budget.icon}
             color={budget.color}

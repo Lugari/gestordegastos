@@ -3,6 +3,7 @@ import * as TransactionService from '../services/transactionService';
 import * as BucketService from '../services/bucketService';
 import { getStrategy } from '../domain/strategyByKind';
 import { kindFromTransactionType } from '../constants/bucketKinds';
+import { toBase } from '../utils/formatMoney';
 
 export const useGetTransactions = () => {
   return useQuery({
@@ -55,8 +56,9 @@ export const useManageTransactions = () => {
       const enriched = { ...transactionData, target_id: targetId, target_kind: targetKind };
       const newTransaction = await TransactionService.addTransaction(enriched);
 
-      // Ajuste de saldo del bucket, agnóstico al tipo.
-      await applyBucketDelta(targetId, targetKind, transactionData.amount);
+      // Ajuste de saldo del bucket (en moneda base): se convierte el monto desde
+      // la moneda de la transacción.
+      await applyBucketDelta(targetId, targetKind, toBase(transactionData.amount, transactionData.currency));
 
       return newTransaction;
     },
@@ -65,10 +67,10 @@ export const useManageTransactions = () => {
 
   // Mutación para BORRAR
   const deleteMutation = useMutation({
-    mutationFn: async ({ transactionId, budgetId, amount, type, targetKind }) => {
+    mutationFn: async ({ transactionId, budgetId, amount, type, targetKind, currency }) => {
       // Acepta targetKind explícito o lo deriva del tipo (compatibilidad).
       const kind = targetKind ?? kindFromTransactionType(type);
-      await applyBucketDelta(budgetId, kind, -amount); // revierte el saldo
+      await applyBucketDelta(budgetId, kind, -toBase(amount, currency)); // revierte el saldo (en base)
       await TransactionService.deleteTransactionById(transactionId);
     },
     ...mutationOptions,

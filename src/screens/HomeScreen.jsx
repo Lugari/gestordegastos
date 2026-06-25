@@ -22,7 +22,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 const HomeScreen = () => {
   const navigation = useNavigation();
   const isDesktop = useIsDesktop();
-  const { format } = useCurrency();
+  const { format, convert, baseCurrency } = useCurrency();
 
   const { data: transactions = [], isLoading: isLoadingTrasactions, error: transactionsError, refetch: refetchTransactions } = useGetTransactions();
   const { data: budgets = [], isLoading: isLoadingBudgets, error: budgetsError, refetch: refetchBudgets } = useGetBudgets();
@@ -39,7 +39,8 @@ const HomeScreen = () => {
     let currentExpense = 0;
 
     transactions.forEach(transaction => {
-      const amount = parseFloat(transaction.amount);
+      // Convertimos el monto a la moneda base antes de agregar.
+      const amount = convert(parseFloat(transaction.amount) || 0, transaction.currency || baseCurrency, baseCurrency);
       if (transaction.type.toLowerCase() === 'ingreso') {
         currentIncome += amount;
       } else if (transaction.type.toLowerCase() === 'gasto') {
@@ -55,7 +56,7 @@ const HomeScreen = () => {
     setTotalIncome(currentIncome);
     setTotalExpenses(currentExpense);
     setTotalBalance(currentIncome - currentExpense);
-  }, [transactions, savings]);
+  }, [transactions, savings, convert, baseCurrency]);
 
   const topBudgets = useMemo(() => {
     const sortedBudgets = budgets.map(b => (

@@ -116,6 +116,7 @@ const TransactionHistoryScreen = () => {
           name={categoryName}
           date={formattedDate(item.date)}
           amount={item.amount}
+          currency={item.currency}
           type={item.type}
           icon={categoryIcon}
           color={categoryColor}

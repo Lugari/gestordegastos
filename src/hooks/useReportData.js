@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { useGetTransactions } from './useTransactionData';
 import { useGetBudgets } from './useBudgetsData';
 import { useGetSavings } from './useSavingsData';
+import { useCurrency } from '../context/CurrencyContext';
 import { getDateRange, isWithinRange } from '../utils/dateRange';
 import { INCOME_CATEGORY } from '../constants/reportTypes';
 
@@ -15,6 +16,7 @@ export const useReportData = (config) => {
   const { data: transactions = [], isLoading: loadingTx } = useGetTransactions();
   const { data: budgets = [], isLoading: loadingB } = useGetBudgets();
   const { data: savings = [], isLoading: loadingS } = useGetSavings();
+  const { convert, baseCurrency } = useCurrency();
 
   // Índice id -> { name, color } para resolver las categorías (presupuestos + metas).
   const categoryIndex = useMemo(() => {
@@ -32,15 +34,18 @@ export const useReportData = (config) => {
     const typeSet = new Set(config.types);
     const catSet = new Set(config.categoryIds);
 
-    const filtered = transactions.filter((t) => {
-      if (!isWithinRange(t.date, range)) return false;
-      if (!typeSet.has(t.type)) return false;
-      if (catSet.size > 0) {
-        const cid = t.budget_id ?? t.target_id ?? null;
-        if (!cid || !catSet.has(cid)) return false;
-      }
-      return true;
-    });
+    const filtered = transactions
+      .filter((t) => {
+        if (!isWithinRange(t.date, range)) return false;
+        if (!typeSet.has(t.type)) return false;
+        if (catSet.size > 0) {
+          const cid = t.budget_id ?? t.target_id ?? null;
+          if (!cid || !catSet.has(cid)) return false;
+        }
+        return true;
+      })
+      // Normalizamos cada monto a la moneda base para que todo el reporte sea comparable.
+      .map((t) => ({ ...t, amount: convert(parseFloat(t.amount) || 0, t.currency || baseCurrency, baseCurrency) }));
 
     const byType = { ingreso: 0, gasto: 0, ahorro: 0 };
     const byCatMap = new Map();
@@ -95,7 +100,7 @@ export const useReportData = (config) => {
         expense: labels.map((l) => expense[l]),
       },
     };
-  }, [transactions, categoryIndex, config]);
+  }, [transactions, categoryIndex, config, convert, baseCurrency]);
 
   return { ...result, isLoading: loadingTx || loadingB || loadingS };
 };
