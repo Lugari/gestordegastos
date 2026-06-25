@@ -30,6 +30,11 @@ export const buildCSV = (report, meta) => {
   lines.push(`Gastos,${report.totalExpense}`);
   lines.push(`Ahorros,${report.totalSavings}`);
   lines.push(`Neto,${report.net}`);
+  if (meta.taxRows?.length) {
+    lines.push('');
+    lines.push('Resumen fiscal,Valor');
+    meta.taxRows.forEach(([label, value]) => lines.push(`${csvEscape(label)},${value}`));
+  }
   lines.push('');
   lines.push('Categoria,Total,Movimientos');
   report.byCategory.forEach((c) => lines.push(`${csvEscape(c.name)},${c.total},${c.count}`));
@@ -57,6 +62,12 @@ export const buildHTML = (report, meta) => {
     .map((t) => `<tr><td>${fmtDate(t.date)}</td><td>${t.type}</td><td>${names.get(categoryIdOf(t)) || 'Sin categoría'}</td><td>${t.notes || ''}</td><td class="num">${money(t.amount)}</td></tr>`)
     .join('');
 
+  const taxSection = meta.taxRows?.length
+    ? `<h2>Resumen fiscal</h2><table>${meta.taxRows
+        .map(([label, value]) => `<tr><td>${label}</td><td class="num">${typeof value === 'number' ? money(value) : value}</td></tr>`)
+        .join('')}</table>`
+    : '';
+
   return `<!DOCTYPE html><html><head><meta charset="utf-8"/>
   <style>
     body{font-family:-apple-system,Roboto,Helvetica,sans-serif;color:#222;padding:24px;}
@@ -78,6 +89,7 @@ export const buildHTML = (report, meta) => {
       <div class="kpi"><b>GASTOS</b><span class="red">${money(report.totalExpense)}</span></div>
       <div class="kpi"><b>NETO</b><span>${money(report.net)}</span></div>
     </div>
+    ${taxSection}
     <h2>Por categoría</h2>
     <table><tr><th>Categoría</th><th class="num">Total</th><th class="num">Mov.</th></tr>${catRows}</table>
     <h2>Movimientos (${report.count})</h2>
