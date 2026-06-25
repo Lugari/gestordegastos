@@ -13,16 +13,34 @@ export const formatMoney = (amount, code) => {
   return `${n < 0 ? '-' : ''}${c.symbol}${abs}`;
 };
 
-// Moneda activa para formatear desde helpers a nivel de módulo (vistas de
-// reporte, exportación) que no pueden usar el hook. El CurrencyProvider la
-// mantiene sincronizada; la reactividad la da el re-render del componente padre.
-let activeCurrency = DEFAULT_CURRENCY;
-
-export const setActiveCurrency = (code) => {
-  activeCurrency = code || DEFAULT_CURRENCY;
+// Convierte un monto entre monedas usando tasas relativas a un pivote (USD).
+// monto_to = monto_from * rate[to] / rate[from]
+export const convertAmount = (amount, from, to, rates) => {
+  const n = Number(amount) || 0;
+  if (!rates || from === to || !rates[from] || !rates[to]) return n;
+  return n * (rates[to] / rates[from]);
 };
 
-export const getActiveCurrency = () => activeCurrency;
+// Configuración activa para formatear desde helpers a nivel de módulo (vistas de
+// reporte, exportación) que no pueden usar el hook. El CurrencyProvider la
+// mantiene sincronizada; la reactividad la da el re-render del componente padre.
+let activeDisplay = DEFAULT_CURRENCY;
+let activeBase = DEFAULT_CURRENCY;
+let activeRates = null;
 
-export const money = (amount) => formatMoney(amount, activeCurrency);
+export const setActiveCurrency = (code) => {
+  activeDisplay = code || DEFAULT_CURRENCY;
+};
+export const setActiveBase = (code) => {
+  activeBase = code || DEFAULT_CURRENCY;
+};
+export const setActiveRates = (rates) => {
+  activeRates = rates || null;
+};
+
+export const getActiveCurrency = () => activeDisplay;
+
+// Convierte de la moneda base a la de visualización y formatea.
+export const money = (amount) =>
+  formatMoney(convertAmount(amount, activeBase, activeDisplay, activeRates), activeDisplay);
 
