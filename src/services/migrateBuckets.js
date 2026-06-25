@@ -10,7 +10,7 @@ import { KIND, BUCKETS_KEY, LEGACY_KEYS, kindFromTransactionType } from '../cons
 
 const SCHEMA_KEY = '@schema_version';
 const TRANSACTIONS_KEY = '@transactions';
-export const TARGET_SCHEMA_VERSION = 1;
+export const TARGET_SCHEMA_VERSION = 2;
 
 const readJson = async (key, fallback) => {
   try {
@@ -35,31 +35,21 @@ const toBucket = (record, kind) => ({
   used: Number(record.used) || 0,
 });
 
-/**
- * Ejecuta la migración si hace falta. Segura para llamar en cada arranque.
- * @returns {Promise<{migrated: boolean, reason?: string, counts?: object}>}
- */
-export const migrateLegacyData = async () => {
-  const version = await getSchemaVersion();
-  if (version >= TARGET_SCHEMA_VERSION) {
-    return { migrated: false, reason: 'up-to-date' };
-  }
-
-  // Si ya existe `@buckets` con datos, no lo sobreescribimos: solo subimos versión.
+// v0 -> v1: unifica los datos legados en `@buckets` y enriquece las transacciones.
+const unifyIntoBuckets = async () => {
+  // Si ya existe `@buckets` con datos, no lo sobreescribimos.
   const existingBuckets = await readJson(BUCKETS_KEY, []);
   if (existingBuckets.length > 0) {
-    await AsyncStorage.setItem(SCHEMA_KEY, String(TARGET_SCHEMA_VERSION));
-    return { migrated: false, reason: 'buckets-already-present' };
+    return { reason: 'buckets-already-present' };
   }
 
-  // 1) Leer datos legados.
   const [budgets, savings, debts] = await Promise.all([
     readJson(LEGACY_KEYS[KIND.BUDGET], []),
     readJson(LEGACY_KEYS[KIND.SAVING], []),
     readJson(LEGACY_KEYS[KIND.DEBT], []),
   ]);
 
-  // 2) Unificar en `@buckets` (los ids existentes son UUID, no colisionan).
+  // Los ids existentes son UUID, no colisionan entre stores.
   const buckets = [
     ...budgets.map((b) => toBucket(b, KIND.BUDGET)),
     ...savings.map((s) => toBucket(s, KIND.SAVING)),
@@ -67,33 +57,56 @@ export const migrateLegacyData = async () => {
   ];
   await AsyncStorage.setItem(BUCKETS_KEY, JSON.stringify(buckets));
 
-  // 3) Enriquecer transacciones con el vínculo unificado (target_id + target_kind),
-  //    conservando budget_id/type para compatibilidad.
+  // Enriquecer transacciones con el vínculo unificado (target_id + target_kind),
+  // conservando budget_id/type por compatibilidad.
   const transactions = await readJson(TRANSACTIONS_KEY, []);
-  let txTouched = 0;
-  const migratedTx = transactions.map((t) => {
-    if (t.target_kind !== undefined) return t; // ya migrada
-    txTouched += 1;
-    return {
-      ...t,
-      target_id: t.budget_id ?? null,
-      target_kind: kindFromTransactionType(t.type),
-    };
-  });
+  const migratedTx = transactions.map((t) =>
+    t.target_kind !== undefined
+      ? t
+      : { ...t, target_id: t.budget_id ?? null, target_kind: kindFromTransactionType(t.type) });
   if (transactions.length > 0) {
     await AsyncStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(migratedTx));
   }
 
-  // 4) Marcar versión.
-  await AsyncStorage.setItem(SCHEMA_KEY, String(TARGET_SCHEMA_VERSION));
+  return { counts: { buckets: buckets.length, transactions: transactions.length } };
+};
 
-  const counts = {
-    budgets: budgets.length,
-    savings: savings.length,
-    debts: debts.length,
-    buckets: buckets.length,
-    transactions: txTouched,
-  };
-  console.log('Migración a @buckets completada:', counts);
-  return { migrated: true, counts };
+// v1 -> v2: purga las claves legadas, ya migradas a `@buckets`.
+const purgeLegacyKeys = async () => {
+  await AsyncStorage.multiRemove([
+    LEGACY_KEYS[KIND.BUDGET],
+    LEGACY_KEYS[KIND.SAVING],
+    LEGACY_KEYS[KIND.DEBT],
+  ]);
+};
+
+/**
+ * Ejecuta la migración por pasos hasta la versión objetivo. Idempotente y segura
+ * para llamar en cada arranque.
+ * @returns {Promise<{migrated: boolean, steps: string[]}>}
+ */
+export const migrateLegacyData = async () => {
+  let version = await getSchemaVersion();
+  if (version >= TARGET_SCHEMA_VERSION) {
+    return { migrated: false, steps: [] };
+  }
+
+  const steps = [];
+
+  if (version < 1) {
+    await unifyIntoBuckets();
+    steps.push('unify');
+    await AsyncStorage.setItem(SCHEMA_KEY, '1');
+    version = 1;
+  }
+
+  if (version < 2) {
+    await purgeLegacyKeys();
+    steps.push('purge-legacy');
+    await AsyncStorage.setItem(SCHEMA_KEY, '2');
+    version = 2;
+  }
+
+  console.log('Migración completada:', steps);
+  return { migrated: true, steps };
 };
