@@ -39,6 +39,7 @@ const SingleTransactionScreen = () => {
                       budgetId: transaction.budget_id,
                       amount: transaction.amount,
                       type: transaction.type,
+                      currency: transaction.currency,
                     })
                     navigation.popTo('TransactionHistoryScreen')
                     return
@@ -56,6 +57,7 @@ const SingleTransactionScreen = () => {
       <SingleTransactionCard
         id={transaction.id}
         amount={transaction.amount}
+        currency={transaction.currency}
         type={transaction.type}
         budget={categoryName}
         date={transaction.date}
