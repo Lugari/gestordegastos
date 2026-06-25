@@ -15,6 +15,7 @@ import { useGetSavings } from '../hooks/useSavingsData';
 import { useReportData } from '../hooks/useReportData';
 import { useSavedReports } from '../hooks/useSavedReports';
 import { useIsDesktop } from '../hooks/useResponsive';
+import { useCurrency } from '../context/CurrencyContext';
 import { defaultReportConfig, freelancerConfig, REPORT_MODES, REPORT_TEMPLATES } from '../constants/reportTypes';
 import { exportReport } from '../utils/reportExport';
 import { COLORS, SIZES } from '../constants/theme';
@@ -37,6 +38,8 @@ const ReportBuilderScreen = () => {
     ? Math.min(width, DESKTOP_MAX) - LEFT_COL - SIZES.padding * 3
     : Math.min(width, MAX_CONTENT_WIDTH) - SIZES.padding * 2;
   const chartWidth = Math.max(240, reportAreaWidth);
+
+  const { currency } = useCurrency();
 
   const [config, setConfig] = useState(defaultReportConfig);
   const [rangeModalVisible, setRangeModalVisible] = useState(false);
@@ -85,7 +88,7 @@ const ReportBuilderScreen = () => {
           ]
         : undefined;
       const title = isFreelancer ? 'Reporte freelancer (impuestos)' : 'Reporte personalizado';
-      await exportReport(format, report, { title, period: periodLabel, taxRows });
+      await exportReport(format, report, { title, period: periodLabel, taxRows, currency });
     } catch (e) {
       notify('No se pudo exportar', e.message || 'Error desconocido.');
     }
@@ -212,6 +215,7 @@ const ReportBuilderScreen = () => {
   const reportView = (
     <View style={isDesktop ? styles.rightCol : undefined}>
       {!isDesktop && <View style={styles.divider} />}
+      <Text style={styles.currencyNote}>Mostrando en {currency}</Text>
       {isFreelancer ? (
         <FreelancerReport
           summary={freelancer}
@@ -310,6 +314,13 @@ const styles = StyleSheet.create({
   chipLabel: { fontSize: SIZES.font, color: COLORS.textSecondary, fontWeight: '600' },
   chipLabelActive: { color: COLORS.textPrimary },
   divider: { height: 1, backgroundColor: COLORS.lightGray, marginTop: SIZES.padding * 1.5 },
+  currencyNote: {
+    fontSize: SIZES.font * 0.85,
+    color: COLORS.neutral,
+    fontWeight: '600',
+    marginTop: SIZES.padding,
+    marginBottom: SIZES.base,
+  },
   saveRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   nameInput: {
     flex: 1,
