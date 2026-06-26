@@ -67,8 +67,8 @@ const Header = () => {
     setNewName()
   };
   const handleAddAccount = () => {
-    console.log('Navegar a Añadir Cuentas');
     setModalVisible(false);
+    navigation.navigate('AccountsScreen');
   };
   const handleGoToSettings = () => {
     console.log('Navegar a Configuración');

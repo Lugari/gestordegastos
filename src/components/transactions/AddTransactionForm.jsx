@@ -17,14 +17,15 @@ import PrimaryButton from '../PrimaryButton';
 import SecondaryButton from '../SecondaryButton';
 import { SIZES, COLORS } from '../../constants/theme';
 import { formatMoney } from '../../utils/formatMoney';
-import { CURRENCIES } from '../../constants/currencies';
 import { useCurrency } from '../../context/CurrencyContext';
+import { useGetAccounts } from '../../hooks/useAccountsData';
 
 
 const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionToEdit }) => {
 
   const route = useRoute();
   const { baseCurrency } = useCurrency();
+  const { data: accounts = [] } = useGetAccounts();
 
   const [isEditing, setIsEditing] = useState(false);
   const [activeDate, setActiveDate] = useState(0); // 'Hoy' es el botón activo por defecto
@@ -79,6 +80,17 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
       setIsEditing(true);
     }
   }, [transactionToEdit]);
+
+  // Selecciona la primera cuenta por defecto (su moneda manda) cuando aún no hay una.
+  useEffect(() => {
+    if (!transactionToEdit && !formData.account && accounts.length > 0) {
+      const first = accounts[0];
+      setFormData((prev) => ({ ...prev, account: first.id, currency: first.currency }));
+    }
+  }, [accounts, transactionToEdit, formData.account]);
+
+  const selectAccount = (account) =>
+    setFormData((prev) => ({ ...prev, account: account.id, currency: account.currency }));
 
 
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -174,21 +186,29 @@ const handleCurrencyInput = (text) => {
         onChangeText={(value) => handleCurrencyInput(value)}
       />
 
-      <Text style={styles.sectionTitle}>Moneda</Text>
-      <View style={styles.currencyRow}>
-        {CURRENCIES.map((c) => {
-          const active = formData.currency === c.code;
-          return (
-            <TouchableOpacity
-              key={c.code}
-              style={[styles.currencyChip, active && styles.currencyChipActive]}
-              onPress={() => handleInputChange('currency', c.code)}
-            >
-              <Text style={[styles.currencyChipText, active && styles.currencyChipTextActive]}>{c.code}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+      <Text style={styles.sectionTitle}>Cuenta</Text>
+      {accounts.length === 0 ? (
+        <Text style={styles.accountHint}>
+          Sin cuentas: se usará {formData.currency}. Crea cuentas desde el menú para elegir la moneda.
+        </Text>
+      ) : (
+        <View style={styles.currencyRow}>
+          {accounts.map((a) => {
+            const active = formData.account === a.id;
+            return (
+              <TouchableOpacity
+                key={a.id}
+                style={[styles.currencyChip, active && styles.currencyChipActive]}
+                onPress={() => selectAccount(a)}
+              >
+                <Text style={[styles.currencyChipText, active && styles.currencyChipTextActive]}>
+                  {a.name} · {a.currency}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
 
       <Text style={styles.sectionTitle}>Categoria</Text>
       <View style={styles.budgetsContainer}>
@@ -362,6 +382,11 @@ const styles = StyleSheet.create({
   },
   currencyChipTextActive: {
     color: COLORS.textPrimary,
+  },
+  accountHint: {
+    fontSize: SIZES.font * 0.9,
+    color: COLORS.textSecondary,
+    fontStyle: 'italic',
   },
   sectionTitle: {
     fontSize: SIZES.font,
