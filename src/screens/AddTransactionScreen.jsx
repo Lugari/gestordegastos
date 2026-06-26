@@ -43,7 +43,7 @@ const AddTransactionScreen = () => {
             Alert.alert(
                 'Éxito',
                 transaction ? 'Transacción actualizado correctamente.' : 'transacción añadido correctamente.',
-                [{ text: 'Aceptar', onPress: () => navigation.popTo('TransactionHistoryScreen') }],
+                [{ text: 'Aceptar', onPress: () => navigation.navigate('TransactionHistoryScreen') }],
             )            
             
         }catch (error) {

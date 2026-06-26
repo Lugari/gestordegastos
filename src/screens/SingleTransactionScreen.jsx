@@ -41,7 +41,7 @@ const SingleTransactionScreen = () => {
                       type: transaction.type,
                       currency: transaction.currency,
                     })
-                    navigation.popTo('TransactionHistoryScreen')
+                    navigation.navigate('TransactionHistoryScreen')
                     return
                   } catch (error) {
                     console.error('Error deleting transaction:', error)
