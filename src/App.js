@@ -7,8 +7,7 @@ import { CurrencyProvider } from './context/CurrencyContext';
 
 import { migrateLegacyData } from './services/migrateBuckets';
 
-import HomeScreen from "./screens/HomeScreen";
-import TransactionHistoryScreen from "./screens/TransactionHistoryScreen";
+import MainTabs from "./navigation/MainTabs";
 import SingleTransactionScreen from "./screens/SingleTransactionScreen";
 import AddTransactionScreen from "./screens/AddTransactionScreen";
 import BucketListScreen from "./screens/BucketListScreen";
@@ -16,7 +15,6 @@ import AddBucketScreen from "./screens/AddBucketScreen";
 import SingleBudgetScreen from "./screens/SingleBudgetScreen";
 import SingleSavingScreen from "./screens/SingleSavingScreen";
 import LoginScreen from "./screens/LoginScreen";
-import ReportsScreen from "./screens/ReportsScreen";
 import ReportBuilderScreen from "./screens/ReportBuilderScreen";
 import AccountsScreen from "./screens/AccountsScreen";
 import SingleDebtScreen from "./screens/SingleDebtScreen";
@@ -43,11 +41,9 @@ const AppNavigator = () => {
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
         ) : (
           <>
-            <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="ReportsScreen" component={ReportsScreen} options={{ title: "Reportes" }} />
+            <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
             <Stack.Screen name="ReportBuilderScreen" component={ReportBuilderScreen} options={{ title: "Reporte personalizado" }} />
             <Stack.Screen name="AccountsScreen" component={AccountsScreen} options={{ title: "Cuentas" }} />
-            <Stack.Screen name="TransactionHistoryScreen" component={TransactionHistoryScreen} options={{ title: "Transacciones" }} />
             <Stack.Screen name="SingleTransactionScreen" component={SingleTransactionScreen} options={{ title: "Detalles de Transacción" }} />
             <Stack.Screen name="AddTransactionScreen" component={AddTransactionScreen} options={{ title: "Añadir Transacción" }} />
             <Stack.Screen name="BudgetsScreen" component={BucketListScreen} initialParams={{ kind: KIND.BUDGET }} options={{ title: "Presupuesto" }} />
