@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ScrollView, View, TouchableOpacity, ActivityIndicator, Image, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, TouchableOpacity, ActivityIndicator, Image, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 
@@ -15,7 +15,7 @@ import Header from '../components/Header';
 import CardBox from '../components/CardBox';
 import CategoryBar from '../components/CategoryBar';
 
-import { COLORS } from '../constants/theme';
+import { COLORS, SIZES } from '../constants/theme';
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
@@ -103,62 +103,63 @@ const HomeScreen = () => {
     return (
       <ScrollView style={{ flex: 1, backgroundColor: COLORS.background }} contentContainerStyle={dStyles.scroll}>
         <View style={dStyles.page}>
-          <Header username="Usuario" />
+          <Header />
 
-          <View style={dStyles.toReports}>
-            <TouchableOpacity style={dStyles.reportsLink} onPress={() => navigation.navigate('ReportsScreen')}>
-              <MaterialIcons name="bar-chart" size={20} color={COLORS.textSecondary} />
-            </TouchableOpacity>
-          </View>
+          {/* Balance (titular) */}
+          <TouchableOpacity onPress={() => navigation.navigate('TransactionHistoryScreen')}>
+            <CardBox title="Balance total" amount={balanceText} seeMore="Historial de transacciones" />
+          </TouchableOpacity>
 
-          {/* Fila principal: balance grande + ingresos/egresos */}
-          <View style={dStyles.row}>
-            <TouchableOpacity style={{ flex: 2 }} onPress={() => navigation.navigate('TransactionHistoryScreen')}>
-              <CardBox title="Balance total" amount={balanceText} seeMore="Historial de transacciones" />
-            </TouchableOpacity>
-
-            <View style={dStyles.stackColumn}>
-              <TouchableOpacity onPress={() => navigation.navigate('AddTransactionScreen', { transactionType: 'ingreso' })}>
+          {/* Este mes */}
+          <View style={dStyles.group}>
+            <Text style={dStyles.sectionLabel}>ESTE MES</Text>
+            <View style={dStyles.row}>
+              <TouchableOpacity style={{ flex: 1 }} onPress={() => navigation.navigate('AddTransactionScreen', { transactionType: 'ingreso' })}>
                 <CardBox title="Ingresos" amount={format(totalIncome)} seeMore={<MaterialIcons name="add" size={20} color="#4AD14A" />} size="s" color="#4AD14A" />
               </TouchableOpacity>
-
-              <TouchableOpacity onPress={() => navigation.navigate('AddTransactionScreen', { transactionType: 'gasto' })}>
+              <TouchableOpacity style={{ flex: 1 }} onPress={() => navigation.navigate('AddTransactionScreen', { transactionType: 'gasto' })}>
                 <CardBox title="Egresos" amount={format(Math.abs(totalExpenses))} seeMore={<MaterialIcons name="add" size={20} color="#D76A61" />} size="s" color="#D76A61" />
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Fila presupuestos + ahorros */}
-          <View style={dStyles.row}>
-            <TouchableOpacity style={{ flex: 1 }} onPress={() => navigation.navigate('BudgetsScreen')}>
-              <CardBox title="Presupuesto" amount={
-                <>
-                  {topBudgets.map((budget) => (
-                    <CategoryBar key={budget.id} name={budget.name} total={budget.total} used={budget.used} color={budget.color} />
-                  ))}
-                </>
-              } seeMore={<MaterialIcons name="expand-more" size={24} color="black" />} />
-            </TouchableOpacity>
+          {/* Mis objetivos */}
+          <View style={dStyles.group}>
+            <Text style={dStyles.sectionLabel}>MIS OBJETIVOS</Text>
+            <View style={dStyles.row}>
+              <TouchableOpacity style={{ flex: 1 }} onPress={() => navigation.navigate('BudgetsScreen')}>
+                <CardBox title="Presupuesto" amount={
+                  <>
+                    {topBudgets.map((budget) => (
+                      <CategoryBar key={budget.id} name={budget.name} total={budget.total} used={budget.used} color={budget.color} />
+                    ))}
+                  </>
+                } seeMore={<MaterialIcons name="expand-more" size={24} color="black" />} />
+              </TouchableOpacity>
 
-            <TouchableOpacity style={{ flex: 1 }} onPress={() => navigation.navigate('SavingsScreen')}>
-              <CardBox title="Ahorros" amount={
-                <>
-                  {topSavings.map((saving) => (
-                    <CategoryBar key={saving.id} name={saving.name} total={saving.total} used={saving.used} color={saving.color} />
-                  ))}
-                </>
-              } seeMore={<MaterialIcons name="expand-more" size={24} color="black" />} />
-            </TouchableOpacity>
+              <TouchableOpacity style={{ flex: 1 }} onPress={() => navigation.navigate('SavingsScreen')}>
+                <CardBox title="Ahorros" amount={
+                  <>
+                    {topSavings.map((saving) => (
+                      <CategoryBar key={saving.id} name={saving.name} total={saving.total} used={saving.used} color={saving.color} />
+                    ))}
+                  </>
+                } seeMore={<MaterialIcons name="expand-more" size={24} color="black" />} />
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {/* Fila deudas + inversiones */}
-          <View style={dStyles.row}>
-            <TouchableOpacity style={{ flex: 1 }} onPress={() => navigation.navigate('DebtsScreen')}>
-              <CardBox title="Deudas" amount={format(totalDebts)} seeMore="Ver deudas" size="s" color="#D76A61" />
-            </TouchableOpacity>
-            <TouchableOpacity style={{ flex: 1 }} onPress={() => navigation.navigate('InvestmentsScreen')}>
-              <CardBox title="Inversiones" amount={format(totalInvestments)} seeMore="Ver inversiones" size="s" color="#4AD14A" />
-            </TouchableOpacity>
+          {/* Patrimonio */}
+          <View style={dStyles.group}>
+            <Text style={dStyles.sectionLabel}>PATRIMONIO</Text>
+            <View style={dStyles.row}>
+              <TouchableOpacity style={{ flex: 1 }} onPress={() => navigation.navigate('DebtsScreen')}>
+                <CardBox title="Deudas" amount={format(totalDebts)} seeMore="Ver deudas" size="s" color="#D76A61" />
+              </TouchableOpacity>
+              <TouchableOpacity style={{ flex: 1 }} onPress={() => navigation.navigate('InvestmentsScreen')}>
+                <CardBox title="Inversiones" amount={format(totalInvestments)} seeMore="Ver inversiones" size="s" color="#4AD14A" />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -179,51 +180,60 @@ const HomeScreen = () => {
           </View>
 
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, gap: 20 }}>
-            <Header username="Usuario" />
+            <Header />
 
             <TouchableOpacity onPress={() => navigation.navigate('TransactionHistoryScreen')}>
               <CardBox title="Balance total" amount={balanceText} seeMore="Historial de transacciones" />
             </TouchableOpacity>
 
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 20 }}>
-              <TouchableOpacity onPress={() => navigation.navigate('AddTransactionScreen', { transactionType: 'ingreso' })}>
-                <CardBox title="Ingresos" amount={format(totalIncome)} seeMore={<MaterialIcons name="add" size={20} color="#4AD14A" />} size="s" color="#4AD14A" />
+            {/* Este mes */}
+            <View style={mStyles.group}>
+              <Text style={mStyles.sectionLabel}>ESTE MES</Text>
+              <View style={mStyles.row}>
+                <TouchableOpacity onPress={() => navigation.navigate('AddTransactionScreen', { transactionType: 'ingreso' })}>
+                  <CardBox title="Ingresos" amount={format(totalIncome)} seeMore={<MaterialIcons name="add" size={20} color="#4AD14A" />} size="s" color="#4AD14A" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('AddTransactionScreen', { transactionType: 'gasto' })}>
+                  <CardBox title="Egresos" amount={format(Math.abs(totalExpenses))} seeMore={<MaterialIcons name="add" size={20} color="#D76A61" />} size="s" color="#D76A61" />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Mis objetivos */}
+            <View style={mStyles.group}>
+              <Text style={mStyles.sectionLabel}>MIS OBJETIVOS</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('BudgetsScreen')}>
+                <CardBox title="Presupuesto" amount={
+                  <>
+                    {topBudgets.map((budget) => (
+                      <CategoryBar key={budget.id} name={budget.name} total={budget.total} used={budget.used} color={budget.color} />
+                    ))}
+                  </>
+                } seeMore={<MaterialIcons name="expand-more" size={24} color="black" />} />
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => navigation.navigate('AddTransactionScreen', { transactionType: 'gasto' })}>
-                <CardBox title="Egresos" amount={format(Math.abs(totalExpenses))} seeMore={<MaterialIcons name="add" size={20} color="#D76A61" />} size="s" color="#D76A61" />
+              <TouchableOpacity onPress={() => navigation.navigate('SavingsScreen')}>
+                <CardBox title="Ahorros" amount={
+                  <>
+                    {topSavings.map((saving) => (
+                      <CategoryBar key={saving.id} name={saving.name} total={saving.total} used={saving.used} color={saving.color} />
+                    ))}
+                  </>
+                } seeMore={<MaterialIcons name="expand-more" size={24} color="black" />} />
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity onPress={() => navigation.navigate('BudgetsScreen')}>
-              <CardBox title="Presupuesto" amount={
-                <>
-                  {topBudgets.map((budget) => (
-                    <CategoryBar key={budget.id} name={budget.name} total={budget.total} used={budget.used} color={budget.color} />
-                  ))}
-                </>
-              } seeMore={<MaterialIcons name="expand-more" size={24} color="black" />} />
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => navigation.navigate('SavingsScreen')}>
-              <CardBox title="Ahorros" amount={
-                <>
-                  {topSavings.map((saving) => (
-                    <CategoryBar key={saving.id} name={saving.name} total={saving.total} used={saving.used} color={saving.color} />
-                  ))}
-                </>
-              } seeMore={<MaterialIcons name="expand-more" size={24} color="black" />} />
-            </TouchableOpacity>
-
-
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 20 }}>
-              <TouchableOpacity onPress={() => navigation.navigate('DebtsScreen')}>
-                <CardBox title="Deudas" amount={format(totalDebts)} seeMore="Ver deudas" size="s" color="#D76A61" />
-              </TouchableOpacity>
-
-              <TouchableOpacity onPress={() => navigation.navigate('InvestmentsScreen')}>
-                <CardBox title="Inversiones" amount={format(totalInvestments)} seeMore="Ver inversiones" size="s" color="#4AD14A" />
-              </TouchableOpacity>
+            {/* Patrimonio */}
+            <View style={mStyles.group}>
+              <Text style={mStyles.sectionLabel}>PATRIMONIO</Text>
+              <View style={mStyles.row}>
+                <TouchableOpacity onPress={() => navigation.navigate('DebtsScreen')}>
+                  <CardBox title="Deudas" amount={format(totalDebts)} seeMore="Ver deudas" size="s" color="#D76A61" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('InvestmentsScreen')}>
+                  <CardBox title="Inversiones" amount={format(totalInvestments)} seeMore="Ver inversiones" size="s" color="#4AD14A" />
+                </TouchableOpacity>
+              </View>
             </View>
 
           </View>
@@ -258,8 +268,30 @@ const dStyles = StyleSheet.create({
     gap: 20,
     alignItems: 'stretch',
   },
-  stackColumn: {
-    flex: 1,
+  group: {
+    gap: 10,
+  },
+  sectionLabel: {
+    fontSize: SIZES.font,
+    fontWeight: 'bold',
+    color: COLORS.neutral,
+    marginLeft: 4,
+  },
+});
+
+const mStyles = StyleSheet.create({
+  group: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  sectionLabel: {
+    fontSize: SIZES.font,
+    fontWeight: 'bold',
+    color: COLORS.textSecondary,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: 20,
   },
 });
