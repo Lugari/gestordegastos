@@ -22,6 +22,7 @@ import { importData } from '../services/dataTransfer';
 import { COLORS, SIZES } from '../constants/theme';
 
 const USERNAME_KEY = '@username';
+const GREEN = '#1C6B52';
 
 const notify = (title, message) => {
   if (Platform.OS === 'web') window.alert(`${title}\n\n${message}`);
@@ -134,18 +135,20 @@ const MoreScreen = () => {
           </View>
         </View>
 
-        <Group title="CUENTAS Y MONEDA">
+        <Group title="Cuentas y moneda">
           <Row icon="account-balance-wallet" label="Cuentas" onPress={() => navigation.navigate('AccountsScreen')} />
           <Row icon="attach-money" label="Moneda" value={currency} onPress={() => setCurrencyModal(true)} />
         </Group>
 
-        <Group title="DATOS">
+        <Group title="Datos">
           <Row icon="file-upload" label="Importar datos" onPress={handleImport} />
         </Group>
 
-        <Group title="SESIÓN">
+        <Group title="Sesión">
           <Row icon="logout" label="Cerrar sesión" onPress={logout} danger />
         </Group>
+
+        <Text style={styles.version}>Gestor de Gastos · v1.0</Text>
       </ScrollView>
 
       {/* Overlay cambiar nombre */}
@@ -192,15 +195,16 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: COLORS.primary,
+    backgroundColor: GREEN,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  avatarText: { fontSize: 24, fontWeight: 'bold', color: COLORS.textPrimary },
+  avatarText: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
   profileName: { fontSize: SIZES.font * 1.4, fontWeight: 'bold', color: COLORS.textPrimary },
-  profileEdit: { fontSize: SIZES.font, color: COLORS.textSecondary, marginTop: 2 },
+  profileEdit: { fontSize: SIZES.font, color: GREEN, marginTop: 2, fontWeight: '600' },
   group: { marginTop: SIZES.padding * 1.2 },
-  groupTitle: { fontSize: 12, fontWeight: 'bold', color: COLORS.neutral, marginBottom: 8, marginLeft: 4 },
+  groupTitle: { fontSize: SIZES.font * 0.85, fontWeight: '600', color: COLORS.textSecondary, marginBottom: 8, marginLeft: 4 },
+  version: { textAlign: 'center', fontSize: SIZES.font * 0.8, color: COLORS.neutral, marginTop: 24 },
   groupCard: {
     backgroundColor: '#fff',
     borderRadius: SIZES.radius,
@@ -235,7 +239,7 @@ const styles = StyleSheet.create({
   nameInput: { height: 50, borderColor: '#ccc', borderWidth: 1, borderRadius: 8, paddingHorizontal: 15, marginBottom: 24, fontSize: 16 },
   nameActions: { flexDirection: 'row', justifyContent: 'space-between' },
   nameBtn: { flex: 1, paddingVertical: 12, borderRadius: 8, alignItems: 'center', marginHorizontal: 5 },
-  saveBtn: { backgroundColor: '#90afbb' },
+  saveBtn: { backgroundColor: GREEN },
   cancelBtn: { backgroundColor: '#EAEAEA' },
   nameBtnText: { fontWeight: 'bold', fontSize: 16, color: '#333' },
 });
