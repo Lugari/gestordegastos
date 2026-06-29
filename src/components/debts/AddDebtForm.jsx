@@ -1,23 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  TextInput,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Platform,
-} from 'react-native';
+import { View, Platform } from 'react-native';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import PrimaryButton from '../PrimaryButton';
-import SecondaryButton from '../SecondaryButton';
-import TransactionTypeDropdown from '../transactions/TransactionTypeDropdown';
 
-import { COLORS, SIZES } from '../../constants/theme';
+import { HeroAmount, Field, TextField, NoteField, ChipWrap, DateField, FormActions, formStyles } from '../buckets/BucketFormKit';
 import { money } from '../../utils/formatMoney';
 
-const debtTypes = ['credit card', 'free investment', 'vehicle', 'mortgage loan', 'estudies', 'other'];
+const DEBT_TYPES = [
+  { value: 'credit card', label: 'Tarjeta' },
+  { value: 'free investment', label: 'Libre inversión' },
+  { value: 'vehicle', label: 'Vehículo' },
+  { value: 'mortgage loan', label: 'Hipoteca' },
+  { value: 'estudies', label: 'Estudios' },
+  { value: 'other', label: 'Otra' },
+];
 
 const AddDebtForm = ({ onCancel, onSubmit, toEdit }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -27,7 +23,7 @@ const AddDebtForm = ({ onCancel, onSubmit, toEdit }) => {
     total: '',
     notes: '',
     date: new Date(),
-    type: debtTypes[0],
+    type: DEBT_TYPES[0].value,
     apr: '',
     fees: '',
   });
@@ -39,16 +35,14 @@ const AddDebtForm = ({ onCancel, onSubmit, toEdit }) => {
         total: toEdit.total?.toString() || '',
         notes: toEdit.notes || '',
         date: toEdit.date ? new Date(toEdit.date) : new Date(),
-        type: toEdit.type || debtTypes[0],
+        type: toEdit.type || DEBT_TYPES[0].value,
         apr: toEdit.apr?.toString() || '',
         fees: toEdit.fees?.toString() || '',
       });
     }
   }, [toEdit]);
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  const handleInputChange = (field, value) => setFormData((prev) => ({ ...prev, [field]: value }));
 
   const formatCurrency = (value) => {
     const number = typeof value === 'string' ? parseInt(value.replace(/\D/g, '')) : value;
@@ -58,106 +52,58 @@ const AddDebtForm = ({ onCancel, onSubmit, toEdit }) => {
 
   const handleCurrencyInput = (text) => {
     const numericValue = parseInt(text.replace(/\D/g, ''));
-    if (!isNaN(numericValue)) {
-      handleInputChange('total', numericValue);
-    } else {
-      handleInputChange('total', 0);
-    }
+    handleInputChange('total', isNaN(numericValue) ? 0 : numericValue);
   };
 
-  const handleAddDebt = async () => {
+  const handleAddDebt = () => {
     if (!formData.name || !formData.total) {
-      alert('Por favor, completa todos los campos.');
+      alert('Por favor, completa el nombre y el monto.');
       return;
     }
-
     const { name, total, date, notes, type, apr, fees } = formData;
-
-    const debtData = {
+    onSubmit({
       name,
       total: parseFloat(total),
       date: date.toISOString(),
       notes,
       type,
-      apr: parseFloat(apr),
-      fees: parseInt(fees),
-    };
+      apr: parseFloat(apr) || 0,
+      fees: parseInt(fees) || 0,
+    });
+  };
 
-    onSubmit(debtData);
-  }
+  const isCreditCard = formData.type === 'credit card';
 
   return (
-    <View style={styles.container}>
-      
-       <Text style={styles.label}>Tipo de Deuda</Text>
-      <TransactionTypeDropdown
-        options={debtTypes}
-        selected={formData.type}
-        onPress={(value) => handleInputChange('type', value)}
-      />
-      
-      <Text style={styles.label}>Añadir Deuda</Text>
-      <TextInput
-        placeholder="Nombre de la deuda"
-        value={formData.name}
-        onChangeText={(value) => handleInputChange('name', value)}
-        style={styles.input}
-      />
-
-      <Text style={styles.label}>Monto</Text>
-      <TextInput
-        placeholder="$ 1.000.000"
+    <View style={formStyles.container}>
+      <HeroAmount
+        label="Monto de la deuda"
         value={formatCurrency(formData.total)}
-        onChangeText={(value) => handleCurrencyInput(value)}
-        keyboardType="numeric"
-        style={styles.input}
+        onChangeText={handleCurrencyInput}
+        placeholder={money(0)}
       />
 
-      <Text style={styles.label}>Interes (%E.A.)</Text>
-      <TextInput
-        placeholder="%"
-        value={formData.apr}
-        onChangeText={(value) => handleInputChange('apr', value)}
-        keyboardType="numeric"
-        style={styles.input}
-      />
+      <Field label="Tipo de deuda">
+        <ChipWrap options={DEBT_TYPES} value={formData.type} onChange={(v) => handleInputChange('type', v)} />
+      </Field>
 
-      {
-        formData.type !== 'credit card' ? (
-          <>
-            <Text style={styles.label}>Cuotas</Text>
-            <TextInput
-              placeholder="e.g., 12"
-              value={formData.fees}
-              onChangeText={(value) => handleInputChange('fees', value)}
-              keyboardType="numeric"
-              style={styles.input}
-            />
-          
-          </>
-        ):(
-          
-          <View style={[styles.row, { marginTop: 14, marginBottom: 8 }]}>
-            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-              <MaterialIcons name="calendar-month" size={24} color="#5f5a67" />
-            </TouchableOpacity>
-            <Text style={{ marginLeft: 8, color: COLORS.textSecondary }}>
-              Fecha de corte: {formData.date.toLocaleDateString('es-CO')}
-            </Text>
-          </View>
-          
-        )
-      }
+      <Field label="Nombre">
+        <TextField placeholder="Nombre de la deuda" value={formData.name} onChangeText={(v) => handleInputChange('name', v)} />
+      </Field>
 
+      <Field label="Interés (% E.A.)">
+        <TextField placeholder="%" keyboardType="numeric" value={formData.apr} onChangeText={(v) => handleInputChange('apr', v)} />
+      </Field>
 
-      <View style={[styles.row, { marginTop: 14, marginBottom: 8 }]}>
-        <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-          <MaterialIcons name="calendar-month" size={24} color="#5f5a67" />
-        </TouchableOpacity>
-        <Text style={{ marginLeft: 8, color: COLORS.textSecondary }}>
-          Fecha de facturación: {formData.date.toLocaleDateString('es-CO')}
-        </Text>
-      </View>
+      {!isCreditCard && (
+        <Field label="Cuotas">
+          <TextField placeholder="Ej: 12" keyboardType="numeric" value={formData.fees} onChangeText={(v) => handleInputChange('fees', v)} />
+        </Field>
+      )}
+
+      <Field label={isCreditCard ? 'Fecha de facturación' : 'Fecha de inicio'}>
+        <DateField date={formData.date} onPress={() => setShowDatePicker(true)} />
+      </Field>
 
       {showDatePicker && (
         <DateTimePicker
@@ -171,70 +117,13 @@ const AddDebtForm = ({ onCancel, onSubmit, toEdit }) => {
         />
       )}
 
-      <TextInput
-        placeholder="Notas..."
-        value={formData.notes}
-        onChangeText={(value) => handleInputChange('notes', value)}
-        multiline
-        style={styles.notesInput}
-      />
+      <Field label="Nota (opcional)">
+        <NoteField placeholder="Notas..." value={formData.notes} onChangeText={(v) => handleInputChange('notes', v)} />
+      </Field>
 
-      <View style={styles.buttonRow}>
-        <PrimaryButton title={toEdit ? 'Actualizar' : 'Añadir'} onPress={() => handleAddDebt()} />
-        <SecondaryButton title="Cancelar" onPress={onCancel} />
-      </View>
+      <FormActions submitLabel={toEdit ? 'Actualizar' : 'Guardar'} onSubmit={handleAddDebt} onCancel={onCancel} />
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    padding: SIZES.padding * 2,
-    backgroundColor: COLORS.background,
-    borderRadius: SIZES.radius,
-    margin: SIZES.margin,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    }
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: COLORS.neutral,
-    borderRadius: SIZES.radius,
-    paddingHorizontal: SIZES.padding,
-    paddingVertical: 10,
-    marginBottom: 16,
-    backgroundColor: COLORS.background,
-  },
-  label: {
-    fontWeight: 'bold',
-    marginBottom: 6,
-    color: COLORS.textSecondary,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    flexWrap: 'wrap',
-  },
-  notesInput: {
-    height: 80,
-    borderWidth: 1,
-    borderColor: COLORS.neutral,
-    borderRadius: SIZES.radius,
-    padding: 10,
-    backgroundColor: COLORS.background,
-    textAlignVertical: 'top',
-    marginTop: 10,
-  },
-  buttonRow: {
-    marginTop: 20,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 12,
-  },
-});
 
 export default AddDebtForm;
