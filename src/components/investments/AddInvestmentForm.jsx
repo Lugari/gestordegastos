@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, TextInput, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Alert } from 'react-native';
 
-import PrimaryButton from '../PrimaryButton';
-import SecondaryButton from '../SecondaryButton';
-import IconPicker from '../IconPicker';
-import { SIZES, COLORS } from '../../constants/theme';
+import { HeroAmount, Field, TextField, NoteField, AppearanceField, FormActions, formStyles } from '../buckets/BucketFormKit';
 import { money } from '../../utils/formatMoney';
 import { INVESTMENT_ICONS } from '../../constants/icons';
 
@@ -33,9 +30,7 @@ const AddInvestmentForm = ({ onSubmit, onCancel, toEdit }) => {
     }
   }, [toEdit]);
 
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  const handleInputChange = (field, value) => setFormData((prev) => ({ ...prev, [field]: value }));
 
   const formatCurrency = (value) => {
     const number = typeof value === 'string' ? parseInt(value.replace(/\D/g, '')) : value;
@@ -50,12 +45,12 @@ const AddInvestmentForm = ({ onSubmit, onCancel, toEdit }) => {
 
   const handleSubmit = () => {
     if (!formData.name || !formData.total) {
-      Alert.alert('Campos Requeridos', 'Ingresa el nombre y el monto objetivo de la inversión.');
+      Alert.alert('Campos requeridos', 'Ingresa el nombre y el monto objetivo de la inversión.');
       return;
     }
     const totalAmount = parseFloat(formData.total);
     if (isNaN(totalAmount) || totalAmount <= 0) {
-      Alert.alert('Monto Inválido', 'Ingresa un monto objetivo válido.');
+      Alert.alert('Monto inválido', 'Ingresa un monto objetivo válido.');
       return;
     }
 
@@ -71,120 +66,40 @@ const AddInvestmentForm = ({ onSubmit, onCancel, toEdit }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.label}>Nombre de la Inversión</Text>
-      <TextInput
-        placeholder="Ej: Acciones, Fondo indexado, CDT..."
-        value={formData.name}
-        onChangeText={(value) => handleInputChange('name', value)}
-        style={styles.input}
-        placeholderTextColor="#B5B77E"
-      />
-
-      <Text style={styles.label}>Monto objetivo</Text>
-      <TextInput
-        placeholder="Ej: $5'000.000"
+    <View style={formStyles.container}>
+      <HeroAmount
+        label="Monto objetivo"
         value={formatCurrency(formData.total)}
-        onChangeText={(value) => handleCurrencyInput(value)}
-        keyboardType="numeric"
-        style={styles.input}
-        placeholderTextColor="#B5B77E"
+        onChangeText={handleCurrencyInput}
+        placeholder={money(0)}
       />
 
-      <Text style={styles.label}>Rentabilidad esperada (% anual)</Text>
-      <TextInput
-        placeholder="Ej: 8"
-        value={formData.roi}
-        onChangeText={(value) => handleInputChange('roi', value.replace(/[^0-9.]/g, ''))}
-        keyboardType="numeric"
-        style={styles.input}
-        placeholderTextColor="#B5B77E"
-      />
+      <Field label="Nombre">
+        <TextField placeholder="Acciones, Fondo indexado, CDT..." value={formData.name} onChangeText={(v) => handleInputChange('name', v)} />
+      </Field>
 
-      <Text style={styles.label}>Color</Text>
-      <View style={styles.optionsRow}>
-        {colorOptions.map((color) => (
-          <TouchableOpacity
-            key={color}
-            onPress={() => handleInputChange('color', color)}
-            style={[styles.colorCircle, { backgroundColor: color }, formData.color === color && styles.optionSelected]}
-          />
-        ))}
-      </View>
+      <Field label="Rentabilidad esperada (% anual)">
+        <TextField placeholder="Ej: 8" keyboardType="numeric" value={formData.roi} onChangeText={(v) => handleInputChange('roi', v.replace(/[^0-9.]/g, ''))} />
+      </Field>
 
-      <View style={styles.subSection}>
-        <Text style={styles.label}>Icono:</Text>
-        <IconPicker title="Seleccionar Icono" iconList={INVESTMENT_ICONS} onSelect={(name) => handleInputChange('icon', name)} />
-      </View>
+      <Field label="Apariencia">
+        <AppearanceField
+          colors={colorOptions}
+          color={formData.color}
+          onColor={(c) => handleInputChange('color', c)}
+          icon={formData.icon}
+          iconList={INVESTMENT_ICONS}
+          onIcon={(name) => handleInputChange('icon', name)}
+        />
+      </Field>
 
-      <Text style={styles.label}>Notas (Opcional)</Text>
-      <TextInput
-        placeholder="Describe tu inversión..."
-        value={formData.notes}
-        onChangeText={(value) => handleInputChange('notes', value)}
-        multiline
-        numberOfLines={4}
-        style={[styles.input, styles.notesInput]}
-        placeholderTextColor="#B5B77E"
-      />
+      <Field label="Nota (opcional)">
+        <NoteField placeholder="Describe tu inversión..." value={formData.notes} onChangeText={(v) => handleInputChange('notes', v)} />
+      </Field>
 
-      <View style={styles.buttonRow}>
-        <PrimaryButton title={toEdit ? 'Actualizar' : 'Añadir Inversión'} onPress={handleSubmit} />
-        <SecondaryButton title="Cancelar" onPress={onCancel} />
-      </View>
-    </ScrollView>
+      <FormActions submitLabel={toEdit ? 'Actualizar' : 'Guardar'} onSubmit={handleSubmit} onCancel={onCancel} />
+    </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    borderRadius: SIZES.radius,
-    padding: SIZES.padding,
-    paddingBottom: 40,
-  },
-  label: {
-    fontSize: SIZES.font,
-    fontWeight: 'bold',
-    color: COLORS.textSecondary,
-    marginTop: 15,
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: COLORS.background,
-    borderWidth: 1,
-    borderColor: COLORS.neutral,
-    borderRadius: SIZES.radius,
-    paddingHorizontal: SIZES.padding,
-    paddingVertical: 10,
-    fontSize: SIZES.font,
-    color: COLORS.textPrimary,
-  },
-  notesInput: {
-    minHeight: 80,
-    textAlignVertical: 'top',
-  },
-  optionsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginBottom: 10,
-  },
-  colorCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  optionSelected: {
-    borderColor: COLORS.secondary,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 30,
-    gap: 12,
-  },
-});
 
 export default AddInvestmentForm;
