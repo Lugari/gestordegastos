@@ -2,19 +2,24 @@ import { View, Text, StyleSheet } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
 
 import { COLORS, SIZES } from '../../constants/theme';
-import { money } from '../../utils/formatMoney';
+import { useCurrency } from '../../context/CurrencyContext';
 
-const KpiCard = ({ label, value, color }) => (
-  <View style={styles.kpi}>
-    <Text style={styles.kpiLabel}>{label}</Text>
-    <Text style={[styles.kpiValue, { color }]} numberOfLines={1} adjustsFontSizeToFit>
-      {money(value)}
+const INCOME = '#1C6B52';
+const EXPENSE = '#C0563E';
+const SAVING = '#2AA583';
+
+// KPI como chip de color (mismo lenguaje que Historial/Reportes).
+const KpiChip = ({ label, value, bg, labelColor, valueColor }) => (
+  <View style={[styles.kpi, { backgroundColor: bg }]}>
+    <Text style={[styles.kpiLabel, { color: labelColor }]}>{label}</Text>
+    <Text style={[styles.kpiValue, { color: valueColor }]} numberOfLines={1} adjustsFontSizeToFit>
+      {value}
     </Text>
   </View>
 );
 
 // Barra comparativa horizontal simple (sin dependencias de gráficos).
-const CompareBar = ({ label, value, max, color }) => {
+const CompareBar = ({ label, value, valueText, max, color }) => {
   const pct = max > 0 ? Math.min(1, value / max) : 0;
   return (
     <View style={styles.compareRow}>
@@ -22,13 +27,14 @@ const CompareBar = ({ label, value, max, color }) => {
       <View style={styles.compareTrack}>
         <View style={[styles.compareFill, { width: `${pct * 100}%`, backgroundColor: color }]} />
       </View>
-      <Text style={[styles.compareValue, { color }]}>{money(value)}</Text>
+      <Text style={[styles.compareValue, { color }]}>{valueText}</Text>
     </View>
   );
 };
 
 // Vista "Simple": resumen rápido con comparativo y distribución de gastos.
 const ReportSummary = ({ report, chartWidth }) => {
+  const { format } = useCurrency();
   const { totalIncome, totalExpense, totalSavings, net, byCategory, count } = report;
 
   const expenseSlices = byCategory
@@ -51,17 +57,17 @@ const ReportSummary = ({ report, chartWidth }) => {
     <View>
       {/* KPIs */}
       <View style={styles.kpiRow}>
-        <KpiCard label="INGRESOS" value={totalIncome} color={COLORS.success} />
-        <KpiCard label="GASTOS" value={totalExpense} color={COLORS.danger} />
-        <KpiCard label="NETO" value={net} color={net >= 0 ? COLORS.success : COLORS.danger} />
+        <KpiChip label="Ingresos" value={format(totalIncome)} bg="#EAF3DE" labelColor="#3B6D11" valueColor="#27500A" />
+        <KpiChip label="Gastos" value={format(totalExpense)} bg="#FAECE7" labelColor="#993C1D" valueColor="#712B13" />
+        <KpiChip label="Neto" value={format(net)} bg="#E1F5EE" labelColor="#0F6E56" valueColor="#085041" />
       </View>
 
       {/* Comparativo Ingresos vs Gastos */}
       <View style={styles.block}>
-        <Text style={styles.blockTitle}>Ingresos vs Gastos</Text>
-        <CompareBar label="Ingresos" value={totalIncome} max={max} color={COLORS.success} />
-        <CompareBar label="Gastos" value={totalExpense} max={max} color={COLORS.danger} />
-        {totalSavings > 0 && <CompareBar label="Ahorros" value={totalSavings} max={max} color={COLORS.primary} />}
+        <Text style={styles.blockTitle}>Ingresos vs gastos</Text>
+        <CompareBar label="Ingresos" value={totalIncome} valueText={format(totalIncome)} max={max} color={INCOME} />
+        <CompareBar label="Gastos" value={totalExpense} valueText={format(totalExpense)} max={max} color={EXPENSE} />
+        {totalSavings > 0 && <CompareBar label="Ahorros" value={totalSavings} valueText={format(totalSavings)} max={max} color={SAVING} />}
       </View>
 
       {/* Distribución de gastos */}
@@ -87,74 +93,23 @@ const ReportSummary = ({ report, chartWidth }) => {
 };
 
 const styles = StyleSheet.create({
-  kpiRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  kpi: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: SIZES.radius,
-    padding: SIZES.padding * 0.75,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-  },
-  kpiLabel: {
-    fontSize: SIZES.font * 0.8,
-    color: COLORS.neutral,
-    fontWeight: 'bold',
-  },
-  kpiValue: {
-    fontSize: SIZES.font * 1.3,
-    fontWeight: 'bold',
-    marginTop: 4,
-  },
-  block: {
-    marginTop: SIZES.padding * 1.5,
-  },
+  kpiRow: { flexDirection: 'row', gap: 8 },
+  kpi: { flex: 1, borderRadius: SIZES.radius, padding: SIZES.padding * 0.6 },
+  kpiLabel: { fontSize: SIZES.font * 0.8, fontWeight: '600' },
+  kpiValue: { fontSize: SIZES.font * 1.2, fontWeight: '700', marginTop: 4 },
+  block: { marginTop: SIZES.padding * 1.5 },
   blockTitle: {
     fontSize: SIZES.font * 1.1,
-    fontWeight: '600',
+    fontWeight: '500',
     color: COLORS.textPrimary,
     marginBottom: SIZES.base,
   },
-  compareRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginVertical: 5,
-  },
-  compareLabel: {
-    width: 70,
-    fontSize: SIZES.font * 0.9,
-    color: COLORS.textSecondary,
-    fontWeight: '600',
-  },
-  compareTrack: {
-    flex: 1,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: COLORS.lightGray,
-    overflow: 'hidden',
-  },
-  compareFill: {
-    height: '100%',
-    borderRadius: 7,
-  },
-  compareValue: {
-    width: 100,
-    textAlign: 'right',
-    fontSize: SIZES.font * 0.9,
-    fontWeight: 'bold',
-  },
-  empty: {
-    fontSize: SIZES.font,
-    color: COLORS.textSecondary,
-    marginTop: SIZES.padding,
-  },
+  compareRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginVertical: 5 },
+  compareLabel: { width: 70, fontSize: SIZES.font * 0.9, color: COLORS.textSecondary, fontWeight: '600' },
+  compareTrack: { flex: 1, height: 14, borderRadius: 7, backgroundColor: '#ECECE3', overflow: 'hidden' },
+  compareFill: { height: '100%', borderRadius: 7 },
+  compareValue: { width: 100, textAlign: 'right', fontSize: SIZES.font * 0.9, fontWeight: 'bold' },
+  empty: { fontSize: SIZES.font, color: COLORS.textSecondary, marginTop: SIZES.padding },
 });
 
 export default ReportSummary;
