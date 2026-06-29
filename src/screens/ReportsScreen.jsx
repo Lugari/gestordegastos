@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -10,25 +10,52 @@ import { useGetDebts } from '../hooks/useDebtsData';
 import { useGetInvestments } from '../hooks/useInvestmentsData';
 import { useIsDesktop } from '../hooks/useResponsive';
 import { useCurrency } from '../context/CurrencyContext';
+import { getDateRange, isWithinRange } from '../utils/dateRange';
 import { COLORS, SIZES } from '../constants/theme';
 
 // En escritorio acotamos el ancho de los gráficos para que no se deformen.
 const MAX_CONTENT_WIDTH = 720;
+const GREEN = '#1C6B52';
+const PERIODS = ['Mes', 'Año'];
 
 const ReportsScreen = () => {
   const navigation = useNavigation();
   const { width } = useWindowDimensions();
   const isDesktop = useIsDesktop();
 
-  // Ancho disponible para los gráficos, acotado en escritorio.
+  const [period, setPeriod] = useState('Mes');
+
+  // Ancho disponible para los gráficos (dentro de su tarjeta).
   const contentWidth = Math.min(width, MAX_CONTENT_WIDTH);
-  const chartWidth = contentWidth - SIZES.padding * 2;
+  const chartWidth = contentWidth - SIZES.padding * 2 - 24;
 
   const { data: transactions = [], isLoading: isLoadingTransactions } = useGetTransactions();
   const { data: budgets = [], isLoading: isLoadingBudgets } = useGetBudgets();
   const { data: savings = [] } = useGetSavings();
   const { data: debts = [] } = useGetDebts();
   const { data: investments = [] } = useGetInvestments();
+
+  const { format: money, convert, baseCurrency } = useCurrency();
+
+  // Transacciones del periodo seleccionado.
+  const periodTx = useMemo(() => {
+    const range = getDateRange(period, null);
+    return transactions.filter((t) => isWithinRange(t.date, range));
+  }, [transactions, period]);
+
+  // Monto en moneda base de una transacción.
+  const toBase = (t) => convert(parseFloat(t.amount) || 0, t.currency || baseCurrency, baseCurrency);
+
+  // Totales del periodo (proximidad: junto a los gráficos).
+  const totals = useMemo(() => {
+    let inc = 0;
+    let exp = 0;
+    periodTx.forEach((t) => {
+      if (t.type === 'ingreso') inc += toBase(t);
+      else if (t.type === 'gasto') exp += toBase(t);
+    });
+    return { inc, exp, bal: inc - exp };
+  }, [periodTx, convert, baseCurrency]);
 
   // Patrimonio neto: activos (ahorros + inversiones) menos pasivos (deudas).
   const netWorth = useMemo(() => {
@@ -39,143 +66,148 @@ const ReportsScreen = () => {
     return { assets, liabilities, net: assets - liabilities };
   }, [savings, investments, debts]);
 
-  const { format: money } = useCurrency();
-
   const expenseData = useMemo(() => {
-    if (!transactions.length || !budgets.length) {
-      return [];
-    }
-
-    const expenseByCategory = budgets.map(budget => {
-      const total = transactions
-        .filter(t => t.type === 'gasto' && t.budget_id === budget.id)
-        .reduce((sum, t) => sum + t.amount, 0);
-      
-      return {
-        name: budget.name,
-        total,
-        color: budget.color,
-        legendFontColor: COLORS.textPrimary,
-        legendFontSize: 15,
-      };
-    }).filter(item => item.total > 0);
-
-    return expenseByCategory;
-  }, [transactions, budgets]);
+    if (!periodTx.length || !budgets.length) return [];
+    return budgets
+      .map((budget) => {
+        const total = periodTx
+          .filter((t) => t.type === 'gasto' && t.budget_id === budget.id)
+          .reduce((sum, t) => sum + toBase(t), 0);
+        return {
+          name: budget.name,
+          total,
+          color: budget.color,
+          legendFontColor: COLORS.textPrimary,
+          legendFontSize: 13,
+        };
+      })
+      .filter((item) => item.total > 0);
+  }, [periodTx, budgets, convert, baseCurrency]);
 
   const trendData = useMemo(() => {
-    if (!transactions.length) {
-      return {
-        labels: [],
-        datasets: [{ data: [] }, { data: [] }],
-      };
-    }
+    if (!periodTx.length) return { labels: [], datasets: [{ data: [] }, { data: [] }] };
 
-    const sortedTransactions = transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
-    const labels = [...new Set(sortedTransactions.map(t => new Date(t.date).toLocaleDateString('es-CO', { month: 'short', day: 'numeric' })))];
-    
-    const incomeByDate = {};
-    const expenseByDate = {};
+    // En 'Año' agrupamos por mes; en 'Mes' por día (legible en ambos casos).
+    const keyFn = period === 'Año'
+      ? (d) => d.toLocaleDateString('es-CO', { month: 'short' })
+      : (d) => d.toLocaleDateString('es-CO', { month: 'short', day: 'numeric' });
 
-    labels.forEach(label => {
-        incomeByDate[label] = 0;
-        expenseByDate[label] = 0;
-    });
+    const sorted = [...periodTx].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const labels = [...new Set(sorted.map((t) => keyFn(new Date(t.date))))];
 
-    sortedTransactions.forEach(t => {
-      const date = new Date(t.date).toLocaleDateString('es-CO', { month: 'short', day: 'numeric' });
-      if (t.type === 'ingreso') {
-        incomeByDate[date] += t.amount;
-      } else if (t.type === 'gasto') {
-        expenseByDate[date] += t.amount;
-      }
+    const incomeBy = {};
+    const expenseBy = {};
+    labels.forEach((l) => { incomeBy[l] = 0; expenseBy[l] = 0; });
+    sorted.forEach((t) => {
+      const k = keyFn(new Date(t.date));
+      if (t.type === 'ingreso') incomeBy[k] += toBase(t);
+      else if (t.type === 'gasto') expenseBy[k] += toBase(t);
     });
 
     return {
       labels,
       datasets: [
-        {
-          data: labels.map(label => incomeByDate[label]),
-          color: (opacity = 1) => `rgba(74, 209, 74, ${opacity})`, // Green for income
-          strokeWidth: 2,
-        },
-        {
-          data: labels.map(label => expenseByDate[label]),
-          color: (opacity = 1) => `rgba(215, 106, 97, ${opacity})`, // Red for expenses
-          strokeWidth: 2,
-        },
+        { data: labels.map((l) => incomeBy[l]), color: (o = 1) => `rgba(28, 107, 82, ${o})`, strokeWidth: 2 },
+        { data: labels.map((l) => expenseBy[l]), color: (o = 1) => `rgba(192, 86, 62, ${o})`, strokeWidth: 2 },
       ],
       legend: ['Ingresos', 'Egresos'],
     };
-  }, [transactions]);
+  }, [periodTx, period, convert, baseCurrency]);
 
   if (isLoadingTransactions || isLoadingBudgets) {
-    return <Text>Loading reports...</Text>;
+    return <Text style={{ padding: SIZES.padding }}>Cargando reportes…</Text>;
   }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={isDesktop && styles.contentDesktop}>
-      <Text style={styles.header}>Reportes</Text>
-
-      <TouchableOpacity style={styles.customButton} onPress={() => navigation.navigate('ReportBuilderScreen')}>
-        <MaterialIcons name="tune" size={20} color={COLORS.textPrimary} />
-        <Text style={styles.customButtonText}>Reporte personalizado</Text>
-      </TouchableOpacity>
-
-      <View style={styles.netWorthCard}>
-        <Text style={styles.netWorthLabel}>PATRIMONIO NETO</Text>
-        <Text style={[styles.netWorthValue, { color: netWorth.net >= 0 ? COLORS.success : COLORS.danger }]}>
-          {money(netWorth.net)}
-        </Text>
-        <View style={styles.netWorthRow}>
-          <Text style={styles.netWorthDetail}>Activos: <Text style={{ color: COLORS.success }}>{money(netWorth.assets)}</Text></Text>
-          <Text style={styles.netWorthDetail}>Pasivos: <Text style={{ color: COLORS.danger }}>{money(netWorth.liabilities)}</Text></Text>
+      {/* Encabezado + periodo */}
+      <View style={styles.headerRow}>
+        <Text style={styles.header}>Reportes</Text>
+        <View style={styles.segment}>
+          {PERIODS.map((p) => {
+            const active = period === p;
+            return (
+              <TouchableOpacity key={p} style={[styles.segmentItem, active && styles.segmentItemActive]} onPress={() => setPeriod(p)}>
+                <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{p}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
 
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Distribución de Gastos</Text>
+      {/* Totales del periodo */}
+      <View style={styles.totalsRow}>
+        <View style={[styles.totalChip, { backgroundColor: '#EAF3DE' }]}>
+          <Text style={[styles.totalLabel, { color: '#3B6D11' }]}>Ingresos</Text>
+          <Text style={[styles.totalValue, { color: '#27500A' }]} numberOfLines={1}>{money(totals.inc)}</Text>
+        </View>
+        <View style={[styles.totalChip, { backgroundColor: '#FAECE7' }]}>
+          <Text style={[styles.totalLabel, { color: '#993C1D' }]}>Egresos</Text>
+          <Text style={[styles.totalValue, { color: '#712B13' }]} numberOfLines={1}>{money(totals.exp)}</Text>
+        </View>
+        <View style={[styles.totalChip, { backgroundColor: '#E1F5EE' }]}>
+          <Text style={[styles.totalLabel, { color: '#0F6E56' }]}>Balance</Text>
+          <Text style={[styles.totalValue, { color: '#085041' }]} numberOfLines={1}>{money(totals.bal)}</Text>
+        </View>
+      </View>
+
+      {/* Patrimonio neto (héroe) */}
+      <View style={styles.netWorthCard}>
+        <Text style={styles.netWorthLabel}>Patrimonio neto</Text>
+        <Text style={styles.netWorthValue}>{money(netWorth.net)}</Text>
+        <View style={styles.netWorthRow}>
+          <Text style={styles.netWorthDetail}>Activos {money(netWorth.assets)}</Text>
+          <Text style={styles.netWorthDetail}>Pasivos {money(netWorth.liabilities)}</Text>
+        </View>
+      </View>
+
+      {/* Distribución de gastos */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Distribución de gastos</Text>
         {expenseData.length > 0 ? (
           <PieChart
             data={expenseData}
             width={chartWidth}
-            height={220}
-            chartConfig={{
-              color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-            }}
+            height={200}
+            chartConfig={{ color: (o = 1) => `rgba(0, 0, 0, ${o})` }}
             accessor="total"
             backgroundColor="transparent"
-            paddingLeft="15"
+            paddingLeft="10"
             absolute
           />
         ) : (
-          <Text>No hay datos de gastos para mostrar.</Text>
+          <Text style={styles.emptyChart}>No hay gastos en este periodo.</Text>
         )}
       </View>
 
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Tendencia de Ingresos vs. Egresos</Text>
+      {/* Ingresos vs egresos */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Ingresos vs egresos</Text>
         {trendData.labels.length > 0 ? (
           <LineChart
             data={trendData}
             width={chartWidth}
-            height={250}
+            height={230}
             chartConfig={{
-              backgroundColor: COLORS.background,
-              backgroundGradientFrom: COLORS.background,
-              backgroundGradientTo: COLORS.background,
+              backgroundColor: '#fff',
+              backgroundGradientFrom: '#fff',
+              backgroundGradientTo: '#fff',
               decimalPlaces: 0,
-              color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-              style: {
-                borderRadius: 16,
-              },
+              color: (o = 1) => `rgba(0, 0, 0, ${o})`,
+              style: { borderRadius: 16 },
             }}
             bezier
           />
         ) : (
-          <Text>No hay suficientes datos para mostrar la tendencia.</Text>
+          <Text style={styles.emptyChart}>No hay suficientes datos para la tendencia.</Text>
         )}
       </View>
+
+      {/* Acción secundaria */}
+      <TouchableOpacity style={styles.customButton} onPress={() => navigation.navigate('ReportBuilderScreen')}>
+        <MaterialIcons name="tune" size={20} color={GREEN} />
+        <Text style={styles.customButtonText}>Crear reporte personalizado</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 };
@@ -191,66 +223,72 @@ const styles = StyleSheet.create({
     maxWidth: MAX_CONTENT_WIDTH,
     alignSelf: 'center',
   },
-  header: {
-    fontSize: SIZES.font * 2,
-    fontWeight: 'bold',
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: SIZES.padding,
   },
+  header: {
+    fontSize: SIZES.font * 1.8,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+  },
+  segment: {
+    flexDirection: 'row',
+    backgroundColor: '#E7E7DD',
+    borderRadius: 8,
+    padding: 3,
+  },
+  segmentItem: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 6 },
+  segmentItemActive: { backgroundColor: GREEN },
+  segmentText: { fontSize: SIZES.font, color: COLORS.textSecondary, fontWeight: '500' },
+  segmentTextActive: { color: '#fff' },
+
+  totalsRow: { flexDirection: 'row', gap: 8, marginBottom: SIZES.padding },
+  totalChip: { flex: 1, borderRadius: SIZES.radius, paddingVertical: 8, paddingHorizontal: 10 },
+  totalLabel: { fontSize: SIZES.font * 0.8 },
+  totalValue: { fontSize: SIZES.font * 1.05, fontWeight: '600', marginTop: 2 },
+
+  netWorthCard: {
+    backgroundColor: GREEN,
+    borderRadius: SIZES.radius * 1.4,
+    padding: SIZES.padding,
+    marginBottom: SIZES.padding,
+  },
+  netWorthLabel: { fontSize: SIZES.font, color: 'rgba(255,255,255,0.82)' },
+  netWorthValue: { fontSize: SIZES.font * 2.2, fontWeight: '700', color: '#fff', marginVertical: 4 },
+  netWorthRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
+  netWorthDetail: { fontSize: SIZES.font, color: 'rgba(255,255,255,0.85)', fontWeight: '500' },
+
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: SIZES.radius * 1.4,
+    padding: 12,
+    marginBottom: SIZES.padding,
+    alignItems: 'center',
+  },
+  cardTitle: {
+    alignSelf: 'flex-start',
+    fontSize: SIZES.font * 1.1,
+    fontWeight: '500',
+    color: COLORS.textPrimary,
+    marginBottom: 8,
+  },
+  emptyChart: { fontSize: SIZES.font, color: COLORS.textSecondary, paddingVertical: 20 },
+
   customButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: COLORS.primary,
-    borderRadius: SIZES.radius,
-    paddingVertical: SIZES.padding * 0.75,
-    marginBottom: SIZES.padding * 1.5,
-  },
-  customButtonText: {
-    fontSize: SIZES.font,
-    fontWeight: 'bold',
-    color: COLORS.textPrimary,
-  },
-  netWorthCard: {
-    backgroundColor: '#fff',
-    borderRadius: SIZES.radius,
-    padding: SIZES.padding,
-    marginBottom: SIZES.padding * 1.5,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-  },
-  netWorthLabel: {
-    fontSize: SIZES.font,
-    color: COLORS.neutral,
-    fontWeight: 'bold',
-  },
-  netWorthValue: {
-    fontSize: SIZES.font * 2.4,
-    fontWeight: 'bold',
-    marginVertical: 4,
-  },
-  netWorthRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 4,
-  },
-  netWorthDetail: {
-    fontSize: SIZES.font,
-    color: COLORS.textSecondary,
-    fontWeight: '600',
-  },
-  chartContainer: {
-    marginBottom: SIZES.padding * 2,
-    alignItems: 'center',
-  },
-  chartTitle: {
-    fontSize: SIZES.font * 1.2,
-    fontWeight: '600',
+    borderWidth: 1,
+    borderColor: GREEN,
+    borderRadius: SIZES.radius * 1.2,
+    paddingVertical: SIZES.padding * 0.8,
     marginBottom: SIZES.padding,
   },
+  customButtonText: { fontSize: SIZES.font, fontWeight: '600', color: GREEN },
 });
 
 export default ReportsScreen;
