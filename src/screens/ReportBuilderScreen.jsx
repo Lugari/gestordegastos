@@ -22,7 +22,8 @@ import { COLORS, SIZES } from '../constants/theme';
 
 const MAX_CONTENT_WIDTH = 760;
 const DESKTOP_MAX = 1080;
-const LEFT_COL = 300;
+const LEFT_COL = 320;
+const GREEN = '#1C6B52';
 
 const notify = (title, message) => {
   if (Platform.OS === 'web') window.alert(`${title}\n\n${message}`);
@@ -37,13 +38,14 @@ const ReportBuilderScreen = () => {
   const reportAreaWidth = isDesktop
     ? Math.min(width, DESKTOP_MAX) - LEFT_COL - SIZES.padding * 3
     : Math.min(width, MAX_CONTENT_WIDTH) - SIZES.padding * 2;
-  const chartWidth = Math.max(240, reportAreaWidth);
+  const chartWidth = Math.max(240, reportAreaWidth - 24);
 
   const { currency } = useCurrency();
 
   const [config, setConfig] = useState(defaultReportConfig);
   const [rangeModalVisible, setRangeModalVisible] = useState(false);
   const [reportName, setReportName] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const { data: budgets = [] } = useGetBudgets();
   const { data: savings = [] } = useGetSavings();
@@ -133,10 +135,10 @@ const ReportBuilderScreen = () => {
     setConfig({ ...defaultReportConfig(), ...c, range });
   };
 
-  // --- Bloques de UI ---
+  // --- Configuración ---
   const controls = (
-    <View style={isDesktop ? styles.leftCol : undefined}>
-      <Text style={styles.section}>PLANTILLA</Text>
+    <View style={[styles.card, isDesktop && styles.leftCol]}>
+      <Text style={styles.section}>Plantilla</Text>
       <View style={styles.chipRow}>
         {REPORT_TEMPLATES.map((tpl) => {
           const active = config.template === tpl.value;
@@ -148,7 +150,7 @@ const ReportBuilderScreen = () => {
         })}
       </View>
 
-      <Text style={styles.section}>PERÍODO</Text>
+      <Text style={styles.section}>Período</Text>
       <DateFilterTabs activeFilter={config.range.preset} onSelectFilter={onSelectPreset} showCustom />
       {config.range.preset === 'Personalizado' && config.range.start && (
         <TouchableOpacity style={styles.rangeChip} onPress={() => setRangeModalVisible(true)}>
@@ -158,64 +160,68 @@ const ReportBuilderScreen = () => {
         </TouchableOpacity>
       )}
 
-      <Text style={styles.section}>TIPOS</Text>
+      <Text style={styles.section}>Tipos</Text>
       <TypeToggle selected={config.types} onChange={(types) => patch({ types })} />
 
-      <Text style={styles.section}>CATEGORÍAS (opcional)</Text>
-      <CategoryMultiSelect items={categoryItems} selected={config.categoryIds} onChange={(categoryIds) => patch({ categoryIds })} />
+      {/* Opciones avanzadas (divulgación progresiva) */}
+      <TouchableOpacity style={styles.advancedToggle} onPress={() => setShowAdvanced((v) => !v)}>
+        <Text style={styles.advancedText}>Opciones avanzadas</Text>
+        <MaterialIcons name={showAdvanced ? 'expand-less' : 'expand-more'} size={20} color={COLORS.textSecondary} />
+      </TouchableOpacity>
 
-      {!isFreelancer && (
+      {showAdvanced && (
         <>
-          <Text style={styles.section}>MODO</Text>
-          <View style={styles.chipRow}>
-            {REPORT_MODES.map((m) => {
-              const active = config.mode === m.value;
-              return (
-                <TouchableOpacity key={m.value} style={[styles.chip, active && styles.chipActive]} onPress={() => patch({ mode: m.value })}>
-                  <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>{m.label}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </>
-      )}
+          <Text style={styles.section}>Categorías (opcional)</Text>
+          <CategoryMultiSelect items={categoryItems} selected={config.categoryIds} onChange={(categoryIds) => patch({ categoryIds })} />
 
-      {/* Reportes guardados */}
-      <Text style={styles.section}>REPORTES GUARDADOS</Text>
-      <View style={styles.saveRow}>
-        <TextInput
-          style={styles.nameInput}
-          placeholder="Nombre del reporte"
-          placeholderTextColor={COLORS.neutral}
-          value={reportName}
-          onChangeText={setReportName}
-        />
-        <TouchableOpacity style={styles.saveBtn} onPress={handleSaveReport}>
-          <MaterialIcons name="save" size={18} color={COLORS.textPrimary} />
-        </TouchableOpacity>
-      </View>
-      {reports.length === 0 ? (
-        <Text style={styles.savedEmpty}>No has guardado reportes.</Text>
-      ) : (
-        reports.map((r) => (
-          <View key={r.id} style={styles.savedRow}>
-            <TouchableOpacity style={styles.savedLoad} onPress={() => loadReport(r)}>
-              <MaterialIcons name="play-arrow" size={18} color={COLORS.textSecondary} />
-              <Text style={styles.savedName} numberOfLines={1}>{r.name}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => deleteReport(r.id)}>
-              <MaterialIcons name="delete-outline" size={20} color={COLORS.danger} />
-            </TouchableOpacity>
-          </View>
-        ))
+          {!isFreelancer && (
+            <>
+              <Text style={styles.section}>Modo</Text>
+              <View style={styles.chipRow}>
+                {REPORT_MODES.map((m) => {
+                  const active = config.mode === m.value;
+                  return (
+                    <TouchableOpacity key={m.value} style={[styles.chip, active && styles.chipActive]} onPress={() => patch({ mode: m.value })}>
+                      <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>{m.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </>
+          )}
+        </>
       )}
     </View>
   );
 
+  // --- Resultado (con exportar en su encabezado) ---
   const reportView = (
-    <View style={isDesktop ? styles.rightCol : undefined}>
-      {!isDesktop && <View style={styles.divider} />}
-      <Text style={styles.currencyNote}>Mostrando en {currency}</Text>
+    <View style={[styles.card, isDesktop && styles.rightCol]}>
+      <View style={styles.reportHeader}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.reportTitle}>Resultado</Text>
+          <Text style={styles.reportPeriod}>{periodLabel} · {currency}</Text>
+        </View>
+        <View style={styles.exportIcons}>
+          <TouchableOpacity
+            style={[styles.exportIconBtn, report.count === 0 && styles.disabled]}
+            disabled={report.count === 0}
+            onPress={() => handleExport('csv')}
+            accessibilityLabel="Exportar CSV"
+          >
+            <MaterialIcons name="table-chart" size={22} color={GREEN} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.exportIconBtn, report.count === 0 && styles.disabled]}
+            disabled={report.count === 0}
+            onPress={() => handleExport('pdf')}
+            accessibilityLabel="Exportar PDF"
+          >
+            <MaterialIcons name="picture-as-pdf" size={22} color={GREEN} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {isFreelancer ? (
         <FreelancerReport
           summary={freelancer}
@@ -233,27 +239,51 @@ const ReportBuilderScreen = () => {
     </View>
   );
 
+  // --- Reportes guardados (sección propia) ---
+  const savedView = (
+    <View style={styles.card}>
+      <Text style={styles.section}>Reportes guardados</Text>
+      <View style={styles.saveRow}>
+        <TextInput
+          style={styles.nameInput}
+          placeholder="Nombre del reporte"
+          placeholderTextColor={COLORS.neutral}
+          value={reportName}
+          onChangeText={setReportName}
+        />
+        <TouchableOpacity style={styles.saveBtn} onPress={handleSaveReport}>
+          <MaterialIcons name="save" size={18} color="#fff" />
+        </TouchableOpacity>
+      </View>
+      {reports.length === 0 ? (
+        <Text style={styles.savedEmpty}>No has guardado reportes.</Text>
+      ) : (
+        reports.map((r) => (
+          <View key={r.id} style={styles.savedRow}>
+            <TouchableOpacity style={styles.savedLoad} onPress={() => loadReport(r)}>
+              <MaterialIcons name="play-arrow" size={18} color={GREEN} />
+              <Text style={styles.savedName} numberOfLines={1}>{r.name}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => deleteReport(r.id)}>
+              <MaterialIcons name="delete-outline" size={20} color={COLORS.danger} />
+            </TouchableOpacity>
+          </View>
+        ))
+      )}
+    </View>
+  );
+
   return (
     <View style={styles.root}>
       <ScrollView contentContainerStyle={[styles.content, isDesktop && styles.contentDesktop]}>
         <Text style={styles.title}>Reporte personalizado</Text>
 
-        {/* Exportar */}
-        <View style={styles.exportRow}>
-          <TouchableOpacity style={[styles.exportBtn, report.count === 0 && styles.exportBtnDisabled]} disabled={report.count === 0} onPress={() => handleExport('csv')}>
-            <MaterialIcons name="table-chart" size={18} color={COLORS.textPrimary} />
-            <Text style={styles.exportText}>Exportar CSV</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.exportBtn, report.count === 0 && styles.exportBtnDisabled]} disabled={report.count === 0} onPress={() => handleExport('pdf')}>
-            <MaterialIcons name="picture-as-pdf" size={18} color={COLORS.textPrimary} />
-            <Text style={styles.exportText}>Exportar PDF</Text>
-          </TouchableOpacity>
-        </View>
-
         <View style={isDesktop ? styles.columns : undefined}>
           {controls}
           {reportView}
         </View>
+
+        {savedView}
       </ScrollView>
 
       <DateRangePickerModal
@@ -277,21 +307,42 @@ const styles = StyleSheet.create({
   columns: { flexDirection: 'row', gap: SIZES.padding, alignItems: 'flex-start' },
   leftCol: { width: LEFT_COL },
   rightCol: { flex: 1 },
-  title: { fontSize: SIZES.font * 1.8, fontWeight: 'bold', color: COLORS.textPrimary, marginBottom: SIZES.padding },
-  exportRow: { flexDirection: 'row', gap: 10, marginBottom: SIZES.padding * 0.5 },
-  exportBtn: {
-    flex: 1,
+  title: { fontSize: SIZES.font * 1.8, fontWeight: '600', color: COLORS.textPrimary, marginBottom: SIZES.padding },
+
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: SIZES.radius * 1.4,
+    padding: SIZES.padding,
+    marginBottom: SIZES.padding,
+  },
+
+  reportHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: COLORS.secondary,
-    borderRadius: SIZES.radius,
-    paddingVertical: SIZES.padding * 0.6,
+    marginBottom: SIZES.padding * 0.75,
   },
-  exportBtnDisabled: { opacity: 0.4 },
-  exportText: { fontSize: SIZES.font, fontWeight: 'bold', color: COLORS.textPrimary },
-  section: { fontSize: SIZES.font, fontWeight: 'bold', color: COLORS.neutral, marginTop: SIZES.padding * 1.5, marginBottom: SIZES.base },
+  reportTitle: { fontSize: SIZES.font * 1.2, fontWeight: '600', color: COLORS.textPrimary },
+  reportPeriod: { fontSize: SIZES.font * 0.85, color: COLORS.textSecondary, marginTop: 2 },
+  exportIcons: { flexDirection: 'row', gap: 4 },
+  exportIconBtn: {
+    padding: 8,
+    borderRadius: SIZES.radius,
+    backgroundColor: '#EAF3DE',
+  },
+  disabled: { opacity: 0.4 },
+
+  section: { fontSize: SIZES.font, fontWeight: '600', color: COLORS.textSecondary, marginTop: SIZES.padding, marginBottom: SIZES.base },
+  advancedToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: SIZES.padding,
+    paddingTop: SIZES.padding * 0.75,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.lightGray,
+  },
+  advancedText: { fontSize: SIZES.font, color: COLORS.textSecondary, fontWeight: '500' },
+
   rangeChip: {
     alignSelf: 'flex-start',
     backgroundColor: COLORS.primary + '40',
@@ -313,14 +364,7 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: COLORS.primary },
   chipLabel: { fontSize: SIZES.font, color: COLORS.textSecondary, fontWeight: '600' },
   chipLabelActive: { color: COLORS.textPrimary },
-  divider: { height: 1, backgroundColor: COLORS.lightGray, marginTop: SIZES.padding * 1.5 },
-  currencyNote: {
-    fontSize: SIZES.font * 0.85,
-    color: COLORS.neutral,
-    fontWeight: '600',
-    marginTop: SIZES.padding,
-    marginBottom: SIZES.base,
-  },
+
   saveRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   nameInput: {
     flex: 1,
@@ -333,7 +377,7 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
     backgroundColor: '#fff',
   },
-  saveBtn: { backgroundColor: COLORS.secondary, borderRadius: SIZES.radius, padding: 10 },
+  saveBtn: { backgroundColor: GREEN, borderRadius: SIZES.radius, padding: 10 },
   savedEmpty: { fontSize: SIZES.font * 0.9, color: COLORS.textSecondary, marginTop: 6 },
   savedRow: {
     flexDirection: 'row',
