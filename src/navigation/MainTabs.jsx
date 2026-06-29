@@ -8,17 +8,21 @@ import HomeScreen from '../screens/HomeScreen';
 import TransactionHistoryScreen from '../screens/TransactionHistoryScreen';
 import ReportsScreen from '../screens/ReportsScreen';
 import MoreScreen from '../screens/MoreScreen';
-import { COLORS, SIZES } from '../constants/theme';
+import { useIsDesktop } from '../hooks/useResponsive';
+import { COLORS } from '../constants/theme';
 
 const Tab = createBottomTabNavigator();
 
-// Botón central elevado: abre Añadir Transacción (acción más frecuente).
+// Botón central de añadir (acción más frecuente). En móvil va elevado sobre la
+// barra inferior; en el riel de escritorio queda alineado.
 const CenterAddButton = () => {
   const navigation = useNavigation();
+  const isDesktop = useIsDesktop();
   return (
     <View style={styles.centerWrap} pointerEvents="box-none">
       <TouchableOpacity
-        style={styles.centerBtn}
+        style={[styles.centerBtn, { marginTop: isDesktop ? 4 : -18 }]}
+        accessibilityRole="button"
         accessibilityLabel="Añadir transacción"
         onPress={() => navigation.navigate('AddTransactionScreen')}
       >
@@ -30,31 +34,41 @@ const CenterAddButton = () => {
 
 const icon = (name) => ({ color, size }) => <MaterialIcons name={name} size={size} color={color} />;
 
-const MainTabs = () => (
-  <Tab.Navigator
-    screenOptions={{
-      headerShown: false,
-      tabBarActiveTintColor: COLORS.success,
-      tabBarInactiveTintColor: COLORS.textSecondary,
-      tabBarStyle: { height: 60, paddingBottom: 6, paddingTop: 6 },
-      tabBarLabelStyle: { fontSize: 11 },
-    }}
-  >
-    <Tab.Screen name="HomeScreen" component={HomeScreen} options={{ title: 'Inicio', tabBarIcon: icon('home') }} />
-    <Tab.Screen
-      name="TransactionHistoryScreen"
-      component={TransactionHistoryScreen}
-      options={{ title: 'Historial', tabBarIcon: icon('receipt-long') }}
-    />
-    <Tab.Screen
-      name="AddTab"
-      component={View}
-      options={{ tabBarButton: () => <CenterAddButton />, tabBarLabel: () => null }}
-    />
-    <Tab.Screen name="ReportsScreen" component={ReportsScreen} options={{ title: 'Reportes', tabBarIcon: icon('bar-chart') }} />
-    <Tab.Screen name="MoreScreen" component={MoreScreen} options={{ title: 'Más', tabBarIcon: icon('more-horiz') }} />
-  </Tab.Navigator>
-);
+const MainTabs = () => {
+  const isDesktop = useIsDesktop();
+
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        // Barra inferior en móvil; riel lateral en escritorio (más natural y deja
+        // los destinos visibles sin una barra inferior poco habitual en desktop).
+        tabBarPosition: isDesktop ? 'left' : 'bottom',
+        tabBarActiveTintColor: COLORS.success,
+        tabBarInactiveTintColor: COLORS.textSecondary,
+        tabBarStyle: isDesktop
+          ? { width: 96, paddingTop: 12 }
+          : { height: 60, paddingBottom: 6, paddingTop: 6 },
+        tabBarLabelStyle: { fontSize: 11 },
+        tabBarItemStyle: isDesktop ? { height: 64 } : undefined,
+      }}
+    >
+      <Tab.Screen name="HomeScreen" component={HomeScreen} options={{ title: 'Inicio', tabBarIcon: icon('home') }} />
+      <Tab.Screen
+        name="TransactionHistoryScreen"
+        component={TransactionHistoryScreen}
+        options={{ title: 'Historial', tabBarIcon: icon('receipt-long') }}
+      />
+      <Tab.Screen
+        name="AddTab"
+        component={View}
+        options={{ tabBarButton: () => <CenterAddButton />, tabBarLabel: () => null }}
+      />
+      <Tab.Screen name="ReportsScreen" component={ReportsScreen} options={{ title: 'Reportes', tabBarIcon: icon('bar-chart') }} />
+      <Tab.Screen name="MoreScreen" component={MoreScreen} options={{ title: 'Más', tabBarIcon: icon('more-horiz') }} />
+    </Tab.Navigator>
+  );
+};
 
 const styles = StyleSheet.create({
   centerWrap: {
@@ -66,7 +80,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    marginTop: -18,
     backgroundColor: COLORS.secondary,
     justifyContent: 'center',
     alignItems: 'center',
