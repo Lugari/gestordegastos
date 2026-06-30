@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
 
   rangeChip: {
     alignSelf: 'flex-start',
-    backgroundColor: COLORS.primary + '40',
+    backgroundColor: '#E1F5EE',
     borderRadius: SIZES.radius,
     paddingHorizontal: SIZES.padding * 0.75,
     paddingVertical: SIZES.padding * 0.4,
@@ -358,12 +358,12 @@ const styles = StyleSheet.create({
     paddingVertical: SIZES.padding * 0.5,
     borderRadius: SIZES.radius,
     borderWidth: 1,
-    borderColor: COLORS.primary,
+    borderColor: GREEN,
     backgroundColor: COLORS.background,
   },
-  chipActive: { backgroundColor: COLORS.primary },
+  chipActive: { backgroundColor: GREEN, borderColor: GREEN },
   chipLabel: { fontSize: SIZES.font, color: COLORS.textSecondary, fontWeight: '600' },
-  chipLabelActive: { color: COLORS.textPrimary },
+  chipLabelActive: { color: '#fff' },
 
   saveRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   nameInput: {

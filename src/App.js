@@ -41,20 +41,20 @@ const AppNavigator = () => {
             <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
             <Stack.Screen name="ReportBuilderScreen" component={ReportBuilderScreen} options={{ title: "Reporte personalizado" }} />
             <Stack.Screen name="AccountsScreen" component={AccountsScreen} options={{ title: "Cuentas" }} />
-            <Stack.Screen name="SingleTransactionScreen" component={SingleTransactionScreen} options={{ title: "Detalles de Transacción" }} />
-            <Stack.Screen name="AddTransactionScreen" component={AddTransactionScreen} options={{ title: "Añadir Transacción" }} />
-            <Stack.Screen name="BudgetsScreen" component={BucketListScreen} initialParams={{ kind: KIND.BUDGET }} options={{ title: "Presupuesto" }} />
-            <Stack.Screen name="SingleBudgetScreen" component={SingleBucketScreen} initialParams={{ kind: KIND.BUDGET }} options={{ title: "Detalles de Presupuesto" }} />
-            <Stack.Screen name="AddBudgetScreen" component={AddBucketScreen} initialParams={{ kind: KIND.BUDGET }} options={{ title: "Añadir Presupuesto" }} />
-            <Stack.Screen name="SavingsScreen" component={BucketListScreen} initialParams={{ kind: KIND.SAVING }} options={{ title: "Metas de Ahorro" }} />
-            <Stack.Screen name="SingleSavingScreen" component={SingleBucketScreen} initialParams={{ kind: KIND.SAVING }} options={{ title: "Detalles de Ahorro" }} />
-            <Stack.Screen name="AddSavingScreen" component={AddBucketScreen} initialParams={{ kind: KIND.SAVING }} options={{ title: "Añadir Meta" }} />
+            <Stack.Screen name="SingleTransactionScreen" component={SingleTransactionScreen} options={{ title: "Detalle de transacción" }} />
+            <Stack.Screen name="AddTransactionScreen" component={AddTransactionScreen} options={{ title: "Añadir transacción" }} />
+            <Stack.Screen name="BudgetsScreen" component={BucketListScreen} initialParams={{ kind: KIND.BUDGET }} options={{ title: "Presupuestos" }} />
+            <Stack.Screen name="SingleBudgetScreen" component={SingleBucketScreen} initialParams={{ kind: KIND.BUDGET }} options={{ title: "Detalle de presupuesto" }} />
+            <Stack.Screen name="AddBudgetScreen" component={AddBucketScreen} initialParams={{ kind: KIND.BUDGET }} options={{ title: "Añadir presupuesto" }} />
+            <Stack.Screen name="SavingsScreen" component={BucketListScreen} initialParams={{ kind: KIND.SAVING }} options={{ title: "Metas de ahorro" }} />
+            <Stack.Screen name="SingleSavingScreen" component={SingleBucketScreen} initialParams={{ kind: KIND.SAVING }} options={{ title: "Detalle de ahorro" }} />
+            <Stack.Screen name="AddSavingScreen" component={AddBucketScreen} initialParams={{ kind: KIND.SAVING }} options={{ title: "Añadir meta" }} />
             <Stack.Screen name="DebtsScreen" component={BucketListScreen} initialParams={{ kind: KIND.DEBT }} options={{ title: "Deudas" }} />
-            <Stack.Screen name="AddDebtScreen" component={AddBucketScreen} initialParams={{ kind: KIND.DEBT }} options={{ title: "Añadir Deuda" }} />
-            <Stack.Screen name="SingleDebtScreen" component={SingleBucketScreen} initialParams={{ kind: KIND.DEBT }} options={{ title: "Detalles de Deuda" }} />
+            <Stack.Screen name="AddDebtScreen" component={AddBucketScreen} initialParams={{ kind: KIND.DEBT }} options={{ title: "Añadir deuda" }} />
+            <Stack.Screen name="SingleDebtScreen" component={SingleBucketScreen} initialParams={{ kind: KIND.DEBT }} options={{ title: "Detalle de deuda" }} />
             <Stack.Screen name="InvestmentsScreen" component={BucketListScreen} initialParams={{ kind: KIND.INVESTMENT }} options={{ title: "Inversiones" }} />
-            <Stack.Screen name="AddInvestmentScreen" component={AddBucketScreen} initialParams={{ kind: KIND.INVESTMENT }} options={{ title: "Añadir Inversión" }} />
-            <Stack.Screen name="SingleInvestmentScreen" component={SingleBucketScreen} initialParams={{ kind: KIND.INVESTMENT }} options={{ title: "Detalles de Inversión" }} />
+            <Stack.Screen name="AddInvestmentScreen" component={AddBucketScreen} initialParams={{ kind: KIND.INVESTMENT }} options={{ title: "Añadir inversión" }} />
+            <Stack.Screen name="SingleInvestmentScreen" component={SingleBucketScreen} initialParams={{ kind: KIND.INVESTMENT }} options={{ title: "Detalle de inversión" }} />
           </>
         )}
       </Stack.Navigator>

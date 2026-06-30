@@ -354,8 +354,8 @@ const styles = StyleSheet.create({
   chipText: { fontSize: SIZES.font * 0.95, color: COLORS.textSecondary, fontWeight: '500' },
   chipTextActive: { color: '#fff' },
   chipDateActive: { backgroundColor: GREEN, borderColor: GREEN },
-  chipAccountActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  chipAccountTextActive: { color: COLORS.textPrimary },
+  chipAccountActive: { backgroundColor: GREEN, borderColor: GREEN },
+  chipAccountTextActive: { color: '#fff' },
   calendarBtn: { paddingHorizontal: 6, paddingVertical: 6 },
 
   dateText: { fontSize: SIZES.font * 0.9, color: COLORS.textSecondary, marginTop: 8 },

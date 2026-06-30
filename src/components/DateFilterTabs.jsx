@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-nati
 
 import {COLORS, SIZES} from '../constants/theme';
 
+const GREEN = '#1C6B52';
 const FILTERS = ['Mes', 'Semana', 'Trimestre', 'Año'];
 
 const DateFilterTabs = ({ activeFilter, onSelectFilter, showCustom = false, customLabel = 'Personalizado' }) => {
@@ -29,7 +30,7 @@ const DateFilterTabs = ({ activeFilter, onSelectFilter, showCustom = false, cust
                 activeFilter === label && styles.activeText,
               ]}
             >
-              {label.toUpperCase()}
+              {label}
             </Text>
           </TouchableOpacity>
         ))}
@@ -47,22 +48,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   filterButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: SIZES.radius,
-    paddingHorizontal: SIZES.padding*.9,
+    backgroundColor: '#EFEFE8',
+    borderRadius: 999,
+    paddingHorizontal: SIZES.padding,
     paddingVertical: SIZES.padding*.5,
-    marginRight: 10,
+    marginRight: 8,
   },
   filterText: {
-    color: COLORS.textPrimary,
+    color: COLORS.textSecondary,
     fontSize: SIZES.font,
     fontWeight: '600',
   },
   activeButton: {
-    backgroundColor: COLORS.primary + '40',
+    backgroundColor: GREEN,
   },
   activeText: {
-    color: COLORS.textSecondary,
+    color: '#fff',
   },
 });
 
