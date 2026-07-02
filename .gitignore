@@ -38,8 +38,16 @@ Project plan/
 # typescript
 *.tsbuildinfo
 
+# Amplify (Gen 2)
+amplify_outputs*
+amplifyconfiguration*
+.amplify/
+
 
 
 
 android
 ios
+
+# Web export de prueba
+dist-web/
