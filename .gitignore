@@ -38,8 +38,9 @@ Project plan/
 # typescript
 *.tsbuildinfo
 
-# Amplify (Gen 2)
-amplify_outputs*
+Amplify (Gen 2)
+amplify_outputs.json
+
 amplifyconfiguration*
 .amplify/
 
