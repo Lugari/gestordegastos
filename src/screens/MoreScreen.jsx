@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { AuthContext } from '../context/AuthContext';
+import * as authService from '../services/authService';
 import { useCurrency } from '../context/CurrencyContext';
 import { useIsDesktop } from '../hooks/useResponsive';
 import CurrencyModal from '../components/CurrencyModal';
@@ -59,6 +60,14 @@ const MoreScreen = () => {
   const [newName, setNewName] = useState('');
   const [currencyModal, setCurrencyModal] = useState(false);
 
+  // Verificación en dos pasos (TOTP)
+  const [twoFAModal, setTwoFAModal] = useState(false);
+  const [totpSecret, setTotpSecret] = useState('');
+  const [totpCode, setTotpCode] = useState('');
+  const [twoFADone, setTwoFADone] = useState(false);
+  const [twoFAError, setTwoFAError] = useState('');
+  const [twoFABusy, setTwoFABusy] = useState(false);
+
   useEffect(() => {
     AsyncStorage.getItem(USERNAME_KEY).then((v) => {
       if (v) setUsername(v);
@@ -75,6 +84,37 @@ const MoreScreen = () => {
     setUsername(value);
     await AsyncStorage.setItem(USERNAME_KEY, value);
     setNameModal(false);
+  };
+
+  // Abre el modal de 2FA y pide a Cognito el secreto para la app authenticator.
+  const openTwoFA = async () => {
+    setTwoFAError('');
+    setTwoFADone(false);
+    setTotpCode('');
+    setTotpSecret('');
+    setTwoFAModal(true);
+    try {
+      const details = await authService.iniciarTOTP();
+      setTotpSecret(details.sharedSecret);
+    } catch (e) {
+      setTwoFAError(e?.message || 'No se pudo iniciar la configuración.');
+    }
+  };
+
+  // Verifica el código de la app y deja el TOTP como método preferido.
+  const confirmTwoFA = async () => {
+    if (!totpCode.trim()) return;
+    setTwoFABusy(true);
+    setTwoFAError('');
+    try {
+      await authService.verificarTOTP(totpCode.trim());
+      await authService.activarTOTPComoPreferido();
+      setTwoFADone(true);
+    } catch (e) {
+      setTwoFAError(e?.name === 'CodeMismatchException' ? 'El código no es correcto.' : (e?.message || 'No se pudo verificar.'));
+    } finally {
+      setTwoFABusy(false);
+    }
   };
 
   const applyImport = async (text) => {
@@ -144,6 +184,10 @@ const MoreScreen = () => {
           <Row icon="file-upload" label="Importar datos" onPress={handleImport} />
         </Group>
 
+        <Group title="Seguridad">
+          <Row icon="verified-user" label="Verificación en dos pasos" onPress={openTwoFA} />
+        </Group>
+
         <Group title="Sesión">
           <Row icon="logout" label="Cerrar sesión" onPress={logout} danger />
         </Group>
@@ -172,6 +216,50 @@ const MoreScreen = () => {
                 <Text style={[styles.nameBtnText, { color: '#fff' }]}>Guardar</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      )}
+
+      {/* Overlay verificación en dos pasos */}
+      {twoFAModal && (
+        <View style={styles.overlay}>
+          <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={() => setTwoFAModal(false)} />
+          <View style={styles.nameCard}>
+            {twoFADone ? (
+              <>
+                <MaterialIcons name="verified-user" size={40} color={GREEN} style={{ alignSelf: 'center', marginBottom: 8 }} />
+                <Text style={styles.nameTitle}>2FA activada</Text>
+                <Text style={styles.twoFAText}>La próxima vez que inicies sesión te pediremos el código de tu app.</Text>
+                <TouchableOpacity style={[styles.nameBtn, styles.saveBtn]} onPress={() => setTwoFAModal(false)}>
+                  <Text style={[styles.nameBtnText, { color: '#fff' }]}>Listo</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <Text style={styles.nameTitle}>Verificación en dos pasos</Text>
+                <Text style={styles.twoFAText}>
+                  1. Abre tu app de autenticación (Google Authenticator, Authy…) y agrega esta clave:
+                </Text>
+                <Text selectable style={styles.totpSecret}>{totpSecret || '…'}</Text>
+                <Text style={styles.twoFAText}>2. Escribe el código de 6 dígitos que aparece:</Text>
+                <TextInput
+                  style={styles.nameInput}
+                  value={totpCode}
+                  onChangeText={setTotpCode}
+                  placeholder="000000"
+                  keyboardType="number-pad"
+                />
+                {twoFAError ? <Text style={styles.twoFAError}>{twoFAError}</Text> : null}
+                <View style={styles.nameActions}>
+                  <TouchableOpacity style={[styles.nameBtn, styles.cancelBtn]} onPress={() => setTwoFAModal(false)}>
+                    <Text style={styles.nameBtnText}>Cancelar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.nameBtn, styles.saveBtn, (!totpSecret || twoFABusy) && { opacity: 0.5 }]} disabled={!totpSecret || twoFABusy} onPress={confirmTwoFA}>
+                    <Text style={[styles.nameBtnText, { color: '#fff' }]}>{twoFABusy ? 'Verificando…' : 'Verificar'}</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
           </View>
         </View>
       )}
@@ -242,6 +330,12 @@ const styles = StyleSheet.create({
   saveBtn: { backgroundColor: GREEN },
   cancelBtn: { backgroundColor: '#EAEAEA' },
   nameBtnText: { fontWeight: 'bold', fontSize: 16, color: '#333' },
+  twoFAText: { fontSize: 14, color: COLORS.textSecondary, marginBottom: 10, lineHeight: 20 },
+  totpSecret: {
+    fontSize: 16, fontWeight: 'bold', color: GREEN, textAlign: 'center', letterSpacing: 1,
+    backgroundColor: '#EAF3DE', borderRadius: 8, paddingVertical: 10, marginBottom: 14,
+  },
+  twoFAError: { fontSize: 13, color: '#A32D2D', marginBottom: 8, textAlign: 'center' },
 });
 
 export default MoreScreen;
