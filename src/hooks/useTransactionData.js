@@ -2,8 +2,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as TransactionService from '../services/transactionService';
 import * as BucketService from '../services/bucketService';
 import { getStrategy } from '../domain/strategyByKind';
-import { kindFromTransactionType } from '../constants/bucketKinds';
+import { KIND, kindFromTransactionType } from '../constants/bucketKinds';
 import { toBase } from '../utils/formatMoney';
+import { notifyNow } from '../services/notificationsService';
 
 export const useGetTransactions = () => {
   return useQuery({
@@ -17,16 +18,42 @@ export const useGetTransactions = () => {
 // `signedAmount` es positivo al añadir una transacción y negativo al revertirla.
 // Funciona para cualquier kind (presupuesto, ahorro, deuda, inversión) sin ramas por tipo.
 const applyBucketDelta = async (targetId, targetKind, signedAmount) => {
-  if (!targetId || !targetKind) return;
+  if (!targetId || !targetKind) return null;
   const strategy = getStrategy(targetKind);
-  if (!strategy?.applyTransaction) return;
+  if (!strategy?.applyTransaction) return null;
 
   const buckets = await BucketService.getAllBuckets();
   const bucket = buckets.find((b) => b.id === targetId);
-  if (!bucket) return;
+  if (!bucket) return null;
 
   const patch = strategy.applyTransaction(bucket, signedAmount);
   await BucketService.updateBucketById(targetId, patch);
+
+  // Datos para evaluar el cruce de umbral del presupuesto.
+  return {
+    kind: targetKind,
+    name: bucket.name,
+    total: Number(bucket.total) || 0,
+    prevUsed: Number(bucket.used) || 0,
+    newUsed: Number(patch.used) || 0,
+  };
+};
+
+// Notifica cuando un gasto cruza el 80% o el 100% del presupuesto (solo al cruzar,
+// no en cada gasto). Requiere notificaciones activadas (si no, es no-op).
+const THRESHOLDS = [0.8, 1];
+const maybeNotifyBudget = async (info) => {
+  if (!info || info.kind !== KIND.BUDGET || info.total <= 0) return;
+  const prev = info.prevUsed / info.total;
+  const now = info.newUsed / info.total;
+  for (const t of THRESHOLDS) {
+    if (prev < t && now >= t) {
+      const pct = Math.round(now * 100);
+      const title = t >= 1 ? 'Presupuesto superado' : 'Presupuesto casi agotado';
+      await notifyNow(title, `${info.name}: llevas ${pct}% de tu presupuesto.`);
+      break; // una sola alerta por transacción
+    }
+  }
 };
 
 export const useManageTransactions = () => {
@@ -58,7 +85,10 @@ export const useManageTransactions = () => {
 
       // Ajuste de saldo del bucket (en moneda base): se convierte el monto desde
       // la moneda de la transacción.
-      await applyBucketDelta(targetId, targetKind, toBase(transactionData.amount, transactionData.currency));
+      const deltaInfo = await applyBucketDelta(targetId, targetKind, toBase(transactionData.amount, transactionData.currency));
+
+      // Alerta de presupuesto si este gasto cruzó un umbral.
+      await maybeNotifyBudget(deltaInfo);
 
       return newTransaction;
     },
