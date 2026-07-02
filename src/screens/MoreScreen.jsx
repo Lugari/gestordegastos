@@ -8,6 +8,7 @@ import {
   TextInput,
   Platform,
   Alert,
+  Switch,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -20,6 +21,7 @@ import { useCurrency } from '../context/CurrencyContext';
 import { useIsDesktop } from '../hooks/useResponsive';
 import CurrencyModal from '../components/CurrencyModal';
 import { importData } from '../services/dataTransfer';
+import { notificationsEnabled, enableNotifications, disableNotifications } from '../services/notificationsService';
 import { COLORS, SIZES } from '../constants/theme';
 
 const USERNAME_KEY = '@username';
@@ -68,11 +70,27 @@ const MoreScreen = () => {
   const [twoFAError, setTwoFAError] = useState('');
   const [twoFABusy, setTwoFABusy] = useState(false);
 
+  // Notificaciones
+  const [notifsOn, setNotifsOn] = useState(false);
+
   useEffect(() => {
     AsyncStorage.getItem(USERNAME_KEY).then((v) => {
       if (v) setUsername(v);
     });
+    notificationsEnabled().then(setNotifsOn);
   }, []);
+
+  // Activa/desactiva notificaciones (alertas de presupuesto y recordatorios).
+  const toggleNotifs = async (value) => {
+    if (value) {
+      const ok = await enableNotifications();
+      setNotifsOn(ok);
+      if (!ok) notify('Permiso necesario', 'Activa las notificaciones para esta app desde los ajustes del sistema.');
+    } else {
+      await disableNotifications();
+      setNotifsOn(false);
+    }
+  };
 
   const openNameModal = () => {
     setNewName(username);
@@ -182,6 +200,19 @@ const MoreScreen = () => {
 
         <Group title="Datos">
           <Row icon="file-upload" label="Importar datos" onPress={handleImport} />
+        </Group>
+
+        <Group title="Notificaciones">
+          <View style={styles.row}>
+            <MaterialIcons name="notifications-none" size={22} color={COLORS.textSecondary} />
+            <Text style={styles.rowLabel}>Alertas y recordatorios</Text>
+            <Switch
+              value={notifsOn}
+              onValueChange={toggleNotifs}
+              trackColor={{ true: GREEN, false: '#c9c9c0' }}
+              thumbColor="#fff"
+            />
+          </View>
         </Group>
 
         <Group title="Seguridad">
