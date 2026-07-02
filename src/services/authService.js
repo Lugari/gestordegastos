@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import {
   signUp,
   confirmSignUp,
@@ -13,6 +14,10 @@ import {
   verifyTOTPSetup,
   updateMFAPreference,
 } from 'aws-amplify/auth';
+
+// En móvil usamos USER_PASSWORD_AUTH: evita el módulo nativo de SRP (ausente en
+// Expo Go). En web dejamos el flujo por defecto (SRP), que funciona en el navegador.
+const signInOptions = Platform.OS === 'web' ? undefined : { authFlowType: 'USER_PASSWORD_AUTH' };
 
 // Capa fina sobre Amazon Cognito (aws-amplify/auth). Cada función devuelve
 // el resultado de Amplify, cuyo `nextStep` indica qué sigue en el flujo.
@@ -33,7 +38,7 @@ export const reenviarCodigo = ({ email }) =>
 
 // --- Inicio de sesión ---
 export const iniciarSesion = ({ email, password }) =>
-  signIn({ username: email, password });
+  signIn({ username: email, password, options: signInOptions });
 
 // Responde a un reto (código 2FA, nueva contraseña obligatoria, etc.).
 export const responderReto = (challengeResponse) =>

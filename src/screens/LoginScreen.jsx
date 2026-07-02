@@ -41,6 +41,15 @@ const TITULOS = {
   reset: 'Nueva contraseña',
 };
 
+// Campo con icono. Definido a nivel de módulo (no dentro del render) para que
+// React no lo recree en cada tecla y el input no pierda el foco.
+const IconInput = ({ icon, ...props }) => (
+  <View style={styles.inputRow}>
+    <MaterialIcons name={icon} size={20} color="#8a8a80" />
+    <TextInput style={styles.input} placeholderTextColor="#b9b9af" {...props} />
+  </View>
+);
+
 const LoginScreen = () => {
   const { refresh } = useContext(AuthContext);
   const isDesktop = useIsDesktop();
@@ -138,15 +147,8 @@ const LoginScreen = () => {
   };
 
   // --- Campos reutilizables ---
-  const InputRow = ({ icon, ...props }) => (
-    <View style={styles.inputRow}>
-      <MaterialIcons name={icon} size={20} color="#8a8a80" />
-      <TextInput style={styles.input} placeholderTextColor="#b9b9af" {...props} />
-    </View>
-  );
-
   const emailField = (
-    <InputRow
+    <IconInput
       icon="mail-outline"
       placeholder="Correo"
       value={email}
@@ -178,7 +180,7 @@ const LoginScreen = () => {
   );
 
   const codeField = (
-    <InputRow
+    <IconInput
       icon="pin"
       placeholder="Código de 6 dígitos"
       value={code}
