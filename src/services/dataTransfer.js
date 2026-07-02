@@ -1,17 +1,16 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { makeCloudCollection } from './cloudCollection';
 
-// Importación de datos locales (respaldo en JSON) hacia AsyncStorage.
+// Importación de un respaldo JSON hacia la nube del usuario.
 // Formato esperado: { buckets: [...], transactions: [...], categories: [...] }
 // (cualquiera de las tres claves es opcional; se escribe lo que venga).
-
-const FIELD_TO_KEY = {
-  buckets: '@buckets',
-  transactions: '@transactions',
-  categories: '@categories',
+const FIELD_TO_MODEL = {
+  buckets: 'Bucket',
+  transactions: 'Transaction',
+  categories: 'Category',
 };
 
 /**
- * Carga datos desde un JSON (string u objeto) en AsyncStorage.
+ * Carga datos desde un JSON (string u objeto) reemplazando la colección en la nube.
  * @param {string|object} raw
  * @returns {Promise<{imported: string[]}>}
  */
@@ -27,21 +26,17 @@ export const importData = async (raw) => {
     throw new Error('El archivo no tiene el formato esperado.');
   }
 
-  const writes = [];
-  for (const [field, key] of Object.entries(FIELD_TO_KEY)) {
+  const imported = [];
+  for (const [field, modelName] of Object.entries(FIELD_TO_MODEL)) {
     if (Array.isArray(data[field])) {
-      writes.push([key, JSON.stringify(data[field])]);
+      await makeCloudCollection(modelName).replaceAll(data[field]);
+      imported.push(field);
     }
   }
 
-  if (writes.length === 0) {
+  if (imported.length === 0) {
     throw new Error('El archivo no contiene datos reconocibles (buckets, transactions o categories).');
   }
 
-  await AsyncStorage.multiSet(writes);
-  // Los datos importados ya están en el modelo unificado: evitamos que la
-  // migración los reprocese.
-  await AsyncStorage.setItem('@schema_version', '2');
-
-  return { imported: writes.map(([key]) => key) };
+  return { imported };
 };

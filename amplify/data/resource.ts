@@ -1,70 +1,23 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 
-// Esquema de datos de EzMoniManager (AppSync + DynamoDB).
-// Refleja el modelo unificado actual: Account, Transaction, Bucket
-// (budget|saving|debt|investment), Category, ReportConfig y DeviceToken.
-// Autorización por dueño: cada usuario solo ve y edita lo suyo.
+// Almacén documental por usuario. Cada modelo (Account, Transaction, Bucket,
+// Category, ReportConfig, DeviceToken) guarda el objeto de la app tal cual en el
+// campo `payload` (JSON), usando el id propio del objeto y autorización por dueño.
+//
+// La app ya carga colecciones completas y filtra/computa en el cliente, así que un
+// documento por registro encaja con su arquitectura sin reescribir hooks ni pantallas.
+// `payload` es texto (JSON serializado por el cliente) en vez de AWSJSON, para
+// evitar problemas de coerción del tipo AWSJSON en las mutaciones de AppSync.
+const owned = () =>
+  a.model({ payload: a.string() }).authorization((allow) => [allow.owner()]);
+
 const schema = a.schema({
-  Account: a
-    .model({
-      name: a.string().required(),
-      currency: a.string().required(),
-      color: a.string(),
-      transactions: a.hasMany('Transaction', 'accountId'),
-    })
-    .authorization((allow) => [allow.owner()]),
-
-  Transaction: a
-    .model({
-      type: a.enum(['ingreso', 'gasto', 'ahorro']),
-      amount: a.float().required(),
-      currency: a.string().required(),
-      notes: a.string(),
-      date: a.datetime().required(),
-      accountId: a.id(),
-      account: a.belongsTo('Account', 'accountId'),
-      bucketId: a.id(),
-      bucket: a.belongsTo('Bucket', 'bucketId'),
-      categoryId: a.id(),
-      category: a.belongsTo('Category', 'categoryId'),
-    })
-    .authorization((allow) => [allow.owner()]),
-
-  Bucket: a
-    .model({
-      kind: a.enum(['budget', 'saving', 'debt', 'investment']),
-      name: a.string().required(),
-      total: a.float().required(),
-      used: a.float().default(0),
-      dueDate: a.date(),
-      apr: a.float(),
-      installments: a.integer(),
-      transactions: a.hasMany('Transaction', 'bucketId'),
-    })
-    .authorization((allow) => [allow.owner()]),
-
-  Category: a
-    .model({
-      name: a.string().required(),
-      icon: a.string(),
-      type: a.enum(['ingreso', 'gasto', 'ahorro']),
-      transactions: a.hasMany('Transaction', 'categoryId'),
-    })
-    .authorization((allow) => [allow.owner()]),
-
-  ReportConfig: a
-    .model({
-      name: a.string().required(),
-      filters: a.json(),
-    })
-    .authorization((allow) => [allow.owner()]),
-
-  DeviceToken: a
-    .model({
-      token: a.string().required(),
-      platform: a.enum(['ios', 'android', 'web']),
-    })
-    .authorization((allow) => [allow.owner()]),
+  Account: owned(),
+  Transaction: owned(),
+  Bucket: owned(),
+  Category: owned(),
+  ReportConfig: owned(),
+  DeviceToken: owned(),
 });
 
 export type Schema = ClientSchema<typeof schema>;

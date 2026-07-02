@@ -1,4 +1,7 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, useQueryClient } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useContext, useEffect, useState } from "react";
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -6,6 +9,7 @@ import { AuthProvider, AuthContext } from './context/AuthContext';
 import { CurrencyProvider } from './context/CurrencyContext';
 
 import { migrateLegacyData } from './services/migrateBuckets';
+import { migrateLocalToCloud } from './services/cloudSync';
 
 import MainTabs from "./navigation/MainTabs";
 import SingleTransactionScreen from "./screens/SingleTransactionScreen";
@@ -21,11 +25,28 @@ import { KIND } from './constants/bucketKinds';
 
 import '../i18n';
 
-const queryClient = new QueryClient();
+// gcTime largo para que la caché sobreviva y sirva de lectura offline al
+// persistirla en AsyncStorage.
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { gcTime: 1000 * 60 * 60 * 24 } }, // 24 h
+});
+
+// Persister: guarda la caché de React Query en AsyncStorage (lecturas offline).
+const persister = createAsyncStoragePersister({ storage: AsyncStorage });
+
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   const { userToken, isLoading } = useContext(AuthContext);
+  const queryClient = useQueryClient();
+
+  // Al iniciar sesión: sube los datos locales a la nube una sola vez y refresca
+  // las queries para que las pantallas carguen desde la nube.
+  useEffect(() => {
+    if (userToken) {
+      migrateLocalToCloud().finally(() => queryClient.invalidateQueries());
+    }
+  }, [userToken]);
 
   if (isLoading) {
     return null;
@@ -76,13 +97,13 @@ export default function App() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
       <CurrencyProvider>
         <AuthProvider>
           <AppNavigator />
         </AuthProvider>
       </CurrencyProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 }
 
