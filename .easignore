@@ -1,0 +1,38 @@
+# Qué NO subir a EAS Build. Cuando existe este archivo, EAS lo usa EN LUGAR de
+# .gitignore. Importante: aquí NO ignoramos amplify_outputs.json, para que el
+# dev-build quede con la configuración de la nube (Cognito/AppSync) empaquetada.
+
+node_modules/
+.git/
+
+# Excluir el lockfile para que EAS use `npm install` (no `npm ci`). El tooling de
+# backend de Amplify usa "bundledDependencies", que rompen `npm ci` con un falso
+# "Missing from lock file". `npm install` las maneja bien.
+package-lock.json
+npm-shrinkwrap.json
+yarn.lock
+
+# Expo / build
+.expo/
+dist/
+dist-web/
+web-build/
+android/
+ios/
+.amplify/
+
+# Docs y config local (no van al build)
+Project plan/
+.claude/
+.env
+.env*.local
+
+# Ruido
+.DS_Store
+*.pem
+*.tsbuildinfo
+*.orig.*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.metro-health-check*

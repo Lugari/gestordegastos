@@ -11,7 +11,8 @@
     },
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "node": "22.11.0"
     },
     "preview": {
       "distribution": "internal"
