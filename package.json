@@ -63,7 +63,9 @@
     "typescript": "^5.9.3"
   },
   "overrides": {
-    "graphql": "^15.8.0"
+    "graphql": "^15.8.0",
+    "@babel/types": "^7.29.7",
+    "@babel/generator": "^7.29.7"
   },
   "private": true
 }
