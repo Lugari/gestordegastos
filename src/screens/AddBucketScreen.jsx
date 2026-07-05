@@ -1,6 +1,8 @@
 import { useCallback, useEffect } from 'react';
-import { ScrollView, View, StyleSheet, Alert } from 'react-native';
+import { ScrollView, View, StyleSheet } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+
+import { notify } from '../utils/notify';
 
 import AddBudgetForm from '../components/budgets/AddBudgetForm';
 import AddSavingForm from '../components/savings/AddSavingForm';
@@ -16,10 +18,10 @@ import { COLORS, SIZES } from '../constants/theme';
 // AddBudget/AddSaving/AddDebt/AddInvestmentScreen. Se parametriza con `kind`
 // (initialParams), conservando los mismos nombres de ruta.
 const CONFIG = {
-  [KIND.BUDGET]: { queryKey: ['budgets'], Form: AddBudgetForm, list: 'BudgetsScreen', label: 'Presupuesto' },
-  [KIND.SAVING]: { queryKey: ['savings'], Form: AddSavingForm, list: 'SavingsScreen', label: 'Ahorro' },
-  [KIND.DEBT]: { queryKey: ['debts'], Form: AddDebtForm, list: 'DebtsScreen', label: 'Deuda' },
-  [KIND.INVESTMENT]: { queryKey: ['investments'], Form: AddInvestmentForm, list: 'InvestmentsScreen', label: 'Inversión' },
+  [KIND.BUDGET]: { queryKey: ['budgets'], Form: AddBudgetForm, list: 'BudgetsScreen', label: 'presupuesto' },
+  [KIND.SAVING]: { queryKey: ['savings'], Form: AddSavingForm, list: 'SavingsScreen', label: 'ahorro' },
+  [KIND.DEBT]: { queryKey: ['debts'], Form: AddDebtForm, list: 'DebtsScreen', label: 'deuda' },
+  [KIND.INVESTMENT]: { queryKey: ['investments'], Form: AddInvestmentForm, list: 'InvestmentsScreen', label: 'inversión' },
 };
 
 const AddBucketScreen = () => {
@@ -45,13 +47,10 @@ const AddBucketScreen = () => {
       } else {
         await addMutation.mutateAsync(data);
       }
-      Alert.alert(
-        'Éxito',
-        `${cfg.label} ${toEdit ? 'actualizado' : 'añadido'} correctamente.`,
-        [{ text: 'Aceptar', onPress: () => navigation.popTo(cfg.list) }],
-      );
+      // Éxito: volvemos a la lista directamente (el resultado se ve allí).
+      navigation.popTo(cfg.list);
     } catch (e) {
-      console.log('Error al guardar', e);
+      notify('No se pudo guardar', `Ocurrió un error al guardar ${cfg.label}. Revisa tu conexión e inténtalo de nuevo.`);
     }
   }, [toEdit, updateMutation, addMutation, cfg, navigation]);
 

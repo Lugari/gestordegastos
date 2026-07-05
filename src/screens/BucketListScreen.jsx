@@ -22,25 +22,25 @@ const CONFIG = {
   [KIND.BUDGET]: {
     queryKey: ['budgets'], variant: 'progress',
     single: 'SingleBudgetScreen', add: 'AddBudgetScreen', param: 'budget',
-    title: 'Presupuestos', progressLabel: 'Usado', progressMode: 'available',
+    title: 'Presupuestos', singular: 'presupuesto', progressLabel: 'Usado', progressMode: 'available',
     emptyIcon: 'wallet', emptyText: 'No hay presupuestos registrados', addLabel: 'Agregar presupuesto',
   },
   [KIND.SAVING]: {
     queryKey: ['savings'], variant: 'progress',
     single: 'SingleSavingScreen', add: 'AddSavingScreen', param: 'saving',
-    title: 'Ahorros', progressLabel: 'Ahorrado', progressMode: 'completed',
+    title: 'Ahorros', singular: 'ahorro', progressLabel: 'Ahorrado', progressMode: 'completed',
     emptyIcon: 'savings', emptyText: 'No hay ahorros programados', addLabel: 'Agregar ahorro',
   },
   [KIND.DEBT]: {
     queryKey: ['debts'], variant: 'simple',
     single: 'SingleDebtScreen', add: 'AddDebtScreen', param: 'debt',
-    title: 'Deudas',
+    title: 'Deudas', singular: 'deuda',
     emptyIcon: 'credit-card-off', emptyText: 'No hay deudas programadas', addLabel: 'Agregar deuda',
   },
   [KIND.INVESTMENT]: {
     queryKey: ['investments'], variant: 'progress',
     single: 'SingleInvestmentScreen', add: 'AddInvestmentScreen', param: 'investment',
-    title: 'Inversiones', progressLabel: 'Invertido', progressMode: 'completed',
+    title: 'Inversiones', singular: 'inversión', progressLabel: 'Invertido', progressMode: 'completed',
     emptyIcon: 'trending-up', emptyText: 'No hay inversiones registradas', addLabel: 'Agregar inversión',
   },
 };
@@ -81,11 +81,12 @@ const BucketListScreen = () => {
   const totalRemaining = items.reduce((a, b) => a + Math.max(0, (b.total || 0) - (b.used || 0)), 0);
   const usedPct = totalTarget > 0 ? Math.min(totalUsed / totalTarget, 1) : 0;
 
-  // Texto resumen del héroe según el kind.
+  // Texto resumen del héroe según el kind (singular/plural correcto).
+  const countLabel = `${items.length} ${items.length === 1 ? cfg.singular : cfg.title.toLowerCase()}`;
   const heroSub =
     cfg.progressMode === 'available'
-      ? `${items.length} ${cfg.title.toLowerCase()} · ${Math.round((1 - usedPct) * 100)}% disponible`
-      : `${items.length} ${cfg.title.toLowerCase()} · ${Math.round(usedPct * 100)}% completado`;
+      ? `${countLabel} · ${Math.round((1 - usedPct) * 100)}% disponible`
+      : `${countLabel} · ${Math.round(usedPct * 100)}% completado`;
 
   const renderProgressItem = (item) => {
     const used = item.used || 0;
@@ -112,7 +113,7 @@ const BucketListScreen = () => {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={[styles.scrollContainer, isDesktop && styles.scrollContainerDesktop]}>
-        <Text style={styles.screenTitle}>{cfg.title}</Text>
+        {/* El título lo pone el header de navegación. */}
 
         {/* Resumen (héroe) */}
         {cfg.variant === 'progress' ? (
@@ -128,7 +129,7 @@ const BucketListScreen = () => {
           <View style={[styles.hero, { backgroundColor: DEBT_RED }]}>
             <Text style={styles.heroLabel}>Deuda total</Text>
             <Text style={styles.heroValue}>{format(totalRemaining)}</Text>
-            <Text style={styles.heroSub}>{items.length} {cfg.title.toLowerCase()}</Text>
+            <Text style={styles.heroSub}>{countLabel}</Text>
           </View>
         )}
 

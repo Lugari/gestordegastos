@@ -276,7 +276,7 @@ const ReportBuilderScreen = () => {
   return (
     <View style={styles.root}>
       <ScrollView contentContainerStyle={[styles.content, isDesktop && styles.contentDesktop]}>
-        <Text style={styles.title}>Reporte personalizado</Text>
+        {/* El título lo pone el header de navegación. */}
 
         <View style={isDesktop ? styles.columns : undefined}>
           {controls}

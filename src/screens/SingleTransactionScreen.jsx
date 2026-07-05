@@ -49,7 +49,8 @@ const SingleTransactionScreen = () => {
           type: transaction.type,
           currency: transaction.currency,
         });
-        navigation.navigate('TransactionHistoryScreen');
+        // Pantalla del stack raíz: el historial es una pestaña anidada en MainTabs.
+        navigation.navigate('MainTabs', { screen: 'TransactionHistoryScreen' });
       } catch (e) {
         if (Platform.OS === 'web') window.alert('No se pudo eliminar.');
         else Alert.alert('Error', 'No se pudo eliminar.');
@@ -75,9 +76,8 @@ const SingleTransactionScreen = () => {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={[styles.content, isDesktop && styles.contentDesktop]}>
-      {/* Encabezado */}
-      <View style={styles.headerRow}>
-        <Text style={styles.title}>Detalle</Text>
+      {/* Encabezado: el título lo pone el header de navegación. */}
+      <View style={[styles.headerRow, { justifyContent: 'flex-end' }]}>
         <TouchableOpacity onPress={handleEdit} accessibilityLabel="Editar">
           <MaterialIcons name="edit" size={22} color={COLORS.textSecondary} />
         </TouchableOpacity>

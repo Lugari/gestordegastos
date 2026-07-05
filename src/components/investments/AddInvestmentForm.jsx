@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Alert } from 'react-native';
+import { View } from 'react-native';
+
+import { notify } from '../../utils/notify';
 
 import { HeroAmount, Field, TextField, NoteField, AppearanceField, FormActions, formStyles } from '../buckets/BucketFormKit';
 import { money } from '../../utils/formatMoney';
@@ -45,12 +47,12 @@ const AddInvestmentForm = ({ onSubmit, onCancel, toEdit }) => {
 
   const handleSubmit = () => {
     if (!formData.name || !formData.total) {
-      Alert.alert('Campos requeridos', 'Ingresa el nombre y el monto objetivo de la inversión.');
+      notify('Campos requeridos', 'Ingresa el nombre y el monto objetivo de la inversión.');
       return;
     }
     const totalAmount = parseFloat(formData.total);
     if (isNaN(totalAmount) || totalAmount <= 0) {
-      Alert.alert('Monto inválido', 'Ingresa un monto objetivo válido.');
+      notify('Monto inválido', 'Ingresa un monto objetivo válido.');
       return;
     }
 

@@ -47,8 +47,7 @@ const AccountsScreen = () => {
   return (
     <View style={styles.root}>
       <ScrollView contentContainerStyle={[styles.content, isDesktop && styles.contentDesktop]}>
-        {/* Lista (contenido principal) */}
-        <Text style={styles.title}>Cuentas</Text>
+        {/* Lista (contenido principal). El título "Cuentas" lo pone el header de navegación. */}
         <Text style={styles.section}>Mis cuentas</Text>
 
         {accounts.length === 0 ? (

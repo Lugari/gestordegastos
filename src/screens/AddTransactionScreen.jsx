@@ -1,7 +1,9 @@
 import { useCallback } from "react";
 import AddTransactionForm from "../components/transactions/AddTransactionForm";
 
-import { StyleSheet, ScrollView, View, Alert } from "react-native";
+import { StyleSheet, ScrollView, View } from "react-native";
+
+import { notify } from "../utils/notify";
 
 import { useNavigation } from "@react-navigation/native";
 import { useRoute } from "@react-navigation/native";
@@ -40,15 +42,13 @@ const AddTransactionScreen = () => {
                 await updateTransaction({id: transaction.id, updates: formData});
             }
 
-            Alert.alert(
-                'Éxito',
-                transaction ? 'Transacción actualizado correctamente.' : 'transacción añadido correctamente.',
-                [{ text: 'Aceptar', onPress: () => navigation.navigate('TransactionHistoryScreen') }],
-            )            
-            
+            // Éxito: volvemos al historial directamente (el resultado se ve allí).
+            // La pantalla vive en el stack raíz; el historial es una pestaña anidada en MainTabs.
+            navigation.navigate('MainTabs', { screen: 'TransactionHistoryScreen' });
+
         }catch (error) {
             console.error("Error en handleSubmit:", error);
-            alert('Error', 'No se pudo guardar la transacción o actualizar el presupuesto.');
+            notify('No se pudo guardar', 'Ocurrió un error al guardar la transacción. Revisa tu conexión e inténtalo de nuevo.');
         }
 
     }, [addTransaction, updateTransaction, updateBudget, updateSaving, transaction, budgets, savings, navigation])

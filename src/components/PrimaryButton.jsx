@@ -8,9 +8,12 @@ const PrimaryButton = ({ title, onPress }) => (
   </TouchableOpacity>
 );
 
+// Verde de marca (mismo de los botones primarios de formularios).
+const GREEN = '#1C6B52';
+
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: GREEN,
     paddingVertical: SIZES.padding* 0.75,
     paddingHorizontal: SIZES.padding * 1.25,
     borderRadius: SIZES.radius,
@@ -19,7 +22,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   text: {
-    color: COLORS.textPrimary,
+    color: '#fff',
     fontWeight: 'bold',
     fontSize: SIZES.font,
   },

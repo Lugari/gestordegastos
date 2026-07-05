@@ -41,7 +41,7 @@ const ReportSummary = ({ report, chartWidth }) => {
     .filter((c) => c.type === 'gasto' && c.total > 0)
     .map((c) => ({
       name: c.name,
-      population: c.total,
+      population: Math.round(c.total),
       color: c.color || COLORS.danger,
       legendFontColor: COLORS.textPrimary,
       legendFontSize: 12,

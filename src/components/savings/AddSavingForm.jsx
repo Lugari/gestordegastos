@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Platform, Alert } from 'react-native';
+import { View, Platform } from 'react-native';
+
+import { notify } from '../../utils/notify';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -51,12 +53,12 @@ const AddSavingForm = ({ onSubmit, onCancel, toEdit }) => {
 
   const handleSubmit = () => {
     if (!formData.name || !formData.total) {
-      Alert.alert('Campos requeridos', 'Ingresa el nombre y el monto objetivo del ahorro.');
+      notify('Campos requeridos', 'Ingresa el nombre y el monto objetivo del ahorro.');
       return;
     }
     const totalAmount = parseFloat(formData.total);
     if (isNaN(totalAmount) || totalAmount <= 0) {
-      Alert.alert('Monto inválido', 'Ingresa un monto objetivo válido.');
+      notify('Monto inválido', 'Ingresa un monto objetivo válido.');
       return;
     }
 

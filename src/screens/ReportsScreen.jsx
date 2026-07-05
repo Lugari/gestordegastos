@@ -75,7 +75,8 @@ const ReportsScreen = () => {
           .reduce((sum, t) => sum + toBase(t), 0);
         return {
           name: budget.name,
-          total,
+          // Redondeado: la librería muestra este valor tal cual en la leyenda.
+          total: Math.round(total),
           color: budget.color,
           legendFontColor: COLORS.textPrimary,
           legendFontSize: 13,

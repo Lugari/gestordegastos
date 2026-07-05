@@ -23,7 +23,13 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let active = true;
     (async () => {
-      await refresh();
+      // El arranque no puede quedarse colgado: si la sesión no se resuelve en
+      // 5 s (almacén lento, tokens huérfanos, etc.), se asume sin sesión y se
+      // muestra el login. Un login exitoso posterior actualiza el estado vía Hub.
+      await Promise.race([
+        refresh(),
+        new Promise((resolve) => setTimeout(resolve, 5000)),
+      ]);
       if (active) setIsLoading(false);
     })();
 

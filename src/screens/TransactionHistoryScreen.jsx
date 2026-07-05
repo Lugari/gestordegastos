@@ -35,7 +35,7 @@ const dayLabel = (date) => {
 const TransactionHistoryScreen = () => {
   const navigation = useNavigation();
   const isDesktop = useIsDesktop();
-  const { format, convert, formatIn, baseCurrency } = useCurrency();
+  const { format, convert, formatIn, baseCurrency, currency: displayCurrency } = useCurrency();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState('Mes');
@@ -143,7 +143,10 @@ const TransactionHistoryScreen = () => {
           <Text style={styles.rowName} numberOfLines={1}>{name}</Text>
           {item.notes ? <Text style={styles.rowNote} numberOfLines={1}>{item.notes}</Text> : null}
         </View>
-        <Text style={[styles.rowAmount, { color: amountColor }]}>{sign}{formatIn(item.amount, item.currency)}</Text>
+        <Text style={[styles.rowAmount, { color: amountColor }]}>
+          {sign}{formatIn(item.amount, item.currency)}
+          {item.currency && item.currency !== displayCurrency ? <Text style={styles.rowCurrency}> {item.currency}</Text> : null}
+        </Text>
       </TouchableOpacity>
     );
   };
@@ -312,6 +315,7 @@ const styles = StyleSheet.create({
   rowInfo: { flex: 1 },
   rowName: { fontSize: SIZES.font * 1.05, fontWeight: '500', color: COLORS.textPrimary },
   rowNote: { fontSize: SIZES.font * 0.85, color: COLORS.textSecondary, marginTop: 2 },
+  rowCurrency: { fontSize: SIZES.font * 0.75, fontWeight: '600' },
   rowAmount: { fontSize: SIZES.font * 1.05, fontWeight: '600' },
   emptyContainer: {
     flex: 1,

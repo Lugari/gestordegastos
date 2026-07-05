@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { View, Platform } from 'react-native';
 
+import { notify } from '../../utils/notify';
+
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { HeroAmount, Field, TextField, NoteField, Segment, AppearanceField, DateField, FormActions, formStyles } from '../buckets/BucketFormKit';
@@ -54,7 +56,7 @@ const AddBudgetForm = ({ onCancel, onSubmit, toEdit }) => {
 
   const handleAddBudget = () => {
     if (!formData.name || !formData.total) {
-      alert('Por favor, completa el nombre y el monto.');
+      notify('Campos requeridos', 'Completa el nombre y el monto.');
       return;
     }
     const { name, total, used, color, icon, period, date, notes } = formData;

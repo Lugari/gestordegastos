@@ -10,6 +10,8 @@ import {
 import { useRoute } from '@react-navigation/native';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
+
+import { notify } from '../../utils/notify';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { SIZES, COLORS } from '../../constants/theme';
 import { formatMoney } from '../../utils/formatMoney';
@@ -116,7 +118,7 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
 
   const handleSubmit = async () => {
     if (!formData.amount || isNaN(formData.amount) || formData.amount <= 0) {
-      alert('Por favor, ingresa un monto válido.');
+      notify('Monto inválido', 'Ingresa un monto válido.');
       return;
     }
 
