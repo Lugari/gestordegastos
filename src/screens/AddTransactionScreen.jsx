@@ -4,6 +4,7 @@ import AddTransactionForm from "../components/transactions/AddTransactionForm";
 import { StyleSheet, ScrollView, View } from "react-native";
 
 import { notify } from "../utils/notify";
+import * as Recurring from "../services/recurringService";
 
 import { useNavigation } from "@react-navigation/native";
 import { useRoute } from "@react-navigation/native";
@@ -34,12 +35,18 @@ const AddTransactionScreen = () => {
     }
 
     const handleSubmit = useCallback(async (formData)=>{
-        try{  
+        try{
+            // La recurrencia no se guarda dentro de la transacción: genera una regla aparte.
+            const { recurrence, ...txData } = formData;
 
             if (!transaction) {
-                await addTransaction(formData);
+                await addTransaction(txData);
+                if (recurrence) {
+                    const { date, ...template } = txData; // la fecha la pone cada ocurrencia
+                    await Recurring.addRule({ template, ...recurrence });
+                }
             }else{
-                await updateTransaction({id: transaction.id, updates: formData});
+                await updateTransaction({id: transaction.id, updates: txData});
             }
 
             // Éxito: volvemos al historial directamente (el resultado se ve allí).

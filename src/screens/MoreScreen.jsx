@@ -199,6 +199,7 @@ const MoreScreen = () => {
         </Group>
 
         <Group title="Datos">
+          <Row icon="repeat" label="Recurrentes" onPress={() => navigation.navigate('RecurringScreen')} />
           <Row icon="file-upload" label="Importar datos" onPress={handleImport} />
         </Group>
 

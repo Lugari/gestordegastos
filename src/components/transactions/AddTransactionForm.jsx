@@ -36,6 +36,12 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
+  // Recurrencia: clave del chip activo (null = sin repetición; los chips se
+  // pueden desmarcar tocándolos de nuevo) + parámetros de las opciones "Cada X".
+  const [recKey, setRecKey] = useState(null);
+  const [recDays, setRecDays] = useState('2');
+  const [recMonthDay, setRecMonthDay] = useState('1');
+
   const [formData, setFormData] = useState({
     type: route.params?.transactionType || 'gasto',
     account: '',
@@ -134,7 +140,22 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
       color: formData.color,
     };
 
+    // Recurrencia (si hay chip activo): freq 'days' con intervalo, o 'monthly' con día.
+    if (!isEditing && recKey) {
+      const day = formData.date.getDate();
+      const rec = {
+        diario: { freq: 'days', interval: 1 },
+        semanal: { freq: 'days', interval: 7 },
+        quincenal: { freq: 'days', interval: 15 },
+        mensual: { freq: 'monthly', day },
+        xdias: { freq: 'days', interval: Math.max(1, parseInt(recDays, 10) || 1) },
+        xmes: { freq: 'monthly', day: Math.min(31, Math.max(1, parseInt(recMonthDay, 10) || 1)) },
+      }[recKey];
+      transactionData.recurrence = rec;
+    }
+
     await onSubmit(transactionData);
+    setRecKey(null);
 
     setFormData({
       type: 'gasto',
@@ -281,6 +302,65 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
         />
       )}
 
+      {/* Repetir (solo al crear; los chips se desmarcan tocándolos de nuevo) */}
+      {!isEditing && (
+        <>
+          <Text style={styles.label}>Repetir (opcional)</Text>
+          <View style={styles.chipsRow}>
+            {[
+              { key: 'diario', label: 'Diario' },
+              { key: 'semanal', label: 'Semanal' },
+              { key: 'quincenal', label: 'Quincenal' },
+              { key: 'mensual', label: 'Mensual' },
+              { key: 'xdias', label: 'Cada X días' },
+              { key: 'xmes', label: 'Cada X del mes' },
+            ].map((o) => {
+              const active = recKey === o.key;
+              return (
+                <TouchableOpacity
+                  key={o.key}
+                  style={[styles.chip, active && styles.chipDateActive]}
+                  onPress={() => setRecKey(active ? null : o.key)}
+                >
+                  <Text style={[styles.chipText, active && styles.chipTextActive]}>{o.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          {recKey === 'xdias' && (
+            <View style={styles.recParamRow}>
+              <Text style={styles.recParamLabel}>Cada</Text>
+              <TextInput
+                style={styles.recParamInput}
+                keyboardType="number-pad"
+                value={recDays}
+                onChangeText={(v) => setRecDays(v.replace(/\D/g, ''))}
+                maxLength={3}
+              />
+              <Text style={styles.recParamLabel}>días</Text>
+            </View>
+          )}
+          {recKey === 'xmes' && (
+            <View style={styles.recParamRow}>
+              <Text style={styles.recParamLabel}>El día</Text>
+              <TextInput
+                style={styles.recParamInput}
+                keyboardType="number-pad"
+                value={recMonthDay}
+                onChangeText={(v) => setRecMonthDay(v.replace(/\D/g, ''))}
+                maxLength={2}
+              />
+              <Text style={styles.recParamLabel}>de cada mes</Text>
+            </View>
+          )}
+          {recKey && (
+            <Text style={styles.recHint}>
+              Se registrará automáticamente. Puedes pausarla en Más → Recurrentes.
+            </Text>
+          )}
+        </>
+      )}
+
       {/* Nota */}
       <Text style={styles.label}>Nota (opcional)</Text>
       <TextInput
@@ -361,6 +441,23 @@ const styles = StyleSheet.create({
   calendarBtn: { paddingHorizontal: 6, paddingVertical: 6 },
 
   dateText: { fontSize: SIZES.font * 0.9, color: COLORS.textSecondary, marginTop: 8 },
+
+  recParamRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
+  recParamLabel: { fontSize: SIZES.font * 0.95, color: COLORS.textSecondary },
+  recParamInput: {
+    borderWidth: 1,
+    borderColor: GREEN,
+    borderRadius: SIZES.radius,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    minWidth: 56,
+    textAlign: 'center',
+    fontSize: SIZES.font,
+    fontWeight: '700',
+    color: GREEN,
+    backgroundColor: '#fff',
+  },
+  recHint: { fontSize: SIZES.font * 0.8, color: COLORS.neutral, marginTop: 8 },
 
   noteInput: {
     borderWidth: 1,

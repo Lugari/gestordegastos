@@ -10,6 +10,7 @@ import { CurrencyProvider } from './context/CurrencyContext';
 
 import { migrateLegacyData } from './services/migrateBuckets';
 import { migrateLocalToCloud } from './services/cloudSync';
+import { catchUpRecurring } from './services/recurringEngine';
 
 import MainTabs from "./navigation/MainTabs";
 import SingleTransactionScreen from "./screens/SingleTransactionScreen";
@@ -20,6 +21,7 @@ import SingleBucketScreen from "./screens/SingleBucketScreen";
 import LoginScreen from "./screens/LoginScreen";
 import ReportBuilderScreen from "./screens/ReportBuilderScreen";
 import AccountsScreen from "./screens/AccountsScreen";
+import RecurringScreen from "./screens/RecurringScreen";
 
 import { KIND } from './constants/bucketKinds';
 
@@ -40,11 +42,14 @@ const AppNavigator = () => {
   const { userToken, isLoading } = useContext(AuthContext);
   const queryClient = useQueryClient();
 
-  // Al iniciar sesión: sube los datos locales a la nube una sola vez y refresca
-  // las queries para que las pantallas carguen desde la nube.
+  // Al iniciar sesión: sube los datos locales a la nube (una vez), genera las
+  // transacciones recurrentes vencidas y refresca las queries.
   useEffect(() => {
     if (userToken) {
-      migrateLocalToCloud().finally(() => queryClient.invalidateQueries());
+      migrateLocalToCloud()
+        .then(() => catchUpRecurring())
+        .catch(() => {})
+        .finally(() => queryClient.invalidateQueries());
     }
   }, [userToken]);
 
@@ -62,6 +67,7 @@ const AppNavigator = () => {
             <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
             <Stack.Screen name="ReportBuilderScreen" component={ReportBuilderScreen} options={{ title: "Reporte personalizado" }} />
             <Stack.Screen name="AccountsScreen" component={AccountsScreen} options={{ title: "Cuentas" }} />
+            <Stack.Screen name="RecurringScreen" component={RecurringScreen} options={{ title: "Recurrentes" }} />
             <Stack.Screen name="SingleTransactionScreen" component={SingleTransactionScreen} options={{ title: "Detalle de transacción" }} />
             <Stack.Screen name="AddTransactionScreen" component={AddTransactionScreen} options={{ title: "Añadir transacción" }} />
             <Stack.Screen name="BudgetsScreen" component={BucketListScreen} initialParams={{ kind: KIND.BUDGET }} options={{ title: "Presupuestos" }} />

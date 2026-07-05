@@ -140,7 +140,12 @@ const TransactionHistoryScreen = () => {
           <MaterialIcons name={icon} size={20} color={color || '#5f6b62'} />
         </View>
         <View style={styles.rowInfo}>
-          <Text style={styles.rowName} numberOfLines={1}>{name}</Text>
+          <View style={styles.rowNameWrap}>
+            <Text style={styles.rowName} numberOfLines={1}>{name}</Text>
+            {item.recurring_rule_id ? (
+              <MaterialIcons name="repeat" size={14} color="#8a8a80" style={styles.rowRepeat} />
+            ) : null}
+          </View>
           {item.notes ? <Text style={styles.rowNote} numberOfLines={1}>{item.notes}</Text> : null}
         </View>
         <Text style={[styles.rowAmount, { color: amountColor }]}>
@@ -313,6 +318,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rowInfo: { flex: 1 },
+  rowNameWrap: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  rowRepeat: { marginTop: 1 },
   rowName: { fontSize: SIZES.font * 1.05, fontWeight: '500', color: COLORS.textPrimary },
   rowNote: { fontSize: SIZES.font * 0.85, color: COLORS.textSecondary, marginTop: 2 },
   rowCurrency: { fontSize: SIZES.font * 0.75, fontWeight: '600' },
