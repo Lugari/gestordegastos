@@ -355,7 +355,9 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
           )}
           {recKey && (
             <Text style={styles.recHint}>
-              Se registrará automáticamente. Puedes pausarla en Más → Recurrentes.
+              {new Date(formData.date).setHours(0,0,0,0) > new Date().setHours(0,0,0,0)
+                ? `Empezará el ${formattedDate}: nada se registra hoy y desde esa fecha se repite sola.`
+                : 'Se registrará automáticamente. Puedes pausarla en Más → Recurrentes.'}
             </Text>
           )}
         </>

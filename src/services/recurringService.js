@@ -55,12 +55,32 @@ export const advanceNextRun = (rule, afterDay) => {
 // Fecha (Date) de una ocurrencia concreta, para fechar la transacción generada.
 export const occurrenceDate = (dayString) => fromDayString(dayString);
 
+// Primera ocurrencia EN o DESPUÉS de `fromDay`:
+//  - freq 'days': el propio fromDay (la fecha de inicio ES la primera ocurrencia).
+//  - freq 'monthly': el primer "día D" que caiga en fromDay o después.
+export const firstRunOnOrAfter = (rule, fromDay) => {
+  if (rule.freq === 'days') return fromDay;
+  const A = fromDayString(fromDay);
+  const D = Math.min(31, Math.max(1, Number(rule.day) || 1));
+  const y = A.getFullYear();
+  const m = A.getMonth() + 1;
+  const dayThisMonth = Math.min(D, daysInMonth(y, m));
+  if (dayThisMonth >= A.getDate()) {
+    return `${y}-${String(m).padStart(2, '0')}-${String(dayThisMonth).padStart(2, '0')}`;
+  }
+  return advanceNextRun(rule, fromDay);
+};
+
 // --- CRUD ---
 export const getAllRules = () => col.getAll();
 
-export const addRule = ({ template, freq, interval, day }) => {
+// `startDay` (YYYY-MM-DD) es la fecha de la transacción: marca el INICIO de la
+// recurrencia. Si es futura, la primera ocurrencia la genera el motor ese día
+// (`firstOccurrencePending`); si es hoy o pasada, el formulario ya creó esa
+// transacción y la regla continúa a partir de ahí.
+export const addRule = ({ template, freq, interval, day, startDay, firstOccurrencePending = false }) => {
   const now = new Date().toISOString();
-  const today = toDayString(new Date());
+  const start = startDay || toDayString(new Date());
   const rule = {
     id: Crypto.randomUUID(),
     active: true,
@@ -68,12 +88,14 @@ export const addRule = ({ template, freq, interval, day }) => {
     freq,
     interval: freq === 'days' ? Math.max(1, Number(interval) || 1) : undefined,
     day: freq === 'monthly' ? Math.min(31, Math.max(1, Number(day) || 1)) : undefined,
-    // La transacción de hoy la crea el formulario; la regla arranca en la siguiente.
-    next_run: null, // se fija abajo con advanceNextRun
+    start_day: start,
+    next_run: null,
     created_at: now,
     updated_at: now,
   };
-  rule.next_run = advanceNextRun(rule, today);
+  rule.next_run = firstOccurrencePending
+    ? firstRunOnOrAfter(rule, start) // el motor la creará al llegar la fecha
+    : advanceNextRun(rule, start); // la del inicio ya existe; sigue la próxima
   return col.add(rule);
 };
 

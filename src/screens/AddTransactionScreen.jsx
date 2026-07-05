@@ -40,18 +40,28 @@ const AddTransactionScreen = () => {
             const { recurrence, ...txData } = formData;
 
             if (!transaction) {
-                await addTransaction(txData);
                 if (recurrence) {
+                    // La fecha de la transacción marca el INICIO de la recurrencia.
+                    const startDay = Recurring.toDayString(new Date(txData.date));
+                    const today = Recurring.toDayString(new Date());
+                    const futureStart = startDay > today;
                     const { date, ...template } = txData; // la fecha la pone cada ocurrencia
-                    await Recurring.addRule({ template, ...recurrence });
+
+                    // Si el inicio es futuro, hoy no se registra nada: el motor
+                    // creará la primera ocurrencia al llegar esa fecha.
+                    if (!futureStart) {
+                        await addTransaction(txData);
+                    }
+                    await Recurring.addRule({ template, ...recurrence, startDay, firstOccurrencePending: futureStart });
+                } else {
+                    await addTransaction(txData);
                 }
             }else{
                 await updateTransaction({id: transaction.id, updates: txData});
             }
 
-            // Éxito: volvemos al historial directamente (el resultado se ve allí).
-            // La pantalla vive en el stack raíz; el historial es una pestaña anidada en MainTabs.
-            navigation.navigate('MainTabs', { screen: 'TransactionHistoryScreen' });
+            // Éxito: volvemos a la pantalla desde la que se abrió el formulario.
+            navigation.goBack();
 
         }catch (error) {
             console.error("Error en handleSubmit:", error);
