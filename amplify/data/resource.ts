@@ -19,6 +19,7 @@ const schema = a.schema({
   ReportConfig: owned(),
   DeviceToken: owned(),
   RecurringRule: owned(),
+  Bill: owned(),
 });
 
 export type Schema = ClientSchema<typeof schema>;

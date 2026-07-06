@@ -15,8 +15,12 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 
+import { useQuery } from '@tanstack/react-query';
+
 import { AuthContext } from '../context/AuthContext';
 import * as authService from '../services/authService';
+import * as Bills from '../services/billsService';
+import { toDayString } from '../services/recurringService';
 import { useCurrency } from '../context/CurrencyContext';
 import { useIsDesktop } from '../hooks/useResponsive';
 import CurrencyModal from '../components/CurrencyModal';
@@ -72,6 +76,17 @@ const MoreScreen = () => {
 
   // Notificaciones
   const [notifsOn, setNotifsOn] = useState(false);
+
+  // Facturas por vencer en los próximos 7 días (badge de la fila).
+  const { data: bills = [] } = useQuery({ queryKey: ['bills'], queryFn: Bills.getAllBills });
+  const dueSoon = (() => {
+    const today = toDayString(new Date());
+    const limit = toDayString(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+    return bills.filter((b) => {
+      const occ = Bills.nextUnpaidOccurrence(b, today);
+      return occ && occ <= limit;
+    }).length;
+  })();
 
   useEffect(() => {
     AsyncStorage.getItem(USERNAME_KEY).then((v) => {
@@ -199,6 +214,12 @@ const MoreScreen = () => {
         </Group>
 
         <Group title="Datos">
+          <Row
+            icon="receipt-long"
+            label="Facturas"
+            value={dueSoon > 0 ? `${dueSoon} por vencer` : undefined}
+            onPress={() => navigation.navigate('BillsScreen')}
+          />
           <Row icon="repeat" label="Recurrentes" onPress={() => navigation.navigate('RecurringScreen')} />
           <Row icon="file-upload" label="Importar datos" onPress={handleImport} />
         </Group>

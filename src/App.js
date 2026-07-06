@@ -11,6 +11,7 @@ import { CurrencyProvider } from './context/CurrencyContext';
 import { migrateLegacyData } from './services/migrateBuckets';
 import { migrateLocalToCloud } from './services/cloudSync';
 import { catchUpRecurring } from './services/recurringEngine';
+import { syncBillReminders } from './services/billsReminders';
 
 import MainTabs from "./navigation/MainTabs";
 import SingleTransactionScreen from "./screens/SingleTransactionScreen";
@@ -22,6 +23,7 @@ import LoginScreen from "./screens/LoginScreen";
 import ReportBuilderScreen from "./screens/ReportBuilderScreen";
 import AccountsScreen from "./screens/AccountsScreen";
 import RecurringScreen from "./screens/RecurringScreen";
+import BillsScreen from "./screens/BillsScreen";
 
 import { KIND } from './constants/bucketKinds';
 
@@ -48,6 +50,7 @@ const AppNavigator = () => {
     if (userToken) {
       migrateLocalToCloud()
         .then(() => catchUpRecurring())
+        .then(() => syncBillReminders())
         .catch(() => {})
         .finally(() => queryClient.invalidateQueries());
     }
@@ -68,6 +71,7 @@ const AppNavigator = () => {
             <Stack.Screen name="ReportBuilderScreen" component={ReportBuilderScreen} options={{ title: "Reporte personalizado" }} />
             <Stack.Screen name="AccountsScreen" component={AccountsScreen} options={{ title: "Cuentas" }} />
             <Stack.Screen name="RecurringScreen" component={RecurringScreen} options={{ title: "Recurrentes" }} />
+            <Stack.Screen name="BillsScreen" component={BillsScreen} options={{ title: "Facturas" }} />
             <Stack.Screen name="SingleTransactionScreen" component={SingleTransactionScreen} options={{ title: "Detalle de transacción" }} />
             <Stack.Screen name="AddTransactionScreen" component={AddTransactionScreen} options={{ title: "Añadir transacción" }} />
             <Stack.Screen name="BudgetsScreen" component={BucketListScreen} initialParams={{ kind: KIND.BUDGET }} options={{ title: "Presupuestos" }} />
