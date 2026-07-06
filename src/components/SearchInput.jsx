@@ -2,25 +2,27 @@ import { View, TextInput, Image, StyleSheet } from 'react-native';
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
-import {COLORS, SIZES} from '../constants/theme';
+import { SIZES } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 const SearchInput = ({ iconPosition = 'left', placeholder = '', onChangeText, style }) => {
+  const { theme } = useTheme();
   const icon = (
     <MaterialIcons
       name="search"
       size={18}
-      color={COLORS.neutral}
+      color={theme.neutral}
       style={styles.icon}
     />
   );
 
   return (
-    <View style={[styles.container, style]}>
+    <View style={[styles.container, { backgroundColor: theme.cardAlt }, style]}>
       {iconPosition === 'left' && icon}
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme.textPrimary }]}
         placeholder={placeholder}
-        placeholderTextColor="#cdd1c5"
+        placeholderTextColor={theme.neutral}
         onChangeText={onChangeText}
       />
       {iconPosition === 'right' && icon}
@@ -34,7 +36,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: SIZES.radius,
     paddingHorizontal: SIZES.padding * 0.75,
-    backgroundColor: COLORS.background,
     height: 44,
   },
   icon: {
@@ -45,7 +46,6 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: SIZES.font,
-    color: COLORS.textPrimary,
   },
 });
 

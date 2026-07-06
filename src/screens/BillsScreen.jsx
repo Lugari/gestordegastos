@@ -11,21 +11,22 @@ import { toDayString } from '../services/recurringService';
 import { confirmAsync, notify } from '../utils/notify';
 import { useCurrency } from '../context/CurrencyContext';
 import { useIsDesktop } from '../hooks/useResponsive';
-import { COLORS, SIZES } from '../constants/theme';
+import { SIZES } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
-const GREEN = '#1C6B52';
-const RED = '#A32D2D';
-const GRAY = '#9a9a90';
 const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 const WEEKDAYS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 
-// Estado de una ocurrencia: pagada (verde), vencida sin pagar (rojo), futura (gris).
-const occurrenceColor = (bill, occ, today) => {
-  if (Bills.isPaid(bill, occ)) return GREEN;
-  return occ < today ? RED : GRAY;
-};
 
 const BillsScreen = () => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
+  const GREEN = theme.green, RED = theme.expense, GRAY = theme.neutral;
+  // Estado de una ocurrencia: pagada (verde), vencida sin pagar (rojo), futura (gris).
+  const occurrenceColor = (bill, occ, day) => {
+    if (Bills.isPaid(bill, occ)) return GREEN;
+    return occ < day ? RED : GRAY;
+  };
   const isDesktop = useIsDesktop();
   const queryClient = useQueryClient();
   const { baseCurrency, formatIn } = useCurrency();
@@ -84,36 +85,63 @@ const BillsScreen = () => {
   const todayDay = now.getDate();
 
   // --- Pagar / despagar ---
+  // Al pagar se abre el modal de pago (permite editar el monto real del recibo).
+  const [paying, setPaying] = useState(null); // null | { bill, occ }
+  const [payAmount, setPayAmount] = useState('');
+  const [payBusy, setPayBusy] = useState(false);
+
   const togglePaid = async (bill, occ) => {
-    const paying = !Bills.isPaid(bill, occ);
+    const isNowPaying = !Bills.isPaid(bill, occ);
+    if (isNowPaying) {
+      setPayAmount(String(bill.amount || ''));
+      setPaying({ bill, occ });
+      return; // el modal completa el flujo
+    }
     try {
-      await Bills.setPaid(bill, occ, paying);
-      if (paying) {
-        const record = await confirmAsync(
-          'Factura pagada',
-          `¿Registrar el gasto de "${bill.name}"${bill.amount ? ` (${formatIn(bill.amount, bill.currency || baseCurrency)})` : ''} en tus transacciones?`,
-          'Registrar gasto',
-        );
-        if (record) {
-          try {
-            await TransactionService.addTransaction({
-              id: `bill-${bill.id}-${occ}`, // determinístico: no se duplica
-              type: 'gasto',
-              amount: bill.amount || 0,
-              currency: bill.currency || baseCurrency,
-              notes: bill.name,
-              date: new Date().toISOString(),
-              bill_id: bill.id,
-            });
-            queryClient.invalidateQueries({ queryKey: ['transactions'] });
-          } catch {
-            // ya registrado antes (id duplicado): no pasa nada
-          }
-        }
-      }
+      await Bills.setPaid(bill, occ, false);
       invalidate();
     } catch {
       notify('No se pudo actualizar', 'Revisa tu conexión e inténtalo de nuevo.');
+    }
+  };
+
+  // Cierra el modal de pago marcando pagada; con `record`, registra además el
+  // gasto por el monto editado (y actualiza el estimado de la factura si cambió).
+  const confirmPay = async (record) => {
+    const { bill, occ } = paying;
+    const amount = parseFloat(payAmount) || 0;
+    if (record && amount <= 0) {
+      notify('Monto inválido', 'Ingresa el monto pagado.');
+      return;
+    }
+    setPayBusy(true);
+    try {
+      await Bills.setPaid(bill, occ, true);
+      if (record) {
+        try {
+          await TransactionService.addTransaction({
+            id: `bill-${bill.id}-${occ}`, // determinístico: no se duplica
+            type: 'gasto',
+            amount,
+            currency: bill.currency || baseCurrency,
+            notes: bill.name,
+            date: new Date().toISOString(),
+            bill_id: bill.id,
+          });
+          queryClient.invalidateQueries({ queryKey: ['transactions'] });
+        } catch {
+          // ya registrado antes (id duplicado): no pasa nada
+        }
+        if (amount !== (bill.amount || 0)) {
+          await Bills.updateBill(bill.id, { amount }).catch(() => {});
+        }
+      }
+      setPaying(null);
+      invalidate();
+    } catch {
+      notify('No se pudo actualizar', 'Revisa tu conexión e inténtalo de nuevo.');
+    } finally {
+      setPayBusy(false);
     }
   };
 
@@ -188,11 +216,11 @@ const BillsScreen = () => {
         <View style={styles.calCard}>
           <View style={styles.calHeader}>
             <TouchableOpacity style={styles.calNav} onPress={() => changeMonth(-1)} accessibilityLabel="Mes anterior">
-              <MaterialIcons name="chevron-left" size={24} color={COLORS.textSecondary} />
+              <MaterialIcons name="chevron-left" size={24} color={theme.textSecondary} />
             </TouchableOpacity>
             <Text style={styles.calTitle}>{MONTHS[month - 1]} {year}</Text>
             <TouchableOpacity style={styles.calNav} onPress={() => changeMonth(1)} accessibilityLabel="Mes siguiente">
-              <MaterialIcons name="chevron-right" size={24} color={COLORS.textSecondary} />
+              <MaterialIcons name="chevron-right" size={24} color={theme.textSecondary} />
             </TouchableOpacity>
           </View>
           <View style={styles.calWeekRow}>
@@ -215,7 +243,7 @@ const BillsScreen = () => {
             ))}
           </View>
           <View style={styles.legendRow}>
-            <View style={[styles.dot, { backgroundColor: GREEN }]} /><Text style={styles.legend}>Pagada</Text>
+            <View style={[styles.dot, { backgroundColor: theme.green }]} /><Text style={styles.legend}>Pagada</Text>
             <View style={[styles.dot, { backgroundColor: RED }]} /><Text style={styles.legend}>Vencida</Text>
             <View style={[styles.dot, { backgroundColor: GRAY }]} /><Text style={styles.legend}>Por vencer</Text>
           </View>
@@ -247,11 +275,11 @@ const BillsScreen = () => {
                 <Switch
                   value={paid}
                   onValueChange={() => togglePaid(bill, occ)}
-                  trackColor={{ true: GREEN, false: '#c9c9c0' }}
+                  trackColor={{ true: theme.green, false: theme.track }}
                   thumbColor="#fff"
                 />
                 <TouchableOpacity onPress={() => confirmDelete(bill)} accessibilityLabel={`Eliminar ${bill.name}`}>
-                  <MaterialIcons name="delete-outline" size={22} color={COLORS.danger} />
+                  <MaterialIcons name="delete-outline" size={22} color={theme.danger} />
                 </TouchableOpacity>
               </TouchableOpacity>
             );
@@ -264,6 +292,37 @@ const BillsScreen = () => {
         </TouchableOpacity>
       </ScrollView>
 
+      {/* Modal de pago (monto editable) */}
+      {paying && (
+        <View style={styles.overlay}>
+          <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={() => setPaying(null)} />
+          <View style={styles.editCard}>
+            <Text style={styles.editTitle}>Pagar "{paying.bill.name}"</Text>
+
+            <Text style={styles.editLabel}>Monto pagado ({paying.bill.currency || baseCurrency})</Text>
+            <TextInput
+              style={styles.editInput}
+              keyboardType="numeric"
+              value={payAmount}
+              onChangeText={(v) => setPayAmount(v.replace(/[^0-9.]/g, ''))}
+              placeholder="0"
+              placeholderTextColor={theme.neutral}
+              autoFocus
+            />
+            <Text style={styles.payHint}>Puedes ajustarlo si el recibo llegó distinto al estimado.</Text>
+
+            <View style={styles.editActions}>
+              <TouchableOpacity style={[styles.editBtn, styles.cancelBtn]} onPress={() => confirmPay(false)} disabled={payBusy}>
+                <Text style={styles.editBtnText}>Solo marcar pagada</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.editBtn, styles.saveBtn, payBusy && { opacity: 0.6 }]} onPress={() => confirmPay(true)} disabled={payBusy}>
+                <Text style={[styles.editBtnText, { color: '#fff' }]}>{payBusy ? 'Guardando…' : 'Registrar gasto'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
+
       {/* Modal alta/edición */}
       {editing && (
         <View style={styles.overlay}>
@@ -272,10 +331,10 @@ const BillsScreen = () => {
             <Text style={styles.editTitle}>{editing === 'new' ? 'Nueva factura' : 'Editar factura'}</Text>
 
             <Text style={styles.editLabel}>Nombre</Text>
-            <TextInput style={styles.editInput} value={fName} onChangeText={setFName} placeholder="Internet, Arriendo…" placeholderTextColor="#c4c4bc" />
+            <TextInput style={styles.editInput} value={fName} onChangeText={setFName} placeholder="Internet, Arriendo…" placeholderTextColor={theme.neutral} />
 
             <Text style={styles.editLabel}>Monto estimado ({baseCurrency})</Text>
-            <TextInput style={styles.editInput} keyboardType="numeric" value={fAmount} onChangeText={(v) => setFAmount(v.replace(/[^0-9.]/g, ''))} placeholder="0" placeholderTextColor="#c4c4bc" />
+            <TextInput style={styles.editInput} keyboardType="numeric" value={fAmount} onChangeText={(v) => setFAmount(v.replace(/[^0-9.]/g, ''))} placeholder="0" placeholderTextColor={theme.neutral} />
 
             <Text style={styles.editLabel}>Vencimiento</Text>
             <View style={styles.chipsRow}>
@@ -327,74 +386,75 @@ const BillsScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.background },
+const makeStyles = (t) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: t.background },
   content: { padding: SIZES.padding, paddingBottom: 40 },
   contentDesktop: { width: '100%', maxWidth: 640, alignSelf: 'center' },
 
-  calCard: { backgroundColor: '#fff', borderRadius: SIZES.radius * 1.2, padding: SIZES.padding, marginBottom: 14 },
+  calCard: { backgroundColor: t.card, borderRadius: SIZES.radius * 1.2, padding: SIZES.padding, marginBottom: 14 },
   calHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
   calNav: { padding: 8 },
-  calTitle: { fontSize: SIZES.font * 1.1, fontWeight: '600', color: COLORS.textPrimary, textTransform: 'capitalize' },
+  calTitle: { fontSize: SIZES.font * 1.1, fontWeight: '600', color: t.textPrimary, textTransform: 'capitalize' },
   calWeekRow: { flexDirection: 'row' },
-  calWeekday: { flex: 1, textAlign: 'center', fontSize: SIZES.font * 0.75, color: COLORS.neutral, fontWeight: '600', marginBottom: 4 },
+  calWeekday: { flex: 1, textAlign: 'center', fontSize: SIZES.font * 0.75, color: t.neutral, fontWeight: '600', marginBottom: 4 },
   calGrid: { flexDirection: 'row', flexWrap: 'wrap' },
   calCell: { width: `${100 / 7}%`, alignItems: 'center', paddingVertical: 3 },
   calDay: { width: 34, height: 40, alignItems: 'center', borderRadius: 10, paddingTop: 3 },
-  calToday: { backgroundColor: '#E1F5EE' },
-  calDayText: { fontSize: SIZES.font * 0.9, color: COLORS.textPrimary },
-  calTodayText: { fontWeight: '700', color: GREEN },
+  calToday: { backgroundColor: t.greenSoft },
+  calDayText: { fontSize: SIZES.font * 0.9, color: t.textPrimary },
+  calTodayText: { fontWeight: '700', color: t.green },
   dotRow: { flexDirection: 'row', gap: 2, marginTop: 2 },
   dot: { width: 6, height: 6, borderRadius: 3 },
   legendRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, justifyContent: 'center' },
-  legend: { fontSize: SIZES.font * 0.78, color: COLORS.textSecondary, marginRight: 8 },
+  legend: { fontSize: SIZES.font * 0.78, color: t.textSecondary, marginRight: 8 },
 
-  sectionTitle: { fontSize: SIZES.font * 0.85, color: COLORS.textSecondary, marginBottom: 8 },
-  empty: { fontSize: SIZES.font * 0.95, color: COLORS.textSecondary, marginVertical: 8 },
+  sectionTitle: { fontSize: SIZES.font * 0.85, color: t.textSecondary, marginBottom: 8 },
+  empty: { fontSize: SIZES.font * 0.95, color: t.textSecondary, marginVertical: 8 },
 
   card: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#fff', borderRadius: SIZES.radius * 1.2, padding: 12, marginBottom: 8,
+    backgroundColor: t.card, borderRadius: SIZES.radius * 1.2, padding: 12, marginBottom: 8,
   },
   iconWrap: { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center' },
-  cardTitle: { fontSize: SIZES.font * 1.02, fontWeight: '500', color: COLORS.textPrimary },
-  cardSub: { fontSize: SIZES.font * 0.8, color: COLORS.textSecondary, marginTop: 2 },
+  cardTitle: { fontSize: SIZES.font * 1.02, fontWeight: '500', color: t.textPrimary },
+  cardSub: { fontSize: SIZES.font * 0.8, color: t.textSecondary, marginTop: 2 },
   cardAmount: { fontSize: SIZES.font * 0.95, fontWeight: '700', marginRight: 2 },
 
   addBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    backgroundColor: GREEN, borderRadius: SIZES.radius * 1.2, paddingVertical: 12, marginTop: 8,
+    backgroundColor: t.green, borderRadius: SIZES.radius * 1.2, paddingVertical: 12, marginTop: 8,
   },
   addBtnText: { fontSize: SIZES.font, fontWeight: '700', color: '#fff' },
 
   overlay: {
-    ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.45)',
+    ...StyleSheet.absoluteFillObject, backgroundColor: t.overlay,
     justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20, zIndex: 100, elevation: 100,
   },
-  editCard: { width: '100%', maxWidth: 440, backgroundColor: '#fff', borderRadius: 12, padding: 20 },
-  editTitle: { fontSize: 19, fontWeight: 'bold', marginBottom: 8, textAlign: 'center', color: COLORS.textPrimary },
-  editLabel: { fontSize: SIZES.font * 0.85, color: COLORS.textSecondary, marginTop: 12, marginBottom: 6 },
+  editCard: { width: '100%', maxWidth: 440, backgroundColor: t.card, borderRadius: 12, padding: 20 },
+  editTitle: { fontSize: 19, fontWeight: 'bold', marginBottom: 8, textAlign: 'center', color: t.textPrimary },
+  editLabel: { fontSize: SIZES.font * 0.85, color: t.textSecondary, marginTop: 12, marginBottom: 6 },
   editInput: {
-    borderWidth: 1, borderColor: '#d6d6cc', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 9,
-    fontSize: SIZES.font, color: COLORS.textPrimary, backgroundColor: '#fff',
+    borderWidth: 1, borderColor: t.border, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 9,
+    fontSize: SIZES.font, color: t.textPrimary, backgroundColor: t.card,
   },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: '#d6d6cc', backgroundColor: '#fff' },
-  chipActive: { backgroundColor: GREEN, borderColor: GREEN },
-  chipText: { fontSize: SIZES.font * 0.9, color: COLORS.textSecondary, fontWeight: '500' },
+  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: t.border, backgroundColor: t.card },
+  chipActive: { backgroundColor: t.green, borderColor: t.green },
+  chipText: { fontSize: SIZES.font * 0.9, color: t.textSecondary, fontWeight: '500' },
   chipTextActive: { color: '#fff' },
   paramRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
-  paramLabel: { fontSize: SIZES.font * 0.95, color: COLORS.textSecondary },
+  paramLabel: { fontSize: SIZES.font * 0.95, color: t.textSecondary },
   paramInput: {
-    borderWidth: 1, borderColor: GREEN, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6,
-    minWidth: 56, textAlign: 'center', fontSize: SIZES.font, fontWeight: '700', color: GREEN, backgroundColor: '#fff',
+    borderWidth: 1, borderColor: t.green, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6,
+    minWidth: 56, textAlign: 'center', fontSize: SIZES.font, fontWeight: '700', color: t.green, backgroundColor: t.card,
   },
-  dateBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, alignSelf: 'flex-start', borderWidth: 1, borderColor: GREEN, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
-  dateBtnText: { fontSize: SIZES.font, color: GREEN, fontWeight: '600' },
+  dateBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, alignSelf: 'flex-start', borderWidth: 1, borderColor: t.green, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
+  dateBtnText: { fontSize: SIZES.font, color: t.green, fontWeight: '600' },
+  payHint: { fontSize: SIZES.font * 0.8, color: t.neutral, marginTop: 8 },
   editActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 18, gap: 10 },
   editBtn: { flex: 1, paddingVertical: 12, borderRadius: 8, alignItems: 'center' },
-  saveBtn: { backgroundColor: GREEN },
-  cancelBtn: { backgroundColor: '#EAEAEA' },
+  saveBtn: { backgroundColor: t.green },
+  cancelBtn: { backgroundColor: t.cardAlt },
   editBtnText: { fontWeight: 'bold', fontSize: 15, color: '#333' },
 });
 

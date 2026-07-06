@@ -1,11 +1,12 @@
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 
-import {COLORS, SIZES} from '../constants/theme';
+import { SIZES } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
-const GREEN = '#1C6B52';
 const FILTERS = ['Mes', 'Semana', 'Trimestre', 'Año'];
 
 const DateFilterTabs = ({ activeFilter, onSelectFilter, showCustom = false, customLabel = 'Personalizado' }) => {
+  const { theme } = useTheme();
   const filters = [...FILTERS, ...(showCustom ? [customLabel] : [])];
 
   return (
@@ -20,13 +21,15 @@ const DateFilterTabs = ({ activeFilter, onSelectFilter, showCustom = false, cust
             key={label}
             style={[
               styles.filterButton,
-              activeFilter === label && styles.activeButton,
+              { backgroundColor: theme.cardAlt },
+              activeFilter === label && { backgroundColor: theme.green },
             ]}
             onPress={() => onSelectFilter(label)}
           >
             <Text
               style={[
                 styles.filterText,
+                { color: theme.textSecondary },
                 activeFilter === label && styles.activeText,
               ]}
             >
@@ -48,19 +51,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   filterButton: {
-    backgroundColor: '#EFEFE8',
     borderRadius: 999,
     paddingHorizontal: SIZES.padding,
     paddingVertical: SIZES.padding*.5,
     marginRight: 8,
   },
   filterText: {
-    color: COLORS.textSecondary,
     fontSize: SIZES.font,
     fontWeight: '600',
-  },
-  activeButton: {
-    backgroundColor: GREEN,
   },
   activeText: {
     color: '#fff',

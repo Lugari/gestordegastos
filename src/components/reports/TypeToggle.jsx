@@ -1,10 +1,14 @@
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 import { TX_TYPES } from '../../constants/reportTypes';
-import { COLORS, SIZES } from '../../constants/theme';
+import { SIZES } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 // Selector de tipos de transacción (ingreso / gasto / ahorro) para el reporte.
 const TypeToggle = ({ selected, onChange }) => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
   const toggle = (value) => {
     if (selected.includes(value)) {
       onChange(selected.filter((v) => v !== value));
@@ -23,7 +27,7 @@ const TypeToggle = ({ selected, onChange }) => {
             style={[styles.chip, active && { backgroundColor: t.color + '33', borderColor: t.color }]}
             onPress={() => toggle(t.value)}
           >
-            <Text style={[styles.label, active && { color: COLORS.textPrimary }]}>{t.label}</Text>
+            <Text style={[styles.label, active && { color: theme.textPrimary }]}>{t.label}</Text>
           </TouchableOpacity>
         );
       })}
@@ -31,7 +35,7 @@ const TypeToggle = ({ selected, onChange }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   row: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -42,12 +46,12 @@ const styles = StyleSheet.create({
     paddingVertical: SIZES.padding * 0.5,
     borderRadius: SIZES.radius,
     borderWidth: 1,
-    borderColor: COLORS.neutral,
-    backgroundColor: COLORS.background,
+    borderColor: t.border,
+    backgroundColor: t.card,
   },
   label: {
     fontSize: SIZES.font,
-    color: COLORS.textSecondary,
+    color: t.textSecondary,
     fontWeight: '600',
   },
 });

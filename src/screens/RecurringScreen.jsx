@@ -7,10 +7,10 @@ import * as Recurring from '../services/recurringService';
 import { confirmAsync, notify } from '../utils/notify';
 import { useCurrency } from '../context/CurrencyContext';
 import { useIsDesktop } from '../hooks/useResponsive';
-import { COLORS, SIZES } from '../constants/theme';
+import { SIZES } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
-const GREEN = '#1C6B52';
-const TYPE_COLOR = { ingreso: '#3B6D11', gasto: '#A32D2D', ahorro: '#0F6E56' };
+
 
 const FREQ_OPTIONS = [
   { key: 'diario', label: 'Diario' },
@@ -30,6 +30,8 @@ const keyFromRule = (r) => {
 
 // Gestión de transacciones recurrentes: editar, pausar/reanudar o eliminar.
 const RecurringScreen = () => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
   const isDesktop = useIsDesktop();
   const queryClient = useQueryClient();
   const { formatIn } = useCurrency();
@@ -127,7 +129,7 @@ const RecurringScreen = () => {
           <Text style={styles.empty}>Cargando…</Text>
         ) : rules.length === 0 ? (
           <View style={styles.emptyWrap}>
-            <MaterialIcons name="repeat" size={44} color={COLORS.neutral} />
+            <MaterialIcons name="repeat" size={44} color={theme.neutral} />
             <Text style={styles.empty}>No tienes transacciones recurrentes.</Text>
             <Text style={styles.emptyHint}>
               Crea una desde "Añadir transacción" eligiendo una opción en "Repetir".
@@ -136,7 +138,7 @@ const RecurringScreen = () => {
         ) : (
           rules.map((r) => {
             const t = r.template || {};
-            const color = TYPE_COLOR[t.type] || COLORS.textPrimary;
+            const color = { ingreso: theme.income, gasto: theme.expense, ahorro: theme.saving }[t.type] || theme.textPrimary;
             return (
               <TouchableOpacity
                 key={r.id}
@@ -162,11 +164,11 @@ const RecurringScreen = () => {
                 <Switch
                   value={!!r.active}
                   onValueChange={(v) => toggleMutation.mutate({ id: r.id, active: v })}
-                  trackColor={{ true: GREEN, false: '#c9c9c0' }}
+                  trackColor={{ true: theme.green, false: theme.track }}
                   thumbColor="#fff"
                 />
                 <TouchableOpacity onPress={() => confirmDelete(r)} accessibilityLabel="Eliminar recurrente">
-                  <MaterialIcons name="delete-outline" size={22} color={COLORS.danger} />
+                  <MaterialIcons name="delete-outline" size={22} color={theme.danger} />
                 </TouchableOpacity>
               </TouchableOpacity>
             );
@@ -243,8 +245,8 @@ const RecurringScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.background },
+const makeStyles = (t) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: t.background },
   content: { padding: SIZES.padding, paddingBottom: 40 },
   contentDesktop: { width: '100%', maxWidth: 640, alignSelf: 'center' },
 
@@ -252,42 +254,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: '#fff',
+    backgroundColor: t.card,
     borderRadius: SIZES.radius * 1.2,
     padding: 12,
     marginBottom: 8,
   },
   cardPaused: { opacity: 0.55 },
   iconWrap: { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center' },
-  cardTitle: { fontSize: SIZES.font * 1.02, fontWeight: '500', color: COLORS.textPrimary },
-  cardSub: { fontSize: SIZES.font * 0.8, color: COLORS.textSecondary, marginTop: 2 },
+  cardTitle: { fontSize: SIZES.font * 1.02, fontWeight: '500', color: t.textPrimary },
+  cardSub: { fontSize: SIZES.font * 0.8, color: t.textSecondary, marginTop: 2 },
   cardAmount: { fontSize: SIZES.font * 0.95, fontWeight: '700', marginRight: 2 },
 
   emptyWrap: { alignItems: 'center', gap: 8, marginTop: 60, paddingHorizontal: 24 },
-  empty: { fontSize: SIZES.font, color: COLORS.textSecondary, textAlign: 'center' },
-  emptyHint: { fontSize: SIZES.font * 0.85, color: COLORS.neutral, textAlign: 'center' },
+  empty: { fontSize: SIZES.font, color: t.textSecondary, textAlign: 'center' },
+  emptyHint: { fontSize: SIZES.font * 0.85, color: t.neutral, textAlign: 'center' },
 
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: t.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
     zIndex: 100,
     elevation: 100,
   },
-  editCard: { width: '100%', maxWidth: 440, backgroundColor: '#fff', borderRadius: 12, padding: 20 },
-  editTitle: { fontSize: 19, fontWeight: 'bold', marginBottom: 12, textAlign: 'center', color: COLORS.textPrimary },
-  editLabel: { fontSize: SIZES.font * 0.85, color: COLORS.textSecondary, marginTop: 12, marginBottom: 6 },
+  editCard: { width: '100%', maxWidth: 440, backgroundColor: t.card, borderRadius: 12, padding: 20 },
+  editTitle: { fontSize: 19, fontWeight: 'bold', marginBottom: 12, textAlign: 'center', color: t.textPrimary },
+  editLabel: { fontSize: SIZES.font * 0.85, color: t.textSecondary, marginTop: 12, marginBottom: 6 },
   editInput: {
     borderWidth: 1,
-    borderColor: '#d6d6cc',
+    borderColor: t.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 9,
     fontSize: SIZES.font,
-    color: COLORS.textPrimary,
-    backgroundColor: '#fff',
+    color: t.textPrimary,
+    backgroundColor: t.card,
   },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
@@ -295,17 +297,17 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#d6d6cc',
-    backgroundColor: '#fff',
+    borderColor: t.border,
+    backgroundColor: t.card,
   },
-  chipActive: { backgroundColor: GREEN, borderColor: GREEN },
-  chipText: { fontSize: SIZES.font * 0.9, color: COLORS.textSecondary, fontWeight: '500' },
+  chipActive: { backgroundColor: t.green, borderColor: t.green },
+  chipText: { fontSize: SIZES.font * 0.9, color: t.textSecondary, fontWeight: '500' },
   chipTextActive: { color: '#fff' },
   paramRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
-  paramLabel: { fontSize: SIZES.font * 0.95, color: COLORS.textSecondary },
+  paramLabel: { fontSize: SIZES.font * 0.95, color: t.textSecondary },
   paramInput: {
     borderWidth: 1,
-    borderColor: GREEN,
+    borderColor: t.green,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -313,13 +315,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: SIZES.font,
     fontWeight: '700',
-    color: GREEN,
-    backgroundColor: '#fff',
+    color: t.green,
+    backgroundColor: t.card,
   },
   editActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 18, gap: 10 },
   editBtn: { flex: 1, paddingVertical: 12, borderRadius: 8, alignItems: 'center' },
-  saveBtn: { backgroundColor: GREEN },
-  cancelBtn: { backgroundColor: '#EAEAEA' },
+  saveBtn: { backgroundColor: t.green },
+  cancelBtn: { backgroundColor: t.cardAlt },
   editBtnText: { fontWeight: 'bold', fontSize: 15, color: '#333' },
 });
 

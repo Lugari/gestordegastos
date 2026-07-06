@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import SecondaryButton from './SecondaryButton'; // Asegúrate de que la ruta sea correcta
-import { COLORS, SIZES } from '../constants/theme';
+import { SIZES } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 /**
  * Un botón que abre un modal para seleccionar un ícono de una lista.
@@ -20,6 +21,8 @@ import { COLORS, SIZES } from '../constants/theme';
  * @param {string} [props.title="Seleccionar Ícono"] - El texto que se mostrará en el botón.
  */
 const IconPicker = ({ iconList, onSelect, title = "Seleccionar Ícono" }) => {
+    const { theme } = useTheme();
+    const styles = React.useMemo(() => makeStyles(theme), [theme]);
     const [modalVisible, setModalVisible] = useState(false);
 
     const handleIconSelect = (iconName) => {
@@ -65,10 +68,10 @@ const IconPicker = ({ iconList, onSelect, title = "Seleccionar Ícono" }) => {
     );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
     modalContainer: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: t.card,
     },
     header: {
         flexDirection: 'row',
@@ -76,7 +79,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#eee',
+        borderBottomColor: t.border,
     },
     headerTitle: {
         fontSize: 20,
@@ -92,15 +95,15 @@ const styles = StyleSheet.create({
         paddingVertical: SIZES.padding,
         margin: 4,
         borderRadius: 8,
-        backgroundColor: COLORS.background,
+        backgroundColor: t.cardAlt,
         borderWidth: 1,
-        borderColor: COLORS.lightGray,
+        borderColor: t.border,
     },
     iconName: {
         marginTop: 8,
         fontSize: SIZES.font * 0.8,
         textAlign: 'center',
-        color: COLORS.textSecondary
+        color: t.textSecondary
     }
 });
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { ScrollView, View, StyleSheet } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
@@ -12,7 +12,8 @@ import AddInvestmentForm from '../components/investments/AddInvestmentForm';
 import { useManageBuckets } from '../hooks/useBucketData';
 import { useIsDesktop } from '../hooks/useResponsive';
 import { KIND } from '../constants/bucketKinds';
-import { COLORS, SIZES } from '../constants/theme';
+import { SIZES } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 // Pantalla de alta/edición única para todos los kinds. Reemplaza a los wrappers
 // AddBudget/AddSaving/AddDebt/AddInvestmentScreen. Se parametriza con `kind`
@@ -25,6 +26,8 @@ const CONFIG = {
 };
 
 const AddBucketScreen = () => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
   const navigation = useNavigation();
   const isDesktop = useIsDesktop();
   const route = useRoute();
@@ -70,22 +73,22 @@ const AddBucketScreen = () => {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
+    <View style={{ flex: 1, backgroundColor: theme.background }}>
       <ScrollView contentContainerStyle={styles.container}>{formEl}</ScrollView>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     paddingVertical: 24,
     paddingHorizontal: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: t.background,
     flexGrow: 1,
   },
   desktopRoot: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.background,
   },
   desktopScroll: {
     alignItems: 'center',
@@ -95,11 +98,11 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 560,
-    backgroundColor: '#fff',
+    backgroundColor: t.card,
     borderRadius: SIZES.radius * 1.6,
     paddingHorizontal: SIZES.padding,
     paddingBottom: SIZES.padding,
-    shadowColor: COLORS.textPrimary,
+    shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 6 },
     shadowRadius: 20,

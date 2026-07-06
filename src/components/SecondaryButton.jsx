@@ -1,19 +1,22 @@
+import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 
-import { COLORS, SIZES } from '../constants/theme';
+import { SIZES } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
-const SecondaryButton = ({ title, onPress }) => (
-  <TouchableOpacity style={styles.button} onPressIn={onPress}>
-    <Text style={styles.text}>{title}</Text>
+const SecondaryButton = ({ title, onPress }) => {
+  const { theme } = useTheme();
+  return (
+  <TouchableOpacity style={[styles.button, { backgroundColor: theme.card, borderColor: theme.border }]} onPressIn={onPress}>
+    <Text style={[styles.text, { color: theme.textPrimary }]}>{title}</Text>
   </TouchableOpacity>
 );
+};
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: COLORS.background,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-    paddingVertical: SIZES.padding * 0.75,
+        borderWidth: 1,
+        paddingVertical: SIZES.padding * 0.75,
     paddingHorizontal: SIZES.padding * 1.25,
     borderRadius: SIZES.radius,
     alignItems: 'center',
@@ -22,8 +25,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   text: {
-    color: '#000',
-    fontWeight: 'bold',
+        fontWeight: 'bold',
     fontSize: 14,
   },
 });

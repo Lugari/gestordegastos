@@ -7,7 +7,8 @@ import { useGetBuckets } from '../hooks/useBucketData';
 import { useIsDesktop } from '../hooks/useResponsive';
 import { useCurrency } from '../context/CurrencyContext';
 import { KIND } from '../constants/bucketKinds';
-import { COLORS, SIZES } from '../constants/theme';
+import { SIZES } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 // Pantalla de lista única para todos los kinds. Reemplaza a Budgets/Savings/Debts/
 // InvestmentsScreen. Se parametriza con `kind` (vía initialParams en la navegación),
@@ -15,7 +16,6 @@ import { COLORS, SIZES } from '../constants/theme';
 //
 // `queryKey` reutiliza las claves de los hooks por dominio para compartir caché
 // con HomeScreen. `variant` decide el item: 'progress' (barra) o 'simple' (deuda).
-const GREEN = '#1C6B52';
 const DEBT_RED = '#B5453A';
 
 const CONFIG = {
@@ -46,6 +46,9 @@ const CONFIG = {
 };
 
 const BucketListScreen = () => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
+  const GREEN = theme.green;
   const navigation = useNavigation();
   const isDesktop = useIsDesktop();
   const { format } = useCurrency();
@@ -163,10 +166,10 @@ const BucketListScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.background,
   },
   msg: {
     fontSize: 18,
@@ -185,12 +188,12 @@ const styles = StyleSheet.create({
   screenTitle: {
     fontSize: SIZES.font * 1.6,
     fontWeight: '600',
-    color: COLORS.textPrimary,
+    color: t.textPrimary,
     marginBottom: 12,
   },
 
   hero: {
-    backgroundColor: GREEN,
+    backgroundColor: t.green,
     borderRadius: SIZES.radius * 1.4,
     padding: SIZES.padding,
     marginBottom: SIZES.padding,
@@ -199,14 +202,14 @@ const styles = StyleSheet.create({
   heroValue: { fontSize: SIZES.font * 1.9, fontWeight: '700', color: '#fff', marginTop: 2 },
   heroValueSmall: { fontSize: SIZES.font, fontWeight: '500', color: 'rgba(255,255,255,0.7)' },
   heroTrack: { height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.25)', marginTop: 10, overflow: 'hidden' },
-  heroFill: { height: '100%', borderRadius: 4, backgroundColor: '#fff' },
+  heroFill: { height: '100%', borderRadius: 4, backgroundColor: t.card },
   heroSub: { fontSize: SIZES.font * 0.85, color: 'rgba(255,255,255,0.85)', marginTop: 8 },
 
   itemCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#fff',
+    backgroundColor: t.card,
     borderRadius: SIZES.radius * 1.2,
     padding: 12,
     marginBottom: 10,
@@ -219,12 +222,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   itemTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  itemName: { fontSize: SIZES.font * 1.05, fontWeight: '500', color: COLORS.textPrimary },
-  itemPct: { fontSize: SIZES.font * 0.85, color: COLORS.textSecondary, fontWeight: '600' },
-  itemSub: { fontSize: SIZES.font * 0.8, color: COLORS.textSecondary, marginTop: 2, marginBottom: 6 },
-  track: { height: 7, borderRadius: 4, backgroundColor: '#ECECE3', overflow: 'hidden' },
+  itemName: { fontSize: SIZES.font * 1.05, fontWeight: '500', color: t.textPrimary },
+  itemPct: { fontSize: SIZES.font * 0.85, color: t.textSecondary, fontWeight: '600' },
+  itemSub: { fontSize: SIZES.font * 0.8, color: t.textSecondary, marginTop: 2, marginBottom: 6 },
+  track: { height: 7, borderRadius: 4, backgroundColor: t.track, overflow: 'hidden' },
   fill: { height: '100%', borderRadius: 4 },
-  debtAmount: { fontSize: SIZES.font * 1.05, fontWeight: '600', color: '#A32D2D' },
+  debtAmount: { fontSize: SIZES.font * 1.05, fontWeight: '600', color: t.expense },
 
   fab: {
     position: 'absolute',
@@ -233,7 +236,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: GREEN,
+    backgroundColor: t.green,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,
@@ -244,7 +247,7 @@ const styles = StyleSheet.create({
   },
 
   emptyContainer: {
-    backgroundColor: COLORS.background,
+    backgroundColor: t.background,
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -253,14 +256,14 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: SIZES.font * 1.1,
-    color: COLORS.textSecondary,
+    color: t.textSecondary,
     textAlign: 'center',
   },
   emptyCta: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: GREEN,
+    backgroundColor: t.green,
     borderRadius: SIZES.radius * 1.2,
     paddingHorizontal: SIZES.padding * 1.2,
     paddingVertical: SIZES.padding * 0.7,

@@ -18,12 +18,12 @@ import { useIsDesktop } from '../hooks/useResponsive';
 import { useCurrency } from '../context/CurrencyContext';
 import { defaultReportConfig, freelancerConfig, REPORT_MODES, REPORT_TEMPLATES } from '../constants/reportTypes';
 import { exportReport } from '../utils/reportExport';
-import { COLORS, SIZES } from '../constants/theme';
+import { SIZES } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 const MAX_CONTENT_WIDTH = 760;
 const DESKTOP_MAX = 1080;
 const LEFT_COL = 320;
-const GREEN = '#1C6B52';
 
 const notify = (title, message) => {
   if (Platform.OS === 'web') window.alert(`${title}\n\n${message}`);
@@ -31,6 +31,8 @@ const notify = (title, message) => {
 };
 
 const ReportBuilderScreen = () => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
   const isDesktop = useIsDesktop();
   const { width } = useWindowDimensions();
 
@@ -166,7 +168,7 @@ const ReportBuilderScreen = () => {
       {/* Opciones avanzadas (divulgación progresiva) */}
       <TouchableOpacity style={styles.advancedToggle} onPress={() => setShowAdvanced((v) => !v)}>
         <Text style={styles.advancedText}>Opciones avanzadas</Text>
-        <MaterialIcons name={showAdvanced ? 'expand-less' : 'expand-more'} size={20} color={COLORS.textSecondary} />
+        <MaterialIcons name={showAdvanced ? 'expand-less' : 'expand-more'} size={20} color={theme.textSecondary} />
       </TouchableOpacity>
 
       {showAdvanced && (
@@ -209,7 +211,7 @@ const ReportBuilderScreen = () => {
             onPress={() => handleExport('csv')}
             accessibilityLabel="Exportar CSV"
           >
-            <MaterialIcons name="table-chart" size={22} color={GREEN} />
+            <MaterialIcons name="table-chart" size={22} color={theme.green} />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.exportIconBtn, report.count === 0 && styles.disabled]}
@@ -217,7 +219,7 @@ const ReportBuilderScreen = () => {
             onPress={() => handleExport('pdf')}
             accessibilityLabel="Exportar PDF"
           >
-            <MaterialIcons name="picture-as-pdf" size={22} color={GREEN} />
+            <MaterialIcons name="picture-as-pdf" size={22} color={theme.green} />
           </TouchableOpacity>
         </View>
       </View>
@@ -247,7 +249,7 @@ const ReportBuilderScreen = () => {
         <TextInput
           style={styles.nameInput}
           placeholder="Nombre del reporte"
-          placeholderTextColor={COLORS.neutral}
+          placeholderTextColor={theme.neutral}
           value={reportName}
           onChangeText={setReportName}
         />
@@ -261,11 +263,11 @@ const ReportBuilderScreen = () => {
         reports.map((r) => (
           <View key={r.id} style={styles.savedRow}>
             <TouchableOpacity style={styles.savedLoad} onPress={() => loadReport(r)}>
-              <MaterialIcons name="play-arrow" size={18} color={GREEN} />
+              <MaterialIcons name="play-arrow" size={18} color={theme.green} />
               <Text style={styles.savedName} numberOfLines={1}>{r.name}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => deleteReport(r.id)}>
-              <MaterialIcons name="delete-outline" size={20} color={COLORS.danger} />
+              <MaterialIcons name="delete-outline" size={20} color={theme.danger} />
             </TouchableOpacity>
           </View>
         ))
@@ -300,17 +302,17 @@ const ReportBuilderScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.background },
+const makeStyles = (t) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: t.background },
   content: { padding: SIZES.padding, paddingBottom: 40 },
   contentDesktop: { width: '100%', maxWidth: DESKTOP_MAX, alignSelf: 'center' },
   columns: { flexDirection: 'row', gap: SIZES.padding, alignItems: 'flex-start' },
   leftCol: { width: LEFT_COL },
   rightCol: { flex: 1 },
-  title: { fontSize: SIZES.font * 1.8, fontWeight: '600', color: COLORS.textPrimary, marginBottom: SIZES.padding },
+  title: { fontSize: SIZES.font * 1.8, fontWeight: '600', color: t.textPrimary, marginBottom: SIZES.padding },
 
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: t.card,
     borderRadius: SIZES.radius * 1.4,
     padding: SIZES.padding,
     marginBottom: SIZES.padding,
@@ -321,17 +323,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SIZES.padding * 0.75,
   },
-  reportTitle: { fontSize: SIZES.font * 1.2, fontWeight: '600', color: COLORS.textPrimary },
-  reportPeriod: { fontSize: SIZES.font * 0.85, color: COLORS.textSecondary, marginTop: 2 },
+  reportTitle: { fontSize: SIZES.font * 1.2, fontWeight: '600', color: t.textPrimary },
+  reportPeriod: { fontSize: SIZES.font * 0.85, color: t.textSecondary, marginTop: 2 },
   exportIcons: { flexDirection: 'row', gap: 4 },
   exportIconBtn: {
     padding: 8,
     borderRadius: SIZES.radius,
-    backgroundColor: '#EAF3DE',
+    backgroundColor: t.greenSoft,
   },
   disabled: { opacity: 0.4 },
 
-  section: { fontSize: SIZES.font, fontWeight: '600', color: COLORS.textSecondary, marginTop: SIZES.padding, marginBottom: SIZES.base },
+  section: { fontSize: SIZES.font, fontWeight: '600', color: t.textSecondary, marginTop: SIZES.padding, marginBottom: SIZES.base },
   advancedToggle: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -339,46 +341,46 @@ const styles = StyleSheet.create({
     marginTop: SIZES.padding,
     paddingTop: SIZES.padding * 0.75,
     borderTopWidth: 1,
-    borderTopColor: COLORS.lightGray,
+    borderTopColor: t.border,
   },
-  advancedText: { fontSize: SIZES.font, color: COLORS.textSecondary, fontWeight: '500' },
+  advancedText: { fontSize: SIZES.font, color: t.textSecondary, fontWeight: '500' },
 
   rangeChip: {
     alignSelf: 'flex-start',
-    backgroundColor: '#E1F5EE',
+    backgroundColor: t.greenSoft,
     borderRadius: SIZES.radius,
     paddingHorizontal: SIZES.padding * 0.75,
     paddingVertical: SIZES.padding * 0.4,
     marginTop: 8,
   },
-  rangeChipText: { fontSize: SIZES.font * 0.95, color: COLORS.textSecondary, fontWeight: '600' },
+  rangeChipText: { fontSize: SIZES.font * 0.95, color: t.textSecondary, fontWeight: '600' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
     paddingHorizontal: SIZES.padding,
     paddingVertical: SIZES.padding * 0.5,
     borderRadius: SIZES.radius,
     borderWidth: 1,
-    borderColor: GREEN,
-    backgroundColor: COLORS.background,
+    borderColor: t.green,
+    backgroundColor: t.background,
   },
-  chipActive: { backgroundColor: GREEN, borderColor: GREEN },
-  chipLabel: { fontSize: SIZES.font, color: COLORS.textSecondary, fontWeight: '600' },
+  chipActive: { backgroundColor: t.green, borderColor: t.green },
+  chipLabel: { fontSize: SIZES.font, color: t.textSecondary, fontWeight: '600' },
   chipLabelActive: { color: '#fff' },
 
   saveRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   nameInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: COLORS.neutral,
+    borderColor: t.border,
     borderRadius: SIZES.radius,
     paddingHorizontal: SIZES.padding * 0.6,
     paddingVertical: 8,
     fontSize: SIZES.font,
-    color: COLORS.textPrimary,
-    backgroundColor: '#fff',
+    color: t.textPrimary,
+    backgroundColor: t.card,
   },
-  saveBtn: { backgroundColor: GREEN, borderRadius: SIZES.radius, padding: 10 },
-  savedEmpty: { fontSize: SIZES.font * 0.9, color: COLORS.textSecondary, marginTop: 6 },
+  saveBtn: { backgroundColor: t.green, borderRadius: SIZES.radius, padding: 10 },
+  savedEmpty: { fontSize: SIZES.font * 0.9, color: t.textSecondary, marginTop: 6 },
   savedRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -386,10 +388,10 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.lightGray,
+    borderBottomColor: t.border,
   },
   savedLoad: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 },
-  savedName: { flex: 1, fontSize: SIZES.font, color: COLORS.textPrimary },
+  savedName: { flex: 1, fontSize: SIZES.font, color: t.textPrimary },
 });
 
 export default ReportBuilderScreen;

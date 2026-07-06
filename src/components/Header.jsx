@@ -3,12 +3,14 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
-import { COLORS, SIZES } from '../constants/theme';
+import { SIZES } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 // Header compacto (mockup): avatar con inicial + saludo + mes actual.
 // Todo el bloque lleva a "Más" (perfil/ajustes).
 const Header = () => {
   const navigation = useNavigation();
+  const { theme } = useTheme();
   const [username, setUsername] = useState('Usuario');
 
   // Refresca el nombre al volver a enfocar (puede cambiarse en "Más").
@@ -32,12 +34,12 @@ const Header = () => {
       onPress={() => navigation.navigate('MoreScreen')}
       accessibilityLabel="Perfil y ajustes"
     >
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{initial}</Text>
+      <View style={[styles.avatar, { backgroundColor: theme.greenSoft }]}>
+        <Text style={[styles.avatarText, { color: theme.green }]}>{initial}</Text>
       </View>
       <View>
-        <Text style={styles.greeting}>Hola, {username}</Text>
-        <Text style={styles.month}>{month}</Text>
+        <Text style={[styles.greeting, { color: theme.textPrimary }]}>Hola, {username}</Text>
+        <Text style={[styles.month, { color: theme.textSecondary }]}>{month}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -55,23 +57,19 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#DCE3F2',
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#3B5BA5',
   },
   greeting: {
     fontSize: SIZES.font * 1.6,
     fontWeight: '600',
-    color: COLORS.textPrimary,
   },
   month: {
     fontSize: SIZES.font,
-    color: COLORS.textSecondary,
     marginTop: 2,
   },
 });

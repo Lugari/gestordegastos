@@ -2,11 +2,13 @@ import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useContext, useEffect, useState } from "react";
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { StatusBar } from 'expo-status-bar';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import { CurrencyProvider } from './context/CurrencyContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 
 import { migrateLegacyData } from './services/migrateBuckets';
 import { migrateLocalToCloud } from './services/cloudSync';
@@ -46,6 +48,23 @@ const ONBOARDING_KEY = '@onboarding_done';
 const AppNavigator = () => {
   const { userToken, isLoading } = useContext(AuthContext);
   const queryClient = useQueryClient();
+  const { theme, isDark } = useTheme();
+
+  // Tema del chrome de navegación (headers, fondos por defecto).
+  const navTheme = useMemo(() => {
+    const base = isDark ? DarkTheme : DefaultTheme;
+    return {
+      ...base,
+      colors: {
+        ...base.colors,
+        primary: theme.green,
+        background: theme.background,
+        card: theme.card,
+        text: theme.textPrimary,
+        border: theme.border,
+      },
+    };
+  }, [isDark, theme]);
 
   // Onboarding: se muestra una sola vez por dispositivo, tras iniciar sesión.
   // null = aún no sabemos (leyendo AsyncStorage); true/false = decidido.
@@ -79,7 +98,7 @@ const AppNavigator = () => {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navTheme}>
       <Stack.Navigator>
         {userToken == null ? (
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
@@ -107,6 +126,7 @@ const AppNavigator = () => {
           </>
         )}
       </Stack.Navigator>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
     </NavigationContainer>
   );
 };
@@ -126,11 +146,13 @@ export default function App() {
 
   return (
     <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
-      <CurrencyProvider>
-        <AuthProvider>
-          <AppNavigator />
-        </AuthProvider>
-      </CurrencyProvider>
+      <ThemeProvider>
+        <CurrencyProvider>
+          <AuthProvider>
+            <AppNavigator />
+          </AuthProvider>
+        </CurrencyProvider>
+      </ThemeProvider>
     </PersistQueryClientProvider>
   );
 }

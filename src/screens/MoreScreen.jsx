@@ -27,6 +27,7 @@ import CurrencyModal from '../components/CurrencyModal';
 import { importData } from '../services/dataTransfer';
 import { notificationsEnabled, enableNotifications, disableNotifications } from '../services/notificationsService';
 import { COLORS, SIZES } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 const USERNAME_KEY = '@username';
 const GREEN = '#1C6B52';
@@ -37,17 +38,17 @@ const notify = (title, message) => {
 };
 
 // Fila de opción dentro de un grupo.
-const Row = ({ icon, label, value, onPress, danger }) => (
+const Row = ({ icon, label, value, onPress, danger, styles, t }) => (
   <TouchableOpacity style={styles.row} onPress={onPress}>
-    <MaterialIcons name={icon} size={22} color={danger ? COLORS.danger : COLORS.textSecondary} />
-    <Text style={[styles.rowLabel, danger && { color: COLORS.danger }]}>{label}</Text>
+    <MaterialIcons name={icon} size={22} color={danger ? t.danger : t.textSecondary} />
+    <Text style={[styles.rowLabel, danger && { color: t.danger }]}>{label}</Text>
     {value ? <Text style={styles.rowValue}>{value}</Text> : null}
-    <MaterialIcons name="chevron-right" size={22} color={COLORS.neutral} />
+    <MaterialIcons name="chevron-right" size={22} color={t.neutral} />
   </TouchableOpacity>
 );
 
 // Grupo con encabezado (región común / proximidad).
-const Group = ({ title, children }) => (
+const Group = ({ title, children, styles }) => (
   <View style={styles.group}>
     <Text style={styles.groupTitle}>{title}</Text>
     <View style={styles.groupCard}>{children}</View>
@@ -60,6 +61,8 @@ const MoreScreen = () => {
   const queryClient = useQueryClient();
   const { logout } = useContext(AuthContext);
   const { currency } = useCurrency();
+  const { theme, mode, setMode } = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
 
   const [username, setUsername] = useState('Usuario');
   const [nameModal, setNameModal] = useState(false);
@@ -208,41 +211,57 @@ const MoreScreen = () => {
           </View>
         </View>
 
-        <Group title="Cuentas y moneda">
-          <Row icon="account-balance-wallet" label="Cuentas" onPress={() => navigation.navigate('AccountsScreen')} />
-          <Row icon="attach-money" label="Moneda" value={currency} onPress={() => setCurrencyModal(true)} />
+        <Group styles={styles} title="Cuentas y moneda">
+          <Row styles={styles} t={theme} icon="account-balance-wallet" label="Cuentas" onPress={() => navigation.navigate('AccountsScreen')} />
+          <Row styles={styles} t={theme} icon="attach-money" label="Moneda" value={currency} onPress={() => setCurrencyModal(true)} />
         </Group>
 
-        <Group title="Datos">
-          <Row
-            icon="receipt-long"
+        <Group styles={styles} title="Datos">
+          <Row styles={styles} t={theme}             icon="receipt-long"
             label="Facturas"
             value={dueSoon > 0 ? `${dueSoon} por vencer` : undefined}
             onPress={() => navigation.navigate('BillsScreen')}
           />
-          <Row icon="repeat" label="Recurrentes" onPress={() => navigation.navigate('RecurringScreen')} />
-          <Row icon="file-upload" label="Importar datos" onPress={handleImport} />
+          <Row styles={styles} t={theme} icon="repeat" label="Recurrentes" onPress={() => navigation.navigate('RecurringScreen')} />
+          <Row styles={styles} t={theme} icon="file-upload" label="Importar datos" onPress={handleImport} />
         </Group>
 
-        <Group title="Notificaciones">
+        <Group styles={styles} title="Apariencia">
+          <View style={styles.themeRow}>
+            <MaterialIcons name="dark-mode" size={22} color={theme.textSecondary} />
+            <Text style={styles.rowLabel}>Tema</Text>
+            <View style={styles.themeChips}>
+              {[{ k: 'auto', l: 'Auto' }, { k: 'light', l: 'Claro' }, { k: 'dark', l: 'Oscuro' }].map((o) => {
+                const active = mode === o.k;
+                return (
+                  <TouchableOpacity key={o.k} style={[styles.themeChip, active && styles.themeChipActive]} onPress={() => setMode(o.k)}>
+                    <Text style={[styles.themeChipText, active && styles.themeChipTextActive]}>{o.l}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        </Group>
+
+        <Group styles={styles} title="Notificaciones">
           <View style={styles.row}>
-            <MaterialIcons name="notifications-none" size={22} color={COLORS.textSecondary} />
+            <MaterialIcons name="notifications-none" size={22} color={theme.textSecondary} />
             <Text style={styles.rowLabel}>Alertas y recordatorios</Text>
             <Switch
               value={notifsOn}
               onValueChange={toggleNotifs}
-              trackColor={{ true: GREEN, false: '#c9c9c0' }}
+              trackColor={{ true: theme.green, false: theme.track }}
               thumbColor="#fff"
             />
           </View>
         </Group>
 
-        <Group title="Seguridad">
-          <Row icon="verified-user" label="Verificación en dos pasos" onPress={openTwoFA} />
+        <Group styles={styles} title="Seguridad">
+          <Row styles={styles} t={theme} icon="verified-user" label="Verificación en dos pasos" onPress={openTwoFA} />
         </Group>
 
-        <Group title="Sesión">
-          <Row icon="logout" label="Cerrar sesión" onPress={logout} danger />
+        <Group styles={styles} title="Sesión">
+          <Row styles={styles} t={theme} icon="logout" label="Cerrar sesión" onPress={logout} danger />
         </Group>
 
         <Text style={styles.version}>Gestor de Gastos · v1.0</Text>
@@ -280,7 +299,7 @@ const MoreScreen = () => {
           <View style={styles.nameCard}>
             {twoFADone ? (
               <>
-                <MaterialIcons name="verified-user" size={40} color={GREEN} style={{ alignSelf: 'center', marginBottom: 8 }} />
+                <MaterialIcons name="verified-user" size={40} color={theme.green} style={{ alignSelf: 'center', marginBottom: 8 }} />
                 <Text style={styles.nameTitle}>2FA activada</Text>
                 <Text style={styles.twoFAText}>La próxima vez que inicies sesión te pediremos el código de tu app.</Text>
                 <TouchableOpacity style={[styles.nameBtn, styles.saveBtn]} onPress={() => setTwoFAModal(false)}>
@@ -322,8 +341,8 @@ const MoreScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.background },
+const makeStyles = (t) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: t.background },
   content: { padding: SIZES.padding, paddingBottom: 40 },
   contentDesktop: { width: '100%', maxWidth: 640, alignSelf: 'center' },
   profile: {
@@ -336,18 +355,18 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: GREEN,
+    backgroundColor: t.green,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
-  profileName: { fontSize: SIZES.font * 1.4, fontWeight: 'bold', color: COLORS.textPrimary },
-  profileEdit: { fontSize: SIZES.font, color: GREEN, marginTop: 2, fontWeight: '600' },
+  profileName: { fontSize: SIZES.font * 1.4, fontWeight: 'bold', color: t.textPrimary },
+  profileEdit: { fontSize: SIZES.font, color: t.green, marginTop: 2, fontWeight: '600' },
   group: { marginTop: SIZES.padding * 1.2 },
-  groupTitle: { fontSize: SIZES.font * 0.85, fontWeight: '600', color: COLORS.textSecondary, marginBottom: 8, marginLeft: 4 },
-  version: { textAlign: 'center', fontSize: SIZES.font * 0.8, color: COLORS.neutral, marginTop: 24 },
+  groupTitle: { fontSize: SIZES.font * 0.85, fontWeight: '600', color: t.textSecondary, marginBottom: 8, marginLeft: 4 },
+  version: { textAlign: 'center', fontSize: SIZES.font * 0.8, color: t.neutral, marginTop: 24 },
   groupCard: {
-    backgroundColor: '#fff',
+    backgroundColor: t.card,
     borderRadius: SIZES.radius,
     paddingHorizontal: SIZES.padding,
     elevation: 1,
@@ -362,33 +381,42 @@ const styles = StyleSheet.create({
     gap: 14,
     paddingVertical: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: COLORS.lightGray,
+    borderBottomColor: t.border,
   },
-  rowLabel: { flex: 1, fontSize: SIZES.font * 1.05, color: COLORS.textPrimary },
-  rowValue: { fontSize: SIZES.font, color: COLORS.textSecondary, fontWeight: '600' },
+  rowLabel: { flex: 1, fontSize: SIZES.font * 1.05, color: t.textPrimary },
+  rowValue: { fontSize: SIZES.font, color: t.textSecondary, fontWeight: '600' },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: t.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
     zIndex: 100,
     elevation: 100,
   },
-  nameCard: { width: '100%', maxWidth: 420, backgroundColor: 'white', borderRadius: 12, padding: 20 },
-  nameTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 20, textAlign: 'center', color: '#333' },
-  nameInput: { height: 50, borderColor: '#ccc', borderWidth: 1, borderRadius: 8, paddingHorizontal: 15, marginBottom: 24, fontSize: 16 },
+  nameCard: { width: '100%', maxWidth: 420, backgroundColor: t.card, borderRadius: 12, padding: 20 },
+  nameTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 20, textAlign: 'center', color: t.textPrimary },
+  nameInput: { height: 50, borderColor: t.border, borderWidth: 1, borderRadius: 8, paddingHorizontal: 15, marginBottom: 24, fontSize: 16, color: t.textPrimary, backgroundColor: t.inputBg },
   nameActions: { flexDirection: 'row', justifyContent: 'space-between' },
   nameBtn: { flex: 1, paddingVertical: 12, borderRadius: 8, alignItems: 'center', marginHorizontal: 5 },
-  saveBtn: { backgroundColor: GREEN },
-  cancelBtn: { backgroundColor: '#EAEAEA' },
-  nameBtnText: { fontWeight: 'bold', fontSize: 16, color: '#333' },
-  twoFAText: { fontSize: 14, color: COLORS.textSecondary, marginBottom: 10, lineHeight: 20 },
+  saveBtn: { backgroundColor: t.green },
+  cancelBtn: { backgroundColor: t.cardAlt },
+  nameBtnText: { fontWeight: 'bold', fontSize: 16, color: t.textPrimary },
+  twoFAText: { fontSize: 14, color: t.textSecondary, marginBottom: 10, lineHeight: 20 },
   totpSecret: {
-    fontSize: 16, fontWeight: 'bold', color: GREEN, textAlign: 'center', letterSpacing: 1,
-    backgroundColor: '#EAF3DE', borderRadius: 8, paddingVertical: 10, marginBottom: 14,
+    fontSize: 16, fontWeight: 'bold', color: t.green, textAlign: 'center', letterSpacing: 1,
+    backgroundColor: t.greenSoft, borderRadius: 8, paddingVertical: 10, marginBottom: 14,
   },
-  twoFAError: { fontSize: 13, color: '#A32D2D', marginBottom: 8, textAlign: 'center' },
+  twoFAError: { fontSize: 13, color: t.expense, marginBottom: 8, textAlign: 'center' },
+  themeRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 12 },
+  themeChips: { flexDirection: 'row', gap: 6 },
+  themeChip: {
+    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999,
+    borderWidth: 1, borderColor: t.border, backgroundColor: t.card,
+  },
+  themeChipActive: { backgroundColor: t.green, borderColor: t.green },
+  themeChipText: { fontSize: SIZES.font * 0.88, color: t.textSecondary, fontWeight: '600' },
+  themeChipTextActive: { color: '#fff' },
 });
 
 export default MoreScreen;

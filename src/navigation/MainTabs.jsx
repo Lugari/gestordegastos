@@ -9,7 +9,7 @@ import TransactionHistoryScreen from '../screens/TransactionHistoryScreen';
 import ReportsScreen from '../screens/ReportsScreen';
 import MoreScreen from '../screens/MoreScreen';
 import { useIsDesktop } from '../hooks/useResponsive';
-import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 const Tab = createBottomTabNavigator();
 
@@ -18,15 +18,20 @@ const Tab = createBottomTabNavigator();
 const CenterAddButton = () => {
   const navigation = useNavigation();
   const isDesktop = useIsDesktop();
+  const { theme } = useTheme();
   return (
     <View style={styles.centerWrap} pointerEvents="box-none">
       <TouchableOpacity
-        style={[styles.centerBtn, { marginTop: isDesktop ? 4 : -18 }]}
+        style={[styles.centerBtn, {
+          marginTop: isDesktop ? 4 : -18,
+          backgroundColor: theme.green,
+          borderColor: theme.background,
+        }]}
         accessibilityRole="button"
         accessibilityLabel="Añadir transacción"
         onPress={() => navigation.navigate('AddTransactionScreen')}
       >
-        <MaterialIcons name="add" size={30} color={COLORS.textPrimary} />
+        <MaterialIcons name="add" size={30} color="#fff" />
       </TouchableOpacity>
     </View>
   );
@@ -36,6 +41,7 @@ const icon = (name) => ({ color, size }) => <MaterialIcons name={name} size={siz
 
 const MainTabs = () => {
   const isDesktop = useIsDesktop();
+  const { theme } = useTheme();
 
   return (
     <Tab.Navigator
@@ -44,11 +50,11 @@ const MainTabs = () => {
         // Barra inferior en móvil; riel lateral en escritorio (más natural y deja
         // los destinos visibles sin una barra inferior poco habitual en desktop).
         tabBarPosition: isDesktop ? 'left' : 'bottom',
-        tabBarActiveTintColor: COLORS.success,
-        tabBarInactiveTintColor: COLORS.textSecondary,
+        tabBarActiveTintColor: theme.green,
+        tabBarInactiveTintColor: theme.textSecondary,
         tabBarStyle: isDesktop
-          ? { width: 96, paddingTop: 12 }
-          : { height: 60, paddingBottom: 6, paddingTop: 6 },
+          ? { width: 96, paddingTop: 12, backgroundColor: theme.card, borderColor: theme.border }
+          : { height: 60, paddingBottom: 6, paddingTop: 6, backgroundColor: theme.card, borderTopColor: theme.border },
         tabBarLabelStyle: { fontSize: 11 },
         tabBarItemStyle: isDesktop ? { height: 64 } : undefined,
       }}
@@ -80,11 +86,9 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: COLORS.secondary,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: COLORS.background,
     elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

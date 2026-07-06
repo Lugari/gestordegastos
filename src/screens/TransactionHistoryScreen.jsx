@@ -14,12 +14,11 @@ import { useIsDesktop } from '../hooks/useResponsive';
 import { useCurrency } from '../context/CurrencyContext';
 import { getDateRange, isWithinRange } from '../utils/dateRange';
 
-import { COLORS, SIZES } from '../constants/theme';
+import { SIZES } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 // Colores de monto por tipo (legibles, escaneo rápido).
-const INCOME = '#3B6D11';
-const EXPENSE = '#A32D2D';
-const SAVING = '#0F6E56';
+
 
 // Etiqueta de día relativa: Hoy / Ayer / fecha.
 const dayLabel = (date) => {
@@ -33,6 +32,9 @@ const dayLabel = (date) => {
 };
 
 const TransactionHistoryScreen = () => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+  const INCOME = theme.income, EXPENSE = theme.expense, SAVING = theme.saving;
   const navigation = useNavigation();
   const isDesktop = useIsDesktop();
   const { format, convert, formatIn, baseCurrency, currency: displayCurrency } = useCurrency();
@@ -189,27 +191,27 @@ const TransactionHistoryScreen = () => {
 
         {dateFilter === 'Personalizado' && customRange && (
           <TouchableOpacity style={styles.rangeChip} onPress={() => setRangeModalVisible(true)}>
-            <MaterialIcons name="date-range" size={16} color={COLORS.textSecondary} />
+            <MaterialIcons name="date-range" size={16} color={theme.textSecondary} />
             <Text style={styles.rangeChipText}>
               {formattedDate(customRange.start)} — {formattedDate(customRange.end)}
             </Text>
-            <MaterialIcons name="edit" size={14} color={COLORS.textSecondary} />
+            <MaterialIcons name="edit" size={14} color={theme.textSecondary} />
           </TouchableOpacity>
         )}
 
         {/* Totales del periodo (proximidad) */}
         <View style={styles.totalsRow}>
-          <View style={[styles.totalChip, { backgroundColor: '#EAF3DE' }]}>
-            <Text style={[styles.totalLabel, { color: '#3B6D11' }]}>Ingresos</Text>
-            <Text style={[styles.totalValue, { color: '#27500A' }]} numberOfLines={1}>{format(totals.inc)}</Text>
+          <View style={[styles.totalChip, { backgroundColor: theme.incomeSoft }]}>
+            <Text style={[styles.totalLabel, { color: theme.income }]}>Ingresos</Text>
+            <Text style={[styles.totalValue, { color: theme.incomeStrong }]} numberOfLines={1}>{format(totals.inc)}</Text>
           </View>
-          <View style={[styles.totalChip, { backgroundColor: '#FAECE7' }]}>
-            <Text style={[styles.totalLabel, { color: '#993C1D' }]}>Egresos</Text>
-            <Text style={[styles.totalValue, { color: '#712B13' }]} numberOfLines={1}>{format(totals.exp)}</Text>
+          <View style={[styles.totalChip, { backgroundColor: theme.expenseSoft }]}>
+            <Text style={[styles.totalLabel, { color: theme.expense }]}>Egresos</Text>
+            <Text style={[styles.totalValue, { color: theme.expenseStrong }]} numberOfLines={1}>{format(totals.exp)}</Text>
           </View>
-          <View style={[styles.totalChip, { backgroundColor: '#E1F5EE' }]}>
-            <Text style={[styles.totalLabel, { color: '#0F6E56' }]}>Balance</Text>
-            <Text style={[styles.totalValue, { color: '#085041' }]} numberOfLines={1}>{format(totals.bal)}</Text>
+          <View style={[styles.totalChip, { backgroundColor: theme.savingSoft }]}>
+            <Text style={[styles.totalLabel, { color: theme.saving }]}>Balance</Text>
+            <Text style={[styles.totalValue, { color: theme.savingStrong }]} numberOfLines={1}>{format(totals.bal)}</Text>
           </View>
         </View>
 
@@ -240,10 +242,10 @@ const TransactionHistoryScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: t.background,
     alignItems: 'center',
   },
   content: {
@@ -258,7 +260,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: SIZES.font * 1.6,
     fontWeight: '600',
-    color: COLORS.textPrimary,
+    color: t.textPrimary,
     marginTop: 16,
     marginBottom: 12,
   },
@@ -270,7 +272,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'center',
     gap: 6,
-    backgroundColor: COLORS.primary + '40',
+    backgroundColor: t.greenSoft,
     borderRadius: SIZES.radius,
     paddingHorizontal: SIZES.padding * 0.75,
     paddingVertical: SIZES.padding * 0.4,
@@ -278,7 +280,7 @@ const styles = StyleSheet.create({
   },
   rangeChipText: {
     fontSize: SIZES.font * 0.95,
-    color: COLORS.textSecondary,
+    color: t.textSecondary,
     fontWeight: '600',
   },
   totalsRow: {
@@ -300,7 +302,7 @@ const styles = StyleSheet.create({
   },
   dayLabel: {
     fontSize: SIZES.font * 0.85,
-    color: '#8a8a80',
+    color: t.neutral,
     marginTop: 14,
     marginBottom: 4,
   },
@@ -320,8 +322,8 @@ const styles = StyleSheet.create({
   rowInfo: { flex: 1 },
   rowNameWrap: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   rowRepeat: { marginTop: 1 },
-  rowName: { fontSize: SIZES.font * 1.05, fontWeight: '500', color: COLORS.textPrimary },
-  rowNote: { fontSize: SIZES.font * 0.85, color: COLORS.textSecondary, marginTop: 2 },
+  rowName: { fontSize: SIZES.font * 1.05, fontWeight: '500', color: t.textPrimary },
+  rowNote: { fontSize: SIZES.font * 0.85, color: t.textSecondary, marginTop: 2 },
   rowCurrency: { fontSize: SIZES.font * 0.75, fontWeight: '600' },
   rowAmount: { fontSize: SIZES.font * 1.05, fontWeight: '600' },
   emptyContainer: {
@@ -333,7 +335,7 @@ const styles = StyleSheet.create({
   emptyText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#5f7067',
+    color: t.textSecondary,
     textAlign: 'center',
   },
 });

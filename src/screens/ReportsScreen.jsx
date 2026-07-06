@@ -11,14 +11,16 @@ import { useGetInvestments } from '../hooks/useInvestmentsData';
 import { useIsDesktop } from '../hooks/useResponsive';
 import { useCurrency } from '../context/CurrencyContext';
 import { getDateRange, isWithinRange } from '../utils/dateRange';
-import { COLORS, SIZES } from '../constants/theme';
+import { SIZES } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 // En escritorio acotamos el ancho de los gráficos para que no se deformen.
 const MAX_CONTENT_WIDTH = 720;
-const GREEN = '#1C6B52';
 const PERIODS = ['Mes', 'Año'];
 
 const ReportsScreen = () => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
   const navigation = useNavigation();
   const { width } = useWindowDimensions();
   const isDesktop = useIsDesktop();
@@ -78,7 +80,7 @@ const ReportsScreen = () => {
           // Redondeado: la librería muestra este valor tal cual en la leyenda.
           total: Math.round(total),
           color: budget.color,
-          legendFontColor: COLORS.textPrimary,
+          legendFontColor: theme.textPrimary,
           legendFontSize: 13,
         };
       })
@@ -138,17 +140,17 @@ const ReportsScreen = () => {
 
       {/* Totales del periodo */}
       <View style={styles.totalsRow}>
-        <View style={[styles.totalChip, { backgroundColor: '#EAF3DE' }]}>
-          <Text style={[styles.totalLabel, { color: '#3B6D11' }]}>Ingresos</Text>
-          <Text style={[styles.totalValue, { color: '#27500A' }]} numberOfLines={1}>{money(totals.inc)}</Text>
+        <View style={[styles.totalChip, { backgroundColor: theme.incomeSoft }]}>
+          <Text style={[styles.totalLabel, { color: theme.income }]}>Ingresos</Text>
+          <Text style={[styles.totalValue, { color: theme.incomeStrong }]} numberOfLines={1}>{money(totals.inc)}</Text>
         </View>
-        <View style={[styles.totalChip, { backgroundColor: '#FAECE7' }]}>
-          <Text style={[styles.totalLabel, { color: '#993C1D' }]}>Egresos</Text>
-          <Text style={[styles.totalValue, { color: '#712B13' }]} numberOfLines={1}>{money(totals.exp)}</Text>
+        <View style={[styles.totalChip, { backgroundColor: theme.expenseSoft }]}>
+          <Text style={[styles.totalLabel, { color: theme.expense }]}>Egresos</Text>
+          <Text style={[styles.totalValue, { color: theme.expenseStrong }]} numberOfLines={1}>{money(totals.exp)}</Text>
         </View>
-        <View style={[styles.totalChip, { backgroundColor: '#E1F5EE' }]}>
-          <Text style={[styles.totalLabel, { color: '#0F6E56' }]}>Balance</Text>
-          <Text style={[styles.totalValue, { color: '#085041' }]} numberOfLines={1}>{money(totals.bal)}</Text>
+        <View style={[styles.totalChip, { backgroundColor: theme.savingSoft }]}>
+          <Text style={[styles.totalLabel, { color: theme.saving }]}>Balance</Text>
+          <Text style={[styles.totalValue, { color: theme.savingStrong }]} numberOfLines={1}>{money(totals.bal)}</Text>
         </View>
       </View>
 
@@ -170,7 +172,7 @@ const ReportsScreen = () => {
             data={expenseData}
             width={chartWidth}
             height={200}
-            chartConfig={{ color: (o = 1) => `rgba(0, 0, 0, ${o})` }}
+            chartConfig={{ color: (o = 1) => theme.isDark ? `rgba(236,236,228,${o})` : `rgba(0, 0, 0, ${o})` }}
             accessor="total"
             backgroundColor="transparent"
             paddingLeft="10"
@@ -190,11 +192,11 @@ const ReportsScreen = () => {
             width={chartWidth}
             height={230}
             chartConfig={{
-              backgroundColor: '#fff',
-              backgroundGradientFrom: '#fff',
-              backgroundGradientTo: '#fff',
+              backgroundColor: theme.card,
+              backgroundGradientFrom: theme.card,
+              backgroundGradientTo: theme.card,
               decimalPlaces: 0,
-              color: (o = 1) => `rgba(0, 0, 0, ${o})`,
+              color: (o = 1) => theme.isDark ? `rgba(236,236,228,${o})` : `rgba(0, 0, 0, ${o})`,
               style: { borderRadius: 16 },
             }}
             bezier
@@ -206,17 +208,17 @@ const ReportsScreen = () => {
 
       {/* Acción secundaria */}
       <TouchableOpacity style={styles.customButton} onPress={() => navigation.navigate('ReportBuilderScreen')}>
-        <MaterialIcons name="tune" size={20} color={GREEN} />
+        <MaterialIcons name="tune" size={20} color={theme.green} />
         <Text style={styles.customButtonText}>Crear reporte personalizado</Text>
       </TouchableOpacity>
     </ScrollView>
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.background,
     padding: SIZES.padding,
   },
   contentDesktop: {
@@ -233,17 +235,17 @@ const styles = StyleSheet.create({
   header: {
     fontSize: SIZES.font * 1.8,
     fontWeight: '600',
-    color: COLORS.textPrimary,
+    color: t.textPrimary,
   },
   segment: {
     flexDirection: 'row',
-    backgroundColor: '#E7E7DD',
+    backgroundColor: t.track,
     borderRadius: 8,
     padding: 3,
   },
   segmentItem: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 6 },
-  segmentItemActive: { backgroundColor: GREEN },
-  segmentText: { fontSize: SIZES.font, color: COLORS.textSecondary, fontWeight: '500' },
+  segmentItemActive: { backgroundColor: t.green },
+  segmentText: { fontSize: SIZES.font, color: t.textSecondary, fontWeight: '500' },
   segmentTextActive: { color: '#fff' },
 
   totalsRow: { flexDirection: 'row', gap: 8, marginBottom: SIZES.padding },
@@ -252,7 +254,7 @@ const styles = StyleSheet.create({
   totalValue: { fontSize: SIZES.font * 1.05, fontWeight: '600', marginTop: 2 },
 
   netWorthCard: {
-    backgroundColor: GREEN,
+    backgroundColor: t.green,
     borderRadius: SIZES.radius * 1.4,
     padding: SIZES.padding,
     marginBottom: SIZES.padding,
@@ -263,7 +265,7 @@ const styles = StyleSheet.create({
   netWorthDetail: { fontSize: SIZES.font, color: 'rgba(255,255,255,0.85)', fontWeight: '500' },
 
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: t.card,
     borderRadius: SIZES.radius * 1.4,
     padding: 12,
     marginBottom: SIZES.padding,
@@ -273,10 +275,10 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     fontSize: SIZES.font * 1.1,
     fontWeight: '500',
-    color: COLORS.textPrimary,
+    color: t.textPrimary,
     marginBottom: 8,
   },
-  emptyChart: { fontSize: SIZES.font, color: COLORS.textSecondary, paddingVertical: 20 },
+  emptyChart: { fontSize: SIZES.font, color: t.textSecondary, paddingVertical: 20 },
 
   customButton: {
     flexDirection: 'row',
@@ -284,12 +286,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     borderWidth: 1,
-    borderColor: GREEN,
+    borderColor: t.green,
     borderRadius: SIZES.radius * 1.2,
     paddingVertical: SIZES.padding * 0.8,
     marginBottom: SIZES.padding,
   },
-  customButtonText: { fontSize: SIZES.font, fontWeight: '600', color: GREEN },
+  customButtonText: { fontSize: SIZES.font, fontWeight: '600', color: t.green },
 });
 
 export default ReportsScreen;

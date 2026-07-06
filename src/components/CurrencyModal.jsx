@@ -4,11 +4,14 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { useCurrency } from '../context/CurrencyContext';
 import { CURRENCIES } from '../constants/currencies';
-import { COLORS, SIZES } from '../constants/theme';
+import { SIZES } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 // Panel de selección de moneda (overlay en línea, no RN Modal) para que el
 // cierre funcione de forma fiable también en web. Base, visualización y tasas.
 const CurrencyModal = ({ visible, onClose }) => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
   const { currency, setCurrency, baseCurrency, setBaseCurrency, ratesUpdatedAt, refreshRates, loadingRates } = useCurrency();
 
   if (!visible) return null;
@@ -49,7 +52,7 @@ const CurrencyModal = ({ visible, onClose }) => {
             >
               <Text style={styles.currencyCode}>{c.symbol} {c.code}</Text>
               <Text style={styles.currencyName}>{c.name}</Text>
-              {active && <MaterialIcons name="check" size={20} color={COLORS.success} />}
+              {active && <MaterialIcons name="check" size={20} color={theme.green} />}
             </TouchableOpacity>
           );
         })}
@@ -73,10 +76,10 @@ const CurrencyModal = ({ visible, onClose }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: t.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
@@ -86,40 +89,40 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 420,
-    backgroundColor: 'white',
+    backgroundColor: t.card,
     borderRadius: 12,
     padding: 20,
   },
-  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 8, textAlign: 'center', color: '#333' },
-  section: { fontSize: 11, fontWeight: 'bold', color: COLORS.neutral, marginTop: 14, marginBottom: 6 },
+  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 8, textAlign: 'center', color: t.textPrimary },
+  section: { fontSize: 11, fontWeight: 'bold', color: t.neutral, marginTop: 14, marginBottom: 6 },
   codeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  codeChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: SIZES.radius, borderWidth: 1, borderColor: COLORS.primary },
-  codeChipActive: { backgroundColor: COLORS.primary },
-  codeChipText: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary },
-  codeChipTextActive: { color: COLORS.textPrimary },
+  codeChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: SIZES.radius, borderWidth: 1, borderColor: t.border },
+  codeChipActive: { backgroundColor: t.green },
+  codeChipText: { fontSize: 13, fontWeight: '600', color: t.textSecondary },
+  codeChipTextActive: { color: t.textPrimary },
   currencyRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, paddingHorizontal: 10, borderRadius: SIZES.radius },
-  currencyRowActive: { backgroundColor: COLORS.primary + '33' },
-  currencyCode: { fontSize: 16, fontWeight: 'bold', color: COLORS.textPrimary, width: 70 },
-  currencyName: { flex: 1, fontSize: 14, color: COLORS.textSecondary },
+  currencyRowActive: { backgroundColor: t.greenSoft },
+  currencyCode: { fontSize: 16, fontWeight: 'bold', color: t.textPrimary, width: 70 },
+  currencyName: { flex: 1, fontSize: 14, color: t.textSecondary },
   ratesRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: t.border,
     paddingTop: 12,
   },
-  ratesText: { fontSize: 12, color: COLORS.textSecondary },
-  ratesRefresh: { fontSize: 13, fontWeight: 'bold', color: COLORS.success },
+  ratesText: { fontSize: 12, color: t.textSecondary },
+  ratesRefresh: { fontSize: 13, fontWeight: 'bold', color: t.green },
   doneBtn: {
     marginTop: 16,
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.green,
     borderRadius: SIZES.radius,
     paddingVertical: 12,
     alignItems: 'center',
   },
-  doneText: { fontSize: SIZES.font, fontWeight: 'bold', color: COLORS.textPrimary },
+  doneText: { fontSize: SIZES.font, fontWeight: 'bold', color: t.textPrimary },
 });
 
 export default CurrencyModal;

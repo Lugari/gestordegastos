@@ -4,10 +4,10 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 import { AuthContext } from '../context/AuthContext';
 import * as authService from '../services/authService';
-import { SIZES, COLORS, FONTS } from '../constants/theme';
+import { SIZES, FONTS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { useIsDesktop } from '../hooks/useResponsive';
 
-const GREEN = '#1C6B52';
 
 // Traduce los errores de Cognito a mensajes claros en español.
 const traducirError = (e) => {
@@ -43,14 +43,16 @@ const TITULOS = {
 
 // Campo con icono. Definido a nivel de módulo (no dentro del render) para que
 // React no lo recree en cada tecla y el input no pierda el foco.
-const IconInput = ({ icon, ...props }) => (
+const IconInput = ({ icon, t, styles, ...props }) => (
   <View style={styles.inputRow}>
-    <MaterialIcons name={icon} size={20} color="#8a8a80" />
-    <TextInput style={styles.input} placeholderTextColor="#b9b9af" {...props} />
+    <MaterialIcons name={icon} size={20} color={t.neutral} />
+    <TextInput style={styles.input} placeholderTextColor={t.neutral} {...props} />
   </View>
 );
 
 const LoginScreen = () => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
   const { refresh } = useContext(AuthContext);
   const isDesktop = useIsDesktop();
 
@@ -148,7 +150,7 @@ const LoginScreen = () => {
 
   // --- Campos reutilizables ---
   const emailField = (
-    <IconInput
+    <IconInput t={theme} styles={styles}
       icon="mail-outline"
       placeholder="Correo"
       value={email}
@@ -162,11 +164,11 @@ const LoginScreen = () => {
 
   const passwordField = (
     <View style={styles.inputRow}>
-      <MaterialIcons name="lock-outline" size={20} color="#8a8a80" />
+      <MaterialIcons name="lock-outline" size={20} color={theme.neutral} />
       <TextInput
         style={styles.input}
         placeholder="Contraseña"
-        placeholderTextColor="#b9b9af"
+        placeholderTextColor={theme.neutral}
         value={password}
         onChangeText={setPassword}
         secureTextEntry={!showPass}
@@ -174,13 +176,13 @@ const LoginScreen = () => {
         editable={!loading}
       />
       <TouchableOpacity onPress={() => setShowPass((v) => !v)} accessibilityLabel={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
-        <MaterialIcons name={showPass ? 'visibility-off' : 'visibility'} size={20} color="#8a8a80" />
+        <MaterialIcons name={showPass ? 'visibility-off' : 'visibility'} size={20} color={theme.neutral} />
       </TouchableOpacity>
     </View>
   );
 
   const codeField = (
-    <IconInput
+    <IconInput t={theme} styles={styles}
       icon="pin"
       placeholder="Código de 6 dígitos"
       value={code}
@@ -232,11 +234,11 @@ const LoginScreen = () => {
           <>
             {codeField}
             <View style={styles.inputRow}>
-              <MaterialIcons name="lock-outline" size={20} color="#8a8a80" />
+              <MaterialIcons name="lock-outline" size={20} color={theme.neutral} />
               <TextInput
                 style={styles.input}
                 placeholder="Nueva contraseña"
-                placeholderTextColor="#b9b9af"
+                placeholderTextColor={theme.neutral}
                 value={newPassword}
                 onChangeText={setNewPassword}
                 secureTextEntry={!showPass}
@@ -244,7 +246,7 @@ const LoginScreen = () => {
                 editable={!loading}
               />
               <TouchableOpacity onPress={() => setShowPass((v) => !v)}>
-                <MaterialIcons name={showPass ? 'visibility-off' : 'visibility'} size={20} color="#8a8a80" />
+                <MaterialIcons name={showPass ? 'visibility-off' : 'visibility'} size={20} color={theme.neutral} />
               </TouchableOpacity>
             </View>
             {primaryBtn('Cambiar contraseña')}
@@ -330,44 +332,44 @@ const LoginScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: SIZES.padding * 2, backgroundColor: COLORS.background },
+const makeStyles = (t) => StyleSheet.create({
+  container: { flex: 1, justifyContent: 'center', padding: SIZES.padding * 2, backgroundColor: t.background },
 
   brandMobile: { alignItems: 'center', gap: 4, marginBottom: 28 },
-  logo: { width: 64, height: 64, borderRadius: 18, backgroundColor: GREEN, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
-  brandTitleM: { fontSize: SIZES.font * 1.6, fontWeight: '600', color: COLORS.textPrimary },
-  brandSubM: { fontSize: SIZES.font, color: COLORS.textSecondary, textAlign: 'center', maxWidth: 280 },
+  logo: { width: 64, height: 64, borderRadius: 18, backgroundColor: t.green, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
+  brandTitleM: { fontSize: SIZES.font * 1.6, fontWeight: '600', color: t.textPrimary },
+  brandSubM: { fontSize: SIZES.font, color: t.textSecondary, textAlign: 'center', maxWidth: 280 },
 
   inputRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#fff',
     borderWidth: 1, borderColor: '#d6d6cc', borderRadius: 12, paddingHorizontal: 14,
     paddingVertical: Platform.OS === 'ios' ? 14 : 10, marginBottom: 10,
   },
-  input: { flex: 1, fontSize: SIZES.font, color: COLORS.textPrimary, outlineStyle: 'none' },
-  hint: { fontSize: SIZES.font * 0.82, color: COLORS.textSecondary, marginBottom: 6, marginTop: -2 },
+  input: { flex: 1, fontSize: SIZES.font, color: t.textPrimary, outlineStyle: 'none' },
+  hint: { fontSize: SIZES.font * 0.82, color: t.textSecondary, marginBottom: 6, marginTop: -2 },
 
-  loginBtn: { backgroundColor: GREEN, borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginTop: 8, minHeight: 50, justifyContent: 'center' },
+  loginBtn: { backgroundColor: t.green, borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginTop: 8, minHeight: 50, justifyContent: 'center' },
   loginText: { color: '#fff', fontSize: SIZES.font * 1.1, fontWeight: '700' },
 
   forgotWrap: { alignSelf: 'flex-end', marginBottom: 4 },
   linkRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 16 },
-  linkMuted: { fontSize: SIZES.font * 0.9, color: COLORS.textSecondary },
-  link: { fontSize: SIZES.font * 0.9, color: GREEN, fontWeight: '700' },
+  linkMuted: { fontSize: SIZES.font * 0.9, color: t.textSecondary },
+  link: { fontSize: SIZES.font * 0.9, color: t.green, fontWeight: '700' },
 
-  info: { fontSize: SIZES.font * 0.9, color: GREEN, marginBottom: 10, textAlign: 'center' },
-  error: { fontSize: SIZES.font * 0.9, color: '#A32D2D', marginBottom: 10, textAlign: 'center' },
+  info: { fontSize: SIZES.font * 0.9, color: t.green, marginBottom: 10, textAlign: 'center' },
+  error: { fontSize: SIZES.font * 0.9, color: t.expense, marginBottom: 10, textAlign: 'center' },
 
   // --- Escritorio ---
-  desktopRoot: { flex: 1, flexDirection: 'row', backgroundColor: COLORS.background },
-  brandPanel: { flex: 1, backgroundColor: GREEN, justifyContent: 'center', paddingHorizontal: SIZES.padding * 4 },
+  desktopRoot: { flex: 1, flexDirection: 'row', backgroundColor: t.background },
+  brandPanel: { flex: 1, backgroundColor: t.green, justifyContent: 'center', paddingHorizontal: SIZES.padding * 4 },
   brandTitle: { fontFamily: FONTS.heading.fontFamily, fontSize: SIZES.font * 3.4, fontWeight: '700', color: '#fff', marginBottom: SIZES.padding },
   brandSubtitle: { fontFamily: FONTS.body.fontFamily, fontSize: SIZES.font * 1.4, color: 'rgba(255,255,255,0.85)', maxWidth: 420, lineHeight: SIZES.font * 2 },
   formPanel: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: SIZES.padding * 2 },
   card: {
     width: '100%', maxWidth: 420, backgroundColor: '#fff', borderRadius: SIZES.radius * 1.6, padding: SIZES.padding * 2.5,
-    shadowColor: COLORS.textPrimary, shadowOpacity: 0.12, shadowOffset: { width: 0, height: 8 }, shadowRadius: 24, elevation: 6,
+    shadowColor: '#000', shadowOpacity: 0.12, shadowOffset: { width: 0, height: 8 }, shadowRadius: 24, elevation: 6,
   },
-  cardHeading: { fontSize: SIZES.font * 1.6, fontWeight: '600', color: COLORS.textPrimary, marginBottom: SIZES.padding * 1.2 },
+  cardHeading: { fontSize: SIZES.font * 1.6, fontWeight: '600', color: t.textPrimary, marginBottom: SIZES.padding * 1.2 },
 });
 
 export default LoginScreen;

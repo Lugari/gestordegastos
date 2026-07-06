@@ -7,19 +7,23 @@ import { useManageTransactions } from '../hooks/useTransactionData';
 import { useGetAccounts } from '../hooks/useAccountsData';
 import { useIsDesktop } from '../hooks/useResponsive';
 import { useCurrency } from '../context/CurrencyContext';
-import { COLORS, SIZES } from '../constants/theme';
+import { SIZES } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
-const GREEN = '#1C6B52';
-const EXPENSE = '#A32D2D';
+
 
 // Tinte y color de monto por tipo (semántico).
-const TYPE_STYLE = {
-  gasto: { bg: '#FAECE7', amount: '#A32D2D', chip: '#993C1D', label: 'Gasto', sign: '−' },
-  ingreso: { bg: '#EAF3DE', amount: '#3B6D11', chip: '#27500A', label: 'Ingreso', sign: '+' },
-  ahorro: { bg: '#E1F5EE', amount: '#0F6E56', chip: '#085041', label: 'Ahorro', sign: '−' },
-};
+const typeStyles = (t) => ({
+  gasto: { bg: t.expenseSoft, amount: t.expense, chip: t.expenseStrong, label: 'Gasto', sign: '−' },
+  ingreso: { bg: t.incomeSoft, amount: t.income, chip: t.incomeStrong, label: 'Ingreso', sign: '+' },
+  ahorro: { bg: t.savingSoft, amount: t.saving, chip: t.savingStrong, label: 'Ahorro', sign: '−' },
+});
 
 const SingleTransactionScreen = () => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
+  const GREEN = theme.green;
+  const TYPE_STYLE = typeStyles(theme);
   const route = useRoute();
   const navigation = useNavigation();
   const isDesktop = useIsDesktop();
@@ -79,7 +83,7 @@ const SingleTransactionScreen = () => {
       {/* Encabezado: el título lo pone el header de navegación. */}
       <View style={[styles.headerRow, { justifyContent: 'flex-end' }]}>
         <TouchableOpacity onPress={handleEdit} accessibilityLabel="Editar">
-          <MaterialIcons name="edit" size={22} color={COLORS.textSecondary} />
+          <MaterialIcons name="edit" size={22} color={theme.textSecondary} />
         </TouchableOpacity>
       </View>
 
@@ -131,35 +135,35 @@ const SingleTransactionScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: COLORS.background },
+const makeStyles = (t) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: t.background },
   content: { padding: SIZES.padding, paddingBottom: 40 },
   contentDesktop: { width: '100%', maxWidth: 640, alignSelf: 'center' },
 
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-  title: { fontSize: SIZES.font * 1.6, fontWeight: '600', color: COLORS.textPrimary },
+  title: { fontSize: SIZES.font * 1.6, fontWeight: '600', color: t.textPrimary },
 
   hero: { borderRadius: SIZES.radius * 1.4, padding: SIZES.padding },
   heroTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   catWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
-  catIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center' },
+  catIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: t.card, justifyContent: 'center', alignItems: 'center' },
   catName: { fontSize: SIZES.font, fontWeight: '500' },
-  typeChip: { fontSize: SIZES.font * 0.78, backgroundColor: '#fff', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 11, overflow: 'hidden' },
+  typeChip: { fontSize: SIZES.font * 0.78, backgroundColor: t.card, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 11, overflow: 'hidden' },
   amount: { fontSize: SIZES.font * 2.2, fontWeight: '700', marginTop: 10 },
-  converted: { fontSize: SIZES.font * 0.9, color: COLORS.textSecondary, marginTop: 2 },
+  converted: { fontSize: SIZES.font * 0.9, color: t.textSecondary, marginTop: 2 },
 
   metaGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
-  metaCard: { flexBasis: '47%', flexGrow: 1, backgroundColor: '#EFEFE8', borderRadius: 10, paddingVertical: 9, paddingHorizontal: 11 },
-  metaLabel: { fontSize: SIZES.font * 0.78, color: '#8a8a80' },
-  metaValue: { fontSize: SIZES.font * 0.95, color: COLORS.textPrimary, marginTop: 2 },
+  metaCard: { flexBasis: '47%', flexGrow: 1, backgroundColor: t.cardAlt, borderRadius: 10, paddingVertical: 9, paddingHorizontal: 11 },
+  metaLabel: { fontSize: SIZES.font * 0.78, color: t.neutral },
+  metaValue: { fontSize: SIZES.font * 0.95, color: t.textPrimary, marginTop: 2 },
 
-  noteCard: { backgroundColor: '#fff', borderRadius: 10, padding: 11, marginTop: 10 },
-  noteText: { fontSize: SIZES.font * 0.95, color: '#444', marginTop: 2 },
+  noteCard: { backgroundColor: t.card, borderRadius: 10, padding: 11, marginTop: 10 },
+  noteText: { fontSize: SIZES.font * 0.95, color: t.textPrimary, marginTop: 2 },
 
-  editBtn: { marginTop: 24, backgroundColor: GREEN, borderRadius: SIZES.radius * 1.2, paddingVertical: 14, alignItems: 'center' },
+  editBtn: { marginTop: 24, backgroundColor: t.green, borderRadius: SIZES.radius * 1.2, paddingVertical: 14, alignItems: 'center' },
   editText: { color: '#fff', fontSize: SIZES.font * 1.1, fontWeight: '700' },
   deleteBtn: { marginTop: 10, borderWidth: 1, borderColor: '#D4948C', borderRadius: SIZES.radius * 1.2, paddingVertical: 12, alignItems: 'center' },
-  deleteText: { color: EXPENSE, fontSize: SIZES.font, fontWeight: '600' },
+  deleteText: { color: t.expense, fontSize: SIZES.font, fontWeight: '600' },
 });
 
 export default SingleTransactionScreen;

@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import React, { useCallback } from "react";
 import AddTransactionForm from "../components/transactions/AddTransactionForm";
 
 import { StyleSheet, ScrollView, View } from "react-native";
@@ -10,13 +10,17 @@ import { useNavigation } from "@react-navigation/native";
 import { useRoute } from "@react-navigation/native";
 
 import { useIsDesktop } from "../hooks/useResponsive";
-import { COLORS, SIZES } from "../constants/theme";
+import { SIZES } from "../constants/theme";
+import { useTheme } from "../context/ThemeContext";
 
 import { useManageTransactions } from "../hooks/useTransactionData";
 import { useGetBudgets, useManageBudgets } from "../hooks/useBudgetsData";
 import { useGetSavings, useManageSavings} from "../hooks/useSavingsData"
 
 const AddTransactionScreen = () => {
+
+    const { theme } = useTheme();
+    const styles = React.useMemo(() => makeStyles(theme), [theme]);
 
     const navigation = useNavigation();
     const isDesktop = useIsDesktop();
@@ -91,16 +95,16 @@ const AddTransactionScreen = () => {
         </ScrollView>
     );
     }
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
     container: {
         paddingVertical: 30,
         paddingHorizontal: 20,
-        backgroundColor: "#fff",
+        backgroundColor: t.background,
         flexGrow: 1,
     },
     desktopRoot: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: t.background,
     },
     desktopScroll: {
         alignItems: "center",
@@ -110,11 +114,11 @@ const styles = StyleSheet.create({
     card: {
         width: "100%",
         maxWidth: 560,
-        backgroundColor: "#fff",
+        backgroundColor: t.card,
         borderRadius: SIZES.radius * 1.6,
         paddingHorizontal: SIZES.padding,
         paddingBottom: SIZES.padding,
-        shadowColor: COLORS.textPrimary,
+        shadowColor: '#000',
         shadowOpacity: 0.1,
         shadowOffset: { width: 0, height: 6 },
         shadowRadius: 20,

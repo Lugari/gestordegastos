@@ -13,20 +13,23 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { notify } from '../../utils/notify';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { SIZES, COLORS } from '../../constants/theme';
+import { SIZES } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { formatMoney } from '../../utils/formatMoney';
 import { useCurrency } from '../../context/CurrencyContext';
 import { useGetAccounts } from '../../hooks/useAccountsData';
 
 // Tipos como segmento (Hick): tres opciones visibles, color por significado.
-const TYPES = [
-  { key: 'gasto', label: 'Gasto', color: '#993C1D' },
-  { key: 'ingreso', label: 'Ingreso', color: '#1C6B52' },
-  { key: 'ahorro', label: 'Ahorro', color: '#0F6E56' },
+const TYPES = (t) => [
+  { key: 'gasto', label: 'Gasto', color: t.expense },
+  { key: 'ingreso', label: 'Ingreso', color: t.green },
+  { key: 'ahorro', label: 'Ahorro', color: t.saving },
 ];
-const GREEN = '#1C6B52';
 
 const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionToEdit }) => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
+  const typeOptions = TYPES(theme);
   const route = useRoute();
   const { baseCurrency } = useCurrency();
   const { data: accounts = [] } = useGetAccounts();
@@ -186,7 +189,7 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
           style={styles.heroInput}
           keyboardType="numeric"
           placeholder={formatMoney(0, formData.currency)}
-          placeholderTextColor="#c4c4bc"
+          placeholderTextColor={theme.neutral}
           value={formatCurrency(formData.amount)}
           onChangeText={handleCurrencyInput}
           textAlign="center"
@@ -199,7 +202,7 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
 
       {/* Tipo (segmentado) */}
       <View style={[styles.segment, transactionToEdit && { opacity: 0.6 }]} pointerEvents={transactionToEdit ? 'none' : 'auto'}>
-        {TYPES.map((t) => {
+        {typeOptions.map((t) => {
           const active = formData.type === t.key;
           return (
             <TouchableOpacity
@@ -229,7 +232,7 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
                     style={[styles.chip, active && { backgroundColor: cat.color, borderColor: cat.color }]}
                     onPress={() => selectCategory(cat)}
                   >
-                    <MaterialIcons name={cat.icon} size={16} color={active ? '#fff' : '#5f6b62'} />
+                    <MaterialIcons name={cat.icon} size={16} color={active ? '#fff' : theme.textSecondary} />
                     <Text style={[styles.chipText, active && styles.chipTextActive]}>{cat.name}</Text>
                   </TouchableOpacity>
                 );
@@ -367,7 +370,7 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
       <Text style={styles.label}>Nota (opcional)</Text>
       <TextInput
         placeholder="Descripción..."
-        placeholderTextColor="#c4c4bc"
+        placeholderTextColor={theme.neutral}
         multiline
         numberOfLines={3}
         style={styles.noteInput}
@@ -386,7 +389,7 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     padding: SIZES.padding,
   },
@@ -394,19 +397,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
   },
-  heroLabel: { fontSize: SIZES.font * 0.9, color: COLORS.textSecondary },
+  heroLabel: { fontSize: SIZES.font * 0.9, color: t.textSecondary },
   heroInput: {
     fontSize: SIZES.font * 2.6,
     fontWeight: '700',
-    color: COLORS.textPrimary,
+    color: t.textPrimary,
     minWidth: 160,
     paddingVertical: 4,
   },
-  heroSub: { fontSize: SIZES.font * 0.9, color: COLORS.textSecondary, marginTop: 2 },
+  heroSub: { fontSize: SIZES.font * 0.9, color: t.textSecondary, marginTop: 2 },
 
   segment: {
     flexDirection: 'row',
-    backgroundColor: '#ECECE3',
+    backgroundColor: t.track,
     borderRadius: SIZES.radius,
     padding: 3,
     marginTop: 8,
@@ -417,11 +420,11 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     borderRadius: SIZES.radius * 0.8,
   },
-  segmentText: { fontSize: SIZES.font, fontWeight: '600', color: COLORS.textSecondary },
+  segmentText: { fontSize: SIZES.font, fontWeight: '600', color: t.textSecondary },
   segmentTextActive: { color: '#fff' },
 
-  label: { fontSize: SIZES.font * 0.85, color: COLORS.textSecondary, marginTop: 20, marginBottom: 8 },
-  hint: { fontSize: SIZES.font * 0.9, color: COLORS.textSecondary, fontStyle: 'italic' },
+  label: { fontSize: SIZES.font * 0.85, color: t.textSecondary, marginTop: 20, marginBottom: 8 },
+  hint: { fontSize: SIZES.font * 0.9, color: t.textSecondary, fontStyle: 'italic' },
 
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center' },
   chip: {
@@ -432,23 +435,23 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#d6d6cc',
-    backgroundColor: '#fff',
+    borderColor: t.border,
+    backgroundColor: t.inputBg,
   },
-  chipText: { fontSize: SIZES.font * 0.95, color: COLORS.textSecondary, fontWeight: '500' },
+  chipText: { fontSize: SIZES.font * 0.95, color: t.textSecondary, fontWeight: '500' },
   chipTextActive: { color: '#fff' },
-  chipDateActive: { backgroundColor: GREEN, borderColor: GREEN },
-  chipAccountActive: { backgroundColor: GREEN, borderColor: GREEN },
+  chipDateActive: { backgroundColor: t.green, borderColor: t.green },
+  chipAccountActive: { backgroundColor: t.green, borderColor: t.green },
   chipAccountTextActive: { color: '#fff' },
   calendarBtn: { paddingHorizontal: 6, paddingVertical: 6 },
 
-  dateText: { fontSize: SIZES.font * 0.9, color: COLORS.textSecondary, marginTop: 8 },
+  dateText: { fontSize: SIZES.font * 0.9, color: t.textSecondary, marginTop: 8 },
 
   recParamRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
-  recParamLabel: { fontSize: SIZES.font * 0.95, color: COLORS.textSecondary },
+  recParamLabel: { fontSize: SIZES.font * 0.95, color: t.textSecondary },
   recParamInput: {
     borderWidth: 1,
-    borderColor: GREEN,
+    borderColor: t.green,
     borderRadius: SIZES.radius,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -456,31 +459,31 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: SIZES.font,
     fontWeight: '700',
-    color: GREEN,
-    backgroundColor: '#fff',
+    color: t.green,
+    backgroundColor: t.inputBg,
   },
-  recHint: { fontSize: SIZES.font * 0.8, color: COLORS.neutral, marginTop: 8 },
+  recHint: { fontSize: SIZES.font * 0.8, color: t.neutral, marginTop: 8 },
 
   noteInput: {
     borderWidth: 1,
-    borderColor: '#e3e3da',
+    borderColor: t.border,
     borderRadius: SIZES.radius,
     padding: SIZES.padding * 0.8,
     height: 90,
     textAlignVertical: 'top',
-    backgroundColor: COLORS.background,
+    backgroundColor: t.background,
   },
 
   saveBtn: {
     marginTop: 24,
-    backgroundColor: GREEN,
+    backgroundColor: t.green,
     borderRadius: SIZES.radius * 1.2,
     paddingVertical: 15,
     alignItems: 'center',
   },
   saveText: { color: '#fff', fontSize: SIZES.font * 1.1, fontWeight: '700' },
   cancelBtn: { alignItems: 'center', paddingVertical: 14 },
-  cancelText: { color: COLORS.textSecondary, fontSize: SIZES.font },
+  cancelText: { color: t.textSecondary, fontSize: SIZES.font },
 });
 
 export default AddTransactionForm;

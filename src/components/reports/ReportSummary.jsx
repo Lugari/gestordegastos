@@ -1,15 +1,13 @@
-import { View, Text, StyleSheet } from 'react-native';
+import React, { View, Text, StyleSheet } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
 
-import { COLORS, SIZES } from '../../constants/theme';
+import { SIZES } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { useCurrency } from '../../context/CurrencyContext';
 
-const INCOME = '#1C6B52';
-const EXPENSE = '#C0563E';
-const SAVING = '#2AA583';
 
 // KPI como chip de color (mismo lenguaje que Historial/Reportes).
-const KpiChip = ({ label, value, bg, labelColor, valueColor }) => (
+const KpiChip = ({ label, value, bg, labelColor, valueColor, styles }) => (
   <View style={[styles.kpi, { backgroundColor: bg }]}>
     <Text style={[styles.kpiLabel, { color: labelColor }]}>{label}</Text>
     <Text style={[styles.kpiValue, { color: valueColor }]} numberOfLines={1} adjustsFontSizeToFit>
@@ -19,7 +17,7 @@ const KpiChip = ({ label, value, bg, labelColor, valueColor }) => (
 );
 
 // Barra comparativa horizontal simple (sin dependencias de gráficos).
-const CompareBar = ({ label, value, valueText, max, color }) => {
+const CompareBar = ({ label, value, valueText, max, color, styles }) => {
   const pct = max > 0 ? Math.min(1, value / max) : 0;
   return (
     <View style={styles.compareRow}>
@@ -34,6 +32,9 @@ const CompareBar = ({ label, value, valueText, max, color }) => {
 
 // Vista "Simple": resumen rápido con comparativo y distribución de gastos.
 const ReportSummary = ({ report, chartWidth }) => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
+  const INCOME = theme.green, EXPENSE = theme.expense, SAVING = theme.saving;
   const { format } = useCurrency();
   const { totalIncome, totalExpense, totalSavings, net, byCategory, count } = report;
 
@@ -42,8 +43,8 @@ const ReportSummary = ({ report, chartWidth }) => {
     .map((c) => ({
       name: c.name,
       population: Math.round(c.total),
-      color: c.color || COLORS.danger,
-      legendFontColor: COLORS.textPrimary,
+      color: c.color || theme.danger,
+      legendFontColor: theme.textPrimary,
       legendFontSize: 12,
     }));
 
@@ -57,17 +58,17 @@ const ReportSummary = ({ report, chartWidth }) => {
     <View>
       {/* KPIs */}
       <View style={styles.kpiRow}>
-        <KpiChip label="Ingresos" value={format(totalIncome)} bg="#EAF3DE" labelColor="#3B6D11" valueColor="#27500A" />
-        <KpiChip label="Gastos" value={format(totalExpense)} bg="#FAECE7" labelColor="#993C1D" valueColor="#712B13" />
-        <KpiChip label="Neto" value={format(net)} bg="#E1F5EE" labelColor="#0F6E56" valueColor="#085041" />
+        <KpiChip styles={styles} label="Ingresos" value={format(totalIncome)} bg={theme.incomeSoft} labelColor={theme.income} valueColor={theme.incomeStrong} />
+        <KpiChip styles={styles} label="Gastos" value={format(totalExpense)} bg={theme.expenseSoft} labelColor={theme.expense} valueColor={theme.expenseStrong} />
+        <KpiChip styles={styles} label="Neto" value={format(net)} bg={theme.savingSoft} labelColor={theme.saving} valueColor={theme.savingStrong} />
       </View>
 
       {/* Comparativo Ingresos vs Gastos */}
       <View style={styles.block}>
         <Text style={styles.blockTitle}>Ingresos vs gastos</Text>
-        <CompareBar label="Ingresos" value={totalIncome} valueText={format(totalIncome)} max={max} color={INCOME} />
-        <CompareBar label="Gastos" value={totalExpense} valueText={format(totalExpense)} max={max} color={EXPENSE} />
-        {totalSavings > 0 && <CompareBar label="Ahorros" value={totalSavings} valueText={format(totalSavings)} max={max} color={SAVING} />}
+        <CompareBar styles={styles} label="Ingresos" value={totalIncome} valueText={format(totalIncome)} max={max} color={INCOME} />
+        <CompareBar styles={styles} label="Gastos" value={totalExpense} valueText={format(totalExpense)} max={max} color={EXPENSE} />
+        {totalSavings > 0 && <CompareBar styles={styles} label="Ahorros" value={totalSavings} valueText={format(totalSavings)} max={max} color={SAVING} />}
       </View>
 
       {/* Distribución de gastos */}
@@ -81,7 +82,7 @@ const ReportSummary = ({ report, chartWidth }) => {
             accessor="population"
             backgroundColor="transparent"
             paddingLeft="10"
-            chartConfig={{ color: (opacity = 1) => `rgba(0,0,0,${opacity})` }}
+            chartConfig={{ color: (opacity = 1) => theme.isDark ? `rgba(236,236,228,${opacity})` : `rgba(0,0,0,${opacity})` }}
             absolute
           />
         ) : (
@@ -92,7 +93,7 @@ const ReportSummary = ({ report, chartWidth }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   kpiRow: { flexDirection: 'row', gap: 8 },
   kpi: { flex: 1, borderRadius: SIZES.radius, padding: SIZES.padding * 0.6 },
   kpiLabel: { fontSize: SIZES.font * 0.8, fontWeight: '600' },
@@ -101,15 +102,15 @@ const styles = StyleSheet.create({
   blockTitle: {
     fontSize: SIZES.font * 1.1,
     fontWeight: '500',
-    color: COLORS.textPrimary,
+    color: t.textPrimary,
     marginBottom: SIZES.base,
   },
   compareRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginVertical: 5 },
-  compareLabel: { width: 70, fontSize: SIZES.font * 0.9, color: COLORS.textSecondary, fontWeight: '600' },
-  compareTrack: { flex: 1, height: 14, borderRadius: 7, backgroundColor: '#ECECE3', overflow: 'hidden' },
+  compareLabel: { width: 70, fontSize: SIZES.font * 0.9, color: t.textSecondary, fontWeight: '600' },
+  compareTrack: { flex: 1, height: 14, borderRadius: 7, backgroundColor: t.track, overflow: 'hidden' },
   compareFill: { height: '100%', borderRadius: 7 },
   compareValue: { width: 100, textAlign: 'right', fontSize: SIZES.font * 0.9, fontWeight: 'bold' },
-  empty: { fontSize: SIZES.font, color: COLORS.textSecondary, marginTop: SIZES.padding },
+  empty: { fontSize: SIZES.font, color: t.textSecondary, marginTop: SIZES.padding },
 });
 
 export default ReportSummary;

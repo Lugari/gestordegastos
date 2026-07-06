@@ -7,11 +7,13 @@ import { useCurrency } from '../context/CurrencyContext';
 import { useIsDesktop } from '../hooks/useResponsive';
 import { CURRENCIES, getCurrency } from '../constants/currencies';
 import { COLORS, SIZES } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
-const GREEN = '#1C6B52';
 const COLOR_PALETTE = ['#ADC4CD', '#95E495', '#E4EB2A', '#D76A61', '#A77DDB', '#F9DC5C'];
 
 const AccountsScreen = () => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
   const isDesktop = useIsDesktop();
   const { baseCurrency } = useCurrency();
   const { data: accounts = [] } = useGetAccounts();
@@ -55,8 +57,8 @@ const AccountsScreen = () => {
         ) : (
           accounts.map((a) => (
             <View key={a.id} style={styles.accountCard}>
-              <View style={[styles.accountIcon, { backgroundColor: (a.color || COLORS.primary) + '44' }]}>
-                <MaterialIcons name="account-balance-wallet" size={18} color={a.color || COLORS.primary} />
+              <View style={[styles.accountIcon, { backgroundColor: (a.color || theme.neutral) + '44' }]}>
+                <MaterialIcons name="account-balance-wallet" size={18} color={a.color || theme.textSecondary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.accountName} numberOfLines={1}>{a.name}</Text>
@@ -64,7 +66,7 @@ const AccountsScreen = () => {
               </View>
               <Text style={styles.accountBadge}>{getCurrency(a.currency).symbol} {a.currency}</Text>
               <TouchableOpacity onPress={() => confirmDelete(a)} accessibilityLabel={`Eliminar ${a.name}`}>
-                <MaterialIcons name="delete-outline" size={22} color={COLORS.danger} />
+                <MaterialIcons name="delete-outline" size={22} color={theme.danger} />
               </TouchableOpacity>
             </View>
           ))
@@ -82,7 +84,7 @@ const AccountsScreen = () => {
             <TextInput
               style={styles.input}
               placeholder="Nombre (Banco, Efectivo, Tarjeta)"
-              placeholderTextColor={COLORS.neutral}
+              placeholderTextColor={theme.neutral}
               value={name}
               onChangeText={setName}
               autoFocus
@@ -112,34 +114,34 @@ const AccountsScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.background },
+const makeStyles = (t) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: t.background },
   content: { padding: SIZES.padding, paddingBottom: 40 },
   contentDesktop: { width: '100%', maxWidth: 640, alignSelf: 'center' },
-  title: { fontSize: SIZES.font * 1.6, fontWeight: '600', color: COLORS.textPrimary, marginBottom: 8 },
-  section: { fontSize: SIZES.font * 0.85, color: COLORS.textSecondary, marginTop: 8, marginBottom: 10 },
+  title: { fontSize: SIZES.font * 1.6, fontWeight: '600', color: t.textPrimary, marginBottom: 8 },
+  section: { fontSize: SIZES.font * 0.85, color: t.textSecondary, marginTop: 8, marginBottom: 10 },
 
   accountCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 11,
-    backgroundColor: '#fff',
+    backgroundColor: t.card,
     borderRadius: SIZES.radius * 1.2,
     padding: 11,
     marginBottom: 8,
   },
   accountIcon: { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center' },
-  accountName: { fontSize: SIZES.font * 1.05, fontWeight: '500', color: COLORS.textPrimary },
-  accountSub: { fontSize: SIZES.font * 0.8, color: COLORS.textSecondary, marginTop: 2 },
-  accountBadge: { fontSize: SIZES.font * 0.85, color: COLORS.textSecondary, backgroundColor: '#EFEFE8', paddingHorizontal: 9, paddingVertical: 3, borderRadius: 10, overflow: 'hidden' },
-  empty: { fontSize: SIZES.font, color: COLORS.textSecondary, marginVertical: 6 },
+  accountName: { fontSize: SIZES.font * 1.05, fontWeight: '500', color: t.textPrimary },
+  accountSub: { fontSize: SIZES.font * 0.8, color: t.textSecondary, marginTop: 2 },
+  accountBadge: { fontSize: SIZES.font * 0.85, color: t.textSecondary, backgroundColor: t.cardAlt, paddingHorizontal: 9, paddingVertical: 3, borderRadius: 10, overflow: 'hidden' },
+  empty: { fontSize: SIZES.font, color: t.textSecondary, marginVertical: 6 },
 
   addBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: GREEN,
+    backgroundColor: t.green,
     borderRadius: SIZES.radius * 1.2,
     paddingVertical: 12,
     marginTop: 8,
@@ -147,38 +149,38 @@ const styles = StyleSheet.create({
   addBtnText: { fontSize: SIZES.font, fontWeight: '700', color: '#fff' },
 
   formCard: {
-    backgroundColor: '#fff',
+    backgroundColor: t.card,
     borderWidth: 1,
-    borderColor: '#e3e3da',
+    borderColor: t.border,
     borderRadius: SIZES.radius * 1.2,
     padding: SIZES.padding,
     marginTop: 8,
   },
-  formTitle: { fontSize: SIZES.font * 0.85, color: COLORS.textSecondary, marginBottom: 8 },
+  formTitle: { fontSize: SIZES.font * 0.85, color: t.textSecondary, marginBottom: 8 },
   input: {
-    backgroundColor: COLORS.background,
+    backgroundColor: t.background,
     borderWidth: 1,
-    borderColor: '#d6d6cc',
+    borderColor: t.border,
     borderRadius: SIZES.radius,
     paddingHorizontal: SIZES.padding,
     paddingVertical: 10,
     fontSize: SIZES.font,
-    color: COLORS.textPrimary,
+    color: t.textPrimary,
   },
-  subLabel: { fontSize: SIZES.font * 0.85, color: COLORS.textSecondary, marginTop: 14, marginBottom: 8 },
+  subLabel: { fontSize: SIZES.font * 0.85, color: t.textSecondary, marginTop: 14, marginBottom: 8 },
   currencyRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   currencyChip: {
     paddingHorizontal: SIZES.padding,
     paddingVertical: SIZES.padding * 0.4,
     borderRadius: SIZES.radius,
     borderWidth: 1,
-    borderColor: COLORS.primary,
-    backgroundColor: COLORS.background,
+    borderColor: t.border,
+    backgroundColor: t.background,
   },
-  currencyChipActive: { backgroundColor: GREEN, borderColor: GREEN },
-  currencyChipText: { fontSize: SIZES.font, fontWeight: '600', color: COLORS.textSecondary },
+  currencyChipActive: { backgroundColor: t.green, borderColor: t.green },
+  currencyChipText: { fontSize: SIZES.font, fontWeight: '600', color: t.textSecondary },
   currencyChipTextActive: { color: '#fff' },
-  createBtn: { backgroundColor: GREEN, borderRadius: SIZES.radius, paddingVertical: 12, alignItems: 'center', marginTop: 16 },
+  createBtn: { backgroundColor: t.green, borderRadius: SIZES.radius, paddingVertical: 12, alignItems: 'center', marginTop: 16 },
   createBtnDisabled: { opacity: 0.4 },
   createBtnText: { fontSize: SIZES.font, fontWeight: '700', color: '#fff' },
 });

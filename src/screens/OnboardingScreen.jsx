@@ -2,9 +2,9 @@ import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, useWindowDimensions } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
-import { COLORS, SIZES } from '../constants/theme';
+import { SIZES } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
-const GREEN = '#1C6B52';
 
 // Presentación inicial de la app (se muestra una sola vez por dispositivo).
 const SLIDES = [
@@ -31,6 +31,8 @@ const SLIDES = [
 ];
 
 const OnboardingScreen = ({ onDone }) => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
   const { width } = useWindowDimensions();
   const listRef = useRef(null);
   const [index, setIndex] = useState(0);
@@ -65,7 +67,7 @@ const OnboardingScreen = ({ onDone }) => {
         renderItem={({ item }) => (
           <View style={[styles.slide, { width }]}>
             <View style={styles.iconWrap}>
-              <MaterialIcons name={item.icon} size={54} color={GREEN} />
+              <MaterialIcons name={item.icon} size={54} color={theme.green} />
             </View>
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.text}>{item.text}</Text>
@@ -87,24 +89,24 @@ const OnboardingScreen = ({ onDone }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.background },
+const makeStyles = (t) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: t.background },
   skip: { position: 'absolute', top: 54, right: 24, zIndex: 10, padding: 6 },
-  skipText: { fontSize: SIZES.font, color: COLORS.textSecondary, fontWeight: '600' },
+  skipText: { fontSize: SIZES.font, color: t.textSecondary, fontWeight: '600' },
 
   slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
   iconWrap: {
-    width: 110, height: 110, borderRadius: 55, backgroundColor: '#E1F5EE',
+    width: 110, height: 110, borderRadius: 55, backgroundColor: t.greenSoft,
     alignItems: 'center', justifyContent: 'center', marginBottom: 28,
   },
-  title: { fontSize: SIZES.font * 1.5, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 12, textAlign: 'center' },
-  text: { fontSize: SIZES.font * 1.02, color: COLORS.textSecondary, textAlign: 'center', lineHeight: SIZES.font * 1.55, maxWidth: 320 },
+  title: { fontSize: SIZES.font * 1.5, fontWeight: '700', color: t.textPrimary, marginBottom: 12, textAlign: 'center' },
+  text: { fontSize: SIZES.font * 1.02, color: t.textSecondary, textAlign: 'center', lineHeight: SIZES.font * 1.55, maxWidth: 320 },
 
   footer: { paddingHorizontal: 32, paddingBottom: 40, gap: 20 },
   dots: { flexDirection: 'row', justifyContent: 'center', gap: 8 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#d0d0c6' },
-  dotActive: { backgroundColor: GREEN, width: 22 },
-  nextBtn: { backgroundColor: GREEN, borderRadius: 12, paddingVertical: 15, alignItems: 'center' },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: t.track },
+  dotActive: { backgroundColor: t.green, width: 22 },
+  nextBtn: { backgroundColor: t.green, borderRadius: 12, paddingVertical: 15, alignItems: 'center' },
   nextText: { color: '#fff', fontSize: SIZES.font * 1.1, fontWeight: '700' },
 });
 

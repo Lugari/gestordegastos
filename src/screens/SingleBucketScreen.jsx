@@ -8,16 +8,13 @@ import { useGetTransactions } from '../hooks/useTransactionData';
 import { useIsDesktop } from '../hooks/useResponsive';
 import { useCurrency } from '../context/CurrencyContext';
 import { KIND } from '../constants/bucketKinds';
-import { COLORS, SIZES } from '../constants/theme';
+import { SIZES } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 // Pantalla de detalle única para todos los kinds. Reemplaza a Single{Budget,
 // Saving,Debt,Investment}Screen. Se parametriza con `kind` (initialParams),
 // conservando los mismos nombres de ruta para no tocar las llamadas existentes.
-const GREEN = '#1C6B52';
 const DEBT_RED = '#B5453A';
-const INCOME = '#3B6D11';
-const EXPENSE = '#A32D2D';
-const SAVING_C = '#0F6E56';
 
 const DEBT_LABELS = {
   'credit card': 'Tarjeta',
@@ -72,6 +69,9 @@ const metaFor = (kind, item, format) => {
 };
 
 const SingleBucketScreen = () => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
+  const GREEN = theme.green, INCOME = theme.income, EXPENSE = theme.expense, SAVING_C = theme.saving;
   const navigation = useNavigation();
   const isDesktop = useIsDesktop();
   const { kind, ...rest } = useRoute().params || {};
@@ -130,7 +130,7 @@ const SingleBucketScreen = () => {
       <View style={styles.headerRow}>
         <Text style={styles.title} numberOfLines={1}>{item.name}</Text>
         <TouchableOpacity onPress={handleEdit} accessibilityLabel="Editar">
-          <MaterialIcons name="edit" size={22} color={COLORS.textSecondary} />
+          <MaterialIcons name="edit" size={22} color={theme.textSecondary} />
         </TouchableOpacity>
       </View>
 
@@ -216,46 +216,46 @@ const SingleBucketScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: COLORS.background },
+const makeStyles = (t) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: t.background },
   content: { padding: SIZES.padding, paddingBottom: 40 },
   contentDesktop: { width: '100%', maxWidth: 760, alignSelf: 'center' },
 
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-  title: { flex: 1, fontSize: SIZES.font * 1.6, fontWeight: '600', color: COLORS.textPrimary },
+  title: { flex: 1, fontSize: SIZES.font * 1.6, fontWeight: '600', color: t.textPrimary },
 
-  hero: { backgroundColor: GREEN, borderRadius: SIZES.radius * 1.4, padding: SIZES.padding },
+  hero: { backgroundColor: t.green, borderRadius: SIZES.radius * 1.4, padding: SIZES.padding },
   heroTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   heroLabel: { fontSize: SIZES.font * 0.9, color: 'rgba(255,255,255,0.82)' },
-  heroTag: { fontSize: SIZES.font * 0.75, color: GREEN, backgroundColor: '#fff', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, overflow: 'hidden' },
+  heroTag: { fontSize: SIZES.font * 0.75, color: t.green, backgroundColor: t.card, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, overflow: 'hidden' },
   heroValue: { fontSize: SIZES.font * 2, fontWeight: '700', color: '#fff', marginTop: 2 },
   heroTrack: { height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.25)', marginTop: 10, overflow: 'hidden' },
   heroFill: { height: '100%', borderRadius: 4 },
   heroSub: { fontSize: SIZES.font * 0.85, color: 'rgba(255,255,255,0.85)', marginTop: 8 },
 
   metaGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
-  metaCard: { flexBasis: '47%', flexGrow: 1, backgroundColor: '#EFEFE8', borderRadius: 10, paddingVertical: 9, paddingHorizontal: 11 },
-  metaLabel: { fontSize: SIZES.font * 0.78, color: '#8a8a80' },
-  metaValue: { fontSize: SIZES.font * 0.95, color: COLORS.textPrimary, marginTop: 2 },
+  metaCard: { flexBasis: '47%', flexGrow: 1, backgroundColor: t.cardAlt, borderRadius: 10, paddingVertical: 9, paddingHorizontal: 11 },
+  metaLabel: { fontSize: SIZES.font * 0.78, color: t.neutral },
+  metaValue: { fontSize: SIZES.font * 0.95, color: t.textPrimary, marginTop: 2 },
 
-  noteCard: { backgroundColor: '#fff', borderRadius: 10, padding: 11, marginTop: 10 },
-  noteText: { fontSize: SIZES.font * 0.95, color: '#444', marginTop: 2 },
+  noteCard: { backgroundColor: t.card, borderRadius: 10, padding: 11, marginTop: 10 },
+  noteText: { fontSize: SIZES.font * 0.95, color: t.textPrimary, marginTop: 2 },
 
   movHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 18, marginBottom: 4 },
-  sectionLabel: { fontSize: SIZES.font * 0.9, color: COLORS.textSecondary },
+  sectionLabel: { fontSize: SIZES.font * 0.9, color: t.textSecondary },
   addMov: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  addMovText: { fontSize: SIZES.font * 0.85, color: GREEN, fontWeight: '600' },
-  emptyMov: { fontSize: SIZES.font * 0.9, color: COLORS.textSecondary, marginTop: 6 },
+  addMovText: { fontSize: SIZES.font * 0.85, color: t.green, fontWeight: '600' },
+  emptyMov: { fontSize: SIZES.font * 0.9, color: t.textSecondary, marginTop: 6 },
   movRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
   movIcon: { width: 34, height: 34, borderRadius: 17, justifyContent: 'center', alignItems: 'center' },
-  movName: { fontSize: SIZES.font * 0.95, fontWeight: '500', color: COLORS.textPrimary },
-  movDate: { fontSize: SIZES.font * 0.78, color: COLORS.textSecondary, marginTop: 2 },
+  movName: { fontSize: SIZES.font * 0.95, fontWeight: '500', color: t.textPrimary },
+  movDate: { fontSize: SIZES.font * 0.78, color: t.textSecondary, marginTop: 2 },
   movAmount: { fontSize: SIZES.font * 0.95, fontWeight: '600' },
 
-  editBtn: { marginTop: 24, backgroundColor: GREEN, borderRadius: SIZES.radius * 1.2, paddingVertical: 14, alignItems: 'center' },
+  editBtn: { marginTop: 24, backgroundColor: t.green, borderRadius: SIZES.radius * 1.2, paddingVertical: 14, alignItems: 'center' },
   editText: { color: '#fff', fontSize: SIZES.font * 1.1, fontWeight: '700' },
   deleteBtn: { marginTop: 10, borderWidth: 1, borderColor: '#D4948C', borderRadius: SIZES.radius * 1.2, paddingVertical: 12, alignItems: 'center' },
-  deleteText: { color: EXPENSE, fontSize: SIZES.font, fontWeight: '600' },
+  deleteText: { color: t.expense, fontSize: SIZES.font, fontWeight: '600' },
 });
 
 export default SingleBucketScreen;

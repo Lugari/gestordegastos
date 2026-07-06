@@ -13,7 +13,8 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import PrimaryButton from './PrimaryButton';
 import SecondaryButton from './SecondaryButton';
-import { COLORS, SIZES } from '../constants/theme';
+import { SIZES } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 // YYYY-MM-DD en hora local, para el <input type="date"> de web.
 const toInputValue = (d) => {
@@ -31,6 +32,8 @@ const formatLabel = (d) =>
 
 // Campo de fecha: en web usa el selector nativo del navegador; en móvil, DateTimePicker.
 const DateField = ({ label, value, onChange }) => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
   const [show, setShow] = useState(false);
 
   return (
@@ -42,12 +45,12 @@ const DateField = ({ label, value, onChange }) => {
           type="date"
           value={toInputValue(value)}
           onChange={(e) => e.target.value && onChange(fromInputValue(e.target.value))}
-          style={webInputStyle}
+          style={webInputStyle(theme)}
         />
       ) : (
         <>
           <TouchableOpacity style={styles.dateButton} onPress={() => setShow(true)}>
-            <MaterialIcons name="calendar-month" size={20} color={COLORS.textSecondary} />
+            <MaterialIcons name="calendar-month" size={20} color={theme.textSecondary} />
             <Text style={styles.dateButtonText}>{formatLabel(value)}</Text>
           </TouchableOpacity>
           {show && (
@@ -68,6 +71,8 @@ const DateField = ({ label, value, onChange }) => {
 };
 
 const DateRangePickerModal = ({ visible, initialStart, initialEnd, onApply, onCancel }) => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
   const [start, setStart] = useState(initialStart || new Date());
   const [end, setEnd] = useState(initialEnd || new Date());
   const [error, setError] = useState('');
@@ -110,20 +115,20 @@ const DateRangePickerModal = ({ visible, initialStart, initialEnd, onApply, onCa
   );
 };
 
-const webInputStyle = {
-  border: `1px solid ${COLORS.textSecondary}`,
+const webInputStyle = (t) => ({
+  border: '1px solid #888',
   borderRadius: SIZES.radius,
   padding: '8px 12px',
   fontSize: SIZES.font,
-  color: COLORS.textPrimary,
-  backgroundColor: COLORS.background,
+  color: t.textPrimary,
+  backgroundColor: t.inputBg,
   fontFamily: 'inherit',
-};
+});
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: COLORS.textSecondary + '55',
+    backgroundColor: t.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: SIZES.padding,
@@ -131,10 +136,10 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 420,
-    backgroundColor: '#fff',
+    backgroundColor: t.card,
     borderRadius: SIZES.radius * 1.4,
     padding: SIZES.padding * 1.5,
-    shadowColor: COLORS.textPrimary,
+    shadowColor: '#000',
     shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 8 },
     shadowRadius: 20,
@@ -143,7 +148,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: SIZES.font * 1.4,
     fontWeight: 'bold',
-    color: COLORS.textPrimary,
+    color: t.textPrimary,
     marginBottom: SIZES.padding,
   },
   fieldRow: {
@@ -152,7 +157,7 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: SIZES.font,
     fontWeight: 'bold',
-    color: COLORS.textSecondary,
+    color: t.textSecondary,
     marginBottom: SIZES.base,
   },
   dateButton: {
@@ -160,18 +165,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     borderWidth: 1,
-    borderColor: COLORS.textSecondary,
+    borderColor: t.border,
     borderRadius: SIZES.radius,
     paddingHorizontal: SIZES.padding,
     paddingVertical: SIZES.padding * 0.6,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.inputBg,
   },
   dateButtonText: {
     fontSize: SIZES.font,
-    color: COLORS.textPrimary,
+    color: t.textPrimary,
   },
   error: {
-    color: COLORS.danger,
+    color: t.danger,
     fontSize: SIZES.font * 0.9,
     marginBottom: SIZES.base,
   },

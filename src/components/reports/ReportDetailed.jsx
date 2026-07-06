@@ -1,18 +1,18 @@
-import { View, Text, StyleSheet } from 'react-native';
+import React, { View, Text, StyleSheet } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 
-import { COLORS, SIZES } from '../../constants/theme';
+import { SIZES } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { useCurrency } from '../../context/CurrencyContext';
 
-const INCOME = '#3B6D11';
-const EXPENSE = '#A32D2D';
-const SAVING = '#0F6E56';
-
-const amountColor = (t) => (t === 'ingreso' ? INCOME : t === 'gasto' ? EXPENSE : SAVING);
 const formatDate = (d) => new Date(d).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
 
 // Vista "Detallado": tendencia, desglose por categoría y lista de movimientos.
 const ReportDetailed = ({ report, chartWidth }) => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
+  const INCOME = theme.income, EXPENSE = theme.expense, SAVING = theme.saving;
+  const amountColor = (ty) => (ty === 'ingreso' ? INCOME : ty === 'gasto' ? EXPENSE : SAVING);
   const { format } = useCurrency();
   const { totalIncome, totalExpense, totalSavings, net, byCategory, timeSeries, transactions, count } = report;
 
@@ -49,10 +49,10 @@ const ReportDetailed = ({ report, chartWidth }) => {
             width={chartWidth}
             height={220}
             chartConfig={{
-              backgroundGradientFrom: '#fff',
-              backgroundGradientTo: '#fff',
+              backgroundGradientFrom: theme.card,
+              backgroundGradientTo: theme.card,
               decimalPlaces: 0,
-              color: (o = 1) => `rgba(0,0,0,${o})`,
+              color: (o = 1) => theme.isDark ? `rgba(236,236,228,${o})` : `rgba(0,0,0,${o})`,
             }}
             bezier
           />
@@ -71,7 +71,7 @@ const ReportDetailed = ({ report, chartWidth }) => {
                 <Text style={styles.catAmount}>{format(c.total)} · {pct}%</Text>
               </View>
               <View style={styles.catTrack}>
-                <View style={[styles.catFill, { width: `${pct}%`, backgroundColor: c.color || COLORS.neutral }]} />
+                <View style={[styles.catFill, { width: `${pct}%`, backgroundColor: c.color || theme.neutral }]} />
               </View>
               <Text style={styles.catMeta}>{c.count} movimiento{c.count !== 1 ? 's' : ''}</Text>
             </View>
@@ -97,9 +97,9 @@ const ReportDetailed = ({ report, chartWidth }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   totalsCard: {
-    backgroundColor: '#fff',
+    backgroundColor: t.card,
     borderRadius: SIZES.radius,
     padding: SIZES.padding,
     elevation: 2,
@@ -109,25 +109,25 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
-  totalNet: { borderTopWidth: 1, borderTopColor: COLORS.lightGray, marginTop: 4, paddingTop: 8 },
-  totalLabel: { fontSize: SIZES.font, color: COLORS.textSecondary },
-  totalLabelBold: { fontSize: SIZES.font, color: COLORS.textPrimary, fontWeight: 'bold' },
+  totalNet: { borderTopWidth: 1, borderTopColor: t.border, marginTop: 4, paddingTop: 8 },
+  totalLabel: { fontSize: SIZES.font, color: t.textSecondary },
+  totalLabelBold: { fontSize: SIZES.font, color: t.textPrimary, fontWeight: 'bold' },
   totalVal: { fontSize: SIZES.font, fontWeight: 'bold' },
   block: { marginTop: SIZES.padding * 1.5 },
-  blockTitle: { fontSize: SIZES.font * 1.1, fontWeight: '500', color: COLORS.textPrimary, marginBottom: SIZES.base },
+  blockTitle: { fontSize: SIZES.font * 1.1, fontWeight: '500', color: t.textPrimary, marginBottom: SIZES.base },
   catRow: { marginVertical: 6 },
   catHeader: { flexDirection: 'row', justifyContent: 'space-between' },
-  catName: { fontSize: SIZES.font, color: COLORS.textPrimary, fontWeight: '600' },
-  catAmount: { fontSize: SIZES.font * 0.9, color: COLORS.textSecondary, fontWeight: 'bold' },
-  catTrack: { height: 10, borderRadius: 5, backgroundColor: '#ECECE3', overflow: 'hidden', marginTop: 4 },
+  catName: { fontSize: SIZES.font, color: t.textPrimary, fontWeight: '600' },
+  catAmount: { fontSize: SIZES.font * 0.9, color: t.textSecondary, fontWeight: 'bold' },
+  catTrack: { height: 10, borderRadius: 5, backgroundColor: t.track, overflow: 'hidden', marginTop: 4 },
   catFill: { height: '100%', borderRadius: 5 },
-  catMeta: { fontSize: SIZES.font * 0.8, color: COLORS.neutral, marginTop: 2 },
-  txRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: COLORS.lightGray },
+  catMeta: { fontSize: SIZES.font * 0.8, color: t.neutral, marginTop: 2 },
+  txRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: t.border },
   txDot: { width: 8, height: 8, borderRadius: 4 },
-  txDate: { width: 56, fontSize: SIZES.font * 0.85, color: COLORS.textSecondary },
-  txNote: { flex: 1, fontSize: SIZES.font * 0.9, color: COLORS.textPrimary },
+  txDate: { width: 56, fontSize: SIZES.font * 0.85, color: t.textSecondary },
+  txNote: { flex: 1, fontSize: SIZES.font * 0.9, color: t.textPrimary },
   txAmount: { fontSize: SIZES.font * 0.95, fontWeight: 'bold' },
-  empty: { fontSize: SIZES.font, color: COLORS.textSecondary, marginTop: SIZES.padding },
+  empty: { fontSize: SIZES.font, color: t.textSecondary, marginTop: SIZES.padding },
 });
 
 export default ReportDetailed;
