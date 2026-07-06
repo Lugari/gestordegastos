@@ -24,6 +24,7 @@ import ReportBuilderScreen from "./screens/ReportBuilderScreen";
 import AccountsScreen from "./screens/AccountsScreen";
 import RecurringScreen from "./screens/RecurringScreen";
 import BillsScreen from "./screens/BillsScreen";
+import OnboardingScreen from "./screens/OnboardingScreen";
 
 import { KIND } from './constants/bucketKinds';
 
@@ -40,9 +41,22 @@ const persister = createAsyncStoragePersister({ storage: AsyncStorage });
 
 const Stack = createNativeStackNavigator();
 
+const ONBOARDING_KEY = '@onboarding_done';
+
 const AppNavigator = () => {
   const { userToken, isLoading } = useContext(AuthContext);
   const queryClient = useQueryClient();
+
+  // Onboarding: se muestra una sola vez por dispositivo, tras iniciar sesión.
+  // null = aún no sabemos (leyendo AsyncStorage); true/false = decidido.
+  const [onboardingDone, setOnboardingDone] = useState(null);
+  useEffect(() => {
+    AsyncStorage.getItem(ONBOARDING_KEY).then((v) => setOnboardingDone(v === '1'));
+  }, []);
+  const finishOnboarding = () => {
+    setOnboardingDone(true);
+    AsyncStorage.setItem(ONBOARDING_KEY, '1').catch(() => {});
+  };
 
   // Al iniciar sesión: sube los datos locales a la nube (una vez), genera las
   // transacciones recurrentes vencidas y refresca las queries.
@@ -56,8 +70,12 @@ const AppNavigator = () => {
     }
   }, [userToken]);
 
-  if (isLoading) {
+  if (isLoading || (userToken && onboardingDone === null)) {
     return null;
+  }
+
+  if (userToken && onboardingDone === false) {
+    return <OnboardingScreen onDone={finishOnboarding} />;
   }
 
   return (

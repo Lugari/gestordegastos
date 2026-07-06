@@ -5,6 +5,7 @@ import { getStrategy } from '../domain/strategyByKind';
 import { KIND, kindFromTransactionType } from '../constants/bucketKinds';
 import { toBase } from '../utils/formatMoney';
 import { notifyNow } from '../services/notificationsService';
+import { notify } from '../utils/notify';
 
 export const useGetTransactions = () => {
   return useQuery({
@@ -39,19 +40,41 @@ const applyBucketDelta = async (targetId, targetKind, signedAmount) => {
   };
 };
 
-// Notifica cuando un gasto cruza el 80% o el 100% del presupuesto (solo al cruzar,
-// no en cada gasto). Requiere notificaciones activadas (si no, es no-op).
-const THRESHOLDS = [0.8, 1];
+// Avisos al cruzar umbrales (solo al cruzar, no en cada movimiento):
+//  - Presupuestos: advertencia al 80% y al 100% (notificación local si están activadas).
+//  - Ahorros: celebración al 50% y al 100% de la meta (mensaje en la app + notificación).
+const BUDGET_THRESHOLDS = [0.8, 1];
+const SAVING_MILESTONES = [0.5, 1];
+
+const crossed = (prev, now, t) => prev < t && now >= t;
+
 const maybeNotifyBudget = async (info) => {
-  if (!info || info.kind !== KIND.BUDGET || info.total <= 0) return;
+  if (!info || info.total <= 0) return;
   const prev = info.prevUsed / info.total;
   const now = info.newUsed / info.total;
-  for (const t of THRESHOLDS) {
-    if (prev < t && now >= t) {
-      const pct = Math.round(now * 100);
-      const title = t >= 1 ? 'Presupuesto superado' : 'Presupuesto casi agotado';
-      await notifyNow(title, `${info.name}: llevas ${pct}% de tu presupuesto.`);
-      break; // una sola alerta por transacción
+
+  if (info.kind === KIND.BUDGET) {
+    for (const t of BUDGET_THRESHOLDS) {
+      if (crossed(prev, now, t)) {
+        const pct = Math.round(now * 100);
+        const title = t >= 1 ? 'Presupuesto superado' : 'Presupuesto casi agotado';
+        await notifyNow(title, `${info.name}: llevas ${pct}% de tu presupuesto.`);
+        break; // una sola alerta por transacción
+      }
+    }
+    return;
+  }
+
+  if (info.kind === KIND.SAVING) {
+    // Hito mayor alcanzado con este aporte (si cruza 50% y 100% a la vez, gana el 100%).
+    const hit = [...SAVING_MILESTONES].reverse().find((t) => crossed(prev, now, t));
+    if (hit) {
+      const title = hit >= 1 ? '🎉 ¡Meta lograda!' : '¡Vas a mitad de camino!';
+      const body = hit >= 1
+        ? `Completaste tu meta "${info.name}". ¡Felicitaciones!`
+        : `Ya llevas el 50% de tu meta "${info.name}". ¡Sigue así!`;
+      notify(title, body); // celebración en la app
+      await notifyNow(title, body); // y notificación local si están activadas
     }
   }
 };
