@@ -76,7 +76,7 @@ const TransactionHistoryScreen = () => {
     filteredTransactions.forEach((t) => {
       const amt = convert(parseFloat(t.amount) || 0, t.currency || baseCurrency, baseCurrency);
       const type = t.type.toLowerCase();
-      if (type === 'ingreso') inc += amt;
+      if (type === 'ingreso' && !t.is_advance) inc += amt;
       else if (type === 'gasto') exp += amt;
       else if (type === 'ahorro') {
         const s = savings.find((x) => x.id === t.budget_id);

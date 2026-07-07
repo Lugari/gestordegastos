@@ -81,7 +81,7 @@ export const useReportData = (config) => {
     sorted.forEach((t) => {
       const l = labelOf(t.date);
       const amount = parseFloat(t.amount) || 0;
-      if (t.type === 'ingreso') income[l] += amount;
+      if (t.type === 'ingreso' && !t.is_advance) income[l] += amount;
       else if (t.type === 'gasto') expense[l] += amount;
     });
 

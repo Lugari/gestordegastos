@@ -6,6 +6,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import * as Bills from '../services/billsService';
 import * as TransactionService from '../services/transactionService';
+import * as Cards from '../services/cardService';
+import { useGetDebts } from '../hooks/useDebtsData';
 import { syncBillReminders } from '../services/billsReminders';
 import { toDayString } from '../services/recurringService';
 import { confirmAsync, notify } from '../utils/notify';
@@ -37,6 +39,7 @@ const BillsScreen = () => {
   const [month, setMonth] = useState(now.getMonth() + 1); // 1..12
 
   const { data: bills = [], isLoading } = useQuery({ queryKey: ['bills'], queryFn: Bills.getAllBills });
+  const { data: debts = [] } = useGetDebts();
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['bills'] });
@@ -117,6 +120,23 @@ const BillsScreen = () => {
     setPayBusy(true);
     try {
       await Bills.setPaid(bill, occ, true);
+
+      // Factura de tarjeta de crédito: el pago es un ABONO (baja la deuda y
+      // libera cupo); no se registra gasto para no duplicar (las compras ya
+      // fueron gasto y los intereses los registró el corte).
+      if (bill.card_id) {
+        const card = debts.find((d) => d.id === bill.card_id);
+        if (card) {
+          await Cards.applyPaymentToCard(card, amount);
+          queryClient.invalidateQueries({ queryKey: ['debts'] });
+          queryClient.invalidateQueries({ queryKey: ['cardplans', card.id] });
+        }
+        setPaying(null);
+        invalidate();
+        setPayBusy(false);
+        return;
+      }
+
       if (record) {
         try {
           await TransactionService.addTransaction({
@@ -309,15 +329,32 @@ const BillsScreen = () => {
               placeholderTextColor={theme.neutral}
               autoFocus
             />
-            <Text style={styles.payHint}>Puedes ajustarlo si el recibo llegó distinto al estimado.</Text>
+            <Text style={styles.payHint}>
+              {paying.bill.card_id
+                ? 'El pago abona a la tarjeta: baja la deuda y libera cupo. Puedes pagar más o menos que la cuota.'
+                : 'Puedes ajustarlo si el recibo llegó distinto al estimado.'}
+            </Text>
 
             <View style={styles.editActions}>
-              <TouchableOpacity style={[styles.editBtn, styles.cancelBtn]} onPress={() => confirmPay(false)} disabled={payBusy}>
-                <Text style={styles.editBtnText}>Solo marcar pagada</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.editBtn, styles.saveBtn, payBusy && { opacity: 0.6 }]} onPress={() => confirmPay(true)} disabled={payBusy}>
-                <Text style={[styles.editBtnText, { color: '#fff' }]}>{payBusy ? 'Guardando…' : 'Registrar gasto'}</Text>
-              </TouchableOpacity>
+              {paying.bill.card_id ? (
+                <>
+                  <TouchableOpacity style={[styles.editBtn, styles.cancelBtn]} onPress={() => setPaying(null)} disabled={payBusy}>
+                    <Text style={styles.editBtnText}>Cancelar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.editBtn, styles.saveBtn, payBusy && { opacity: 0.6 }]} onPress={() => confirmPay(false)} disabled={payBusy}>
+                    <Text style={[styles.editBtnText, { color: '#fff' }]}>{payBusy ? 'Guardando…' : 'Pagar tarjeta'}</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  <TouchableOpacity style={[styles.editBtn, styles.cancelBtn]} onPress={() => confirmPay(false)} disabled={payBusy}>
+                    <Text style={styles.editBtnText}>Solo marcar pagada</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.editBtn, styles.saveBtn, payBusy && { opacity: 0.6 }]} onPress={() => confirmPay(true)} disabled={payBusy}>
+                    <Text style={[styles.editBtnText, { color: '#fff' }]}>{payBusy ? 'Guardando…' : 'Registrar gasto'}</Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
           </View>
         </View>

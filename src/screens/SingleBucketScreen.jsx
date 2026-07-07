@@ -1,9 +1,15 @@
-import React, { useCallback, useMemo } from 'react';
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Platform, Alert } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Platform, Alert, TextInput } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-import { useManageBuckets } from '../hooks/useBucketData';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+
+import { useManageBuckets, useGetBuckets } from '../hooks/useBucketData';
+import { useGetAccounts } from '../hooks/useAccountsData';
+import * as Cards from '../services/cardService';
+import * as TransactionService from '../services/transactionService';
+import { notify } from '../utils/notify';
 import { useGetTransactions } from '../hooks/useTransactionData';
 import { useIsDesktop } from '../hooks/useResponsive';
 import { useCurrency } from '../context/CurrencyContext';
@@ -57,6 +63,14 @@ const metaFor = (kind, item, format) => {
         { label: 'Actualizado', value: fmtDate(item.updated_at) },
       ];
     case KIND.DEBT:
+      if (item.type === 'credit card') {
+        return [
+          { label: 'Día de corte', value: item.cut_day ? `El ${item.cut_day}` : '—' },
+          { label: 'Límite de pago', value: item.due_day ? `El ${item.due_day}` : '—' },
+          { label: 'Tasa mensual', value: item.interest_enabled ? `${item.interest_rate || 0}%` : 'Sin interés' },
+          { label: 'Cuota de manejo', value: format(item.handling_fee || 0) },
+        ];
+      }
       return [
         { label: 'Tipo', value: DEBT_LABELS[item.type] || item.type || '—' },
         { label: 'Interés', value: `${item.apr || 0}%` },
@@ -78,10 +92,72 @@ const SingleBucketScreen = () => {
   const cfg = CONFIG[kind];
 
   const { format, formatIn } = useCurrency();
+  const queryClient = useQueryClient();
   const { deleteMutation } = useManageBuckets(kind, cfg?.queryKey ?? ['buckets', kind]);
   const { data: transactions = [] } = useGetTransactions();
+  const { data: liveBuckets = [] } = useGetBuckets(kind, cfg?.queryKey ?? ['buckets', kind]);
+  const { data: accounts = [] } = useGetAccounts();
 
-  const item = cfg ? rest[cfg.param] : null;
+  const paramItem = cfg ? rest[cfg.param] : null;
+  // Datos vivos: la deuda de una tarjeta cambia con compras/abonos.
+  const item = useMemo(
+    () => (paramItem ? liveBuckets.find((b) => b.id === paramItem.id) || paramItem : null),
+    [liveBuckets, paramItem],
+  );
+
+  const isCC = kind === KIND.DEBT && Cards.isCreditCard(item);
+
+  // Planes de cuotas de la tarjeta.
+  const { data: plans = [] } = useQuery({
+    queryKey: ['cardplans', item?.id],
+    queryFn: () => Cards.getPlansForCard(item.id),
+    enabled: !!isCC,
+  });
+
+  // Avance / abono (modales)
+  const [ccModal, setCcModal] = useState(null); // null | 'advance' | 'payment'
+  const [ccAmount, setCcAmount] = useState('');
+  const [ccAccount, setCcAccount] = useState('');
+  const [ccBusy, setCcBusy] = useState(false);
+
+  const refreshCard = () => {
+    queryClient.invalidateQueries({ queryKey: cfg?.queryKey ?? ['buckets', kind] });
+    queryClient.invalidateQueries({ queryKey: ['cardplans', item?.id] });
+    queryClient.invalidateQueries({ queryKey: ['transactions'] });
+  };
+
+  const submitCcModal = async () => {
+    const amount = parseFloat(ccAmount) || 0;
+    if (amount <= 0) { notify('Monto inválido', 'Ingresa un monto válido.'); return; }
+    setCcBusy(true);
+    try {
+      if (ccModal === 'advance') {
+        if (!ccAccount) { notify('Falta la cuenta', 'Elige la cuenta que recibe el avance.'); setCcBusy(false); return; }
+        const acc = accounts.find((a) => a.id === ccAccount);
+        await Cards.registerAdvance({ card: item, amount, notes: `Avance · ${item.name}` });
+        // El efectivo entra a la cuenta destino (excluido de los ingresos en métricas).
+        await TransactionService.addTransaction({
+          type: 'ingreso',
+          is_advance: true,
+          account: ccAccount,
+          amount,
+          currency: acc?.currency,
+          notes: `Avance ${item.name}`,
+          date: new Date().toISOString(),
+          card_id: item.id,
+        }).catch(() => {});
+      } else {
+        await Cards.applyPaymentToCard(item, amount);
+      }
+      setCcModal(null);
+      setCcAmount('');
+      refreshCard();
+    } catch (e) {
+      notify('No se pudo guardar', 'Revisa tu conexión e inténtalo de nuevo.');
+    } finally {
+      setCcBusy(false);
+    }
+  };
 
   const movements = useMemo(() => {
     if (!cfg?.showTransactions || !item) return [];
@@ -145,6 +221,13 @@ const SingleBucketScreen = () => {
           <View style={styles.heroTrack}><View style={[styles.heroFill, { width: `${pct * 100}%`, backgroundColor: exceeded ? '#F2C0B8' : '#fff' }]} /></View>
           <Text style={styles.heroSub}>{format(used)} de {format(total)} · {Math.round((total > 0 ? used / total : 0) * 100)}%</Text>
         </View>
+      ) : isCC ? (
+        <View style={[styles.hero, { backgroundColor: DEBT_RED }]}>
+          <Text style={styles.heroLabel}>Deuda actual</Text>
+          <Text style={styles.heroValue}>{format(used)}</Text>
+          <View style={styles.heroTrack}><View style={[styles.heroFill, { width: `${pct * 100}%` }]} /></View>
+          <Text style={styles.heroSub}>Cupo disponible: {format(Math.max(0, total - used))} de {format(total)}</Text>
+        </View>
       ) : (
         <View style={[styles.hero, { backgroundColor: DEBT_RED }]}>
           <Text style={styles.heroLabel}>Saldo total</Text>
@@ -170,6 +253,45 @@ const SingleBucketScreen = () => {
           <Text style={styles.noteText}>{item.notes}</Text>
         </View>
       ) : null}
+
+      {/* Tarjeta de crédito: avance / abono + planes de cuotas */}
+      {isCC && (
+        <>
+          <View style={styles.ccActions}>
+            <TouchableOpacity style={styles.ccBtn} onPress={() => { setCcModal('payment'); setCcAmount(''); }}>
+              <MaterialIcons name="savings" size={18} color="#fff" />
+              <Text style={styles.ccBtnText}>Abonar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.ccBtn, styles.ccBtnAlt]} onPress={() => { setCcModal('advance'); setCcAmount(''); setCcAccount(accounts[0]?.id || ''); }}>
+              <MaterialIcons name="local-atm" size={18} color={theme.green} />
+              <Text style={[styles.ccBtnText, { color: theme.green }]}>Avance</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionLabel}>Compras a cuotas</Text>
+          </View>
+          {plans.filter((p) => !p.closed).length === 0 ? (
+            <Text style={styles.emptyMov}>Sin planes activos. Paga con la tarjeta desde "+" eligiéndola en "Pagar con".</Text>
+          ) : (
+            plans.filter((p) => !p.closed).map((p) => {
+              const paidN = Math.max(0, p.installments - Math.ceil((p.remaining || 0) / (p.installment_amount || 1)));
+              return (
+                <View key={p.id} style={styles.planRow}>
+                  <View style={[styles.planIcon, { backgroundColor: `${p.kind === 'advance' ? theme.expense : theme.green}22` }]}>
+                    <MaterialIcons name={p.kind === 'advance' ? 'local-atm' : 'shopping-bag'} size={16} color={p.kind === 'advance' ? theme.expense : theme.green} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.planName} numberOfLines={1}>{p.notes || (p.kind === 'advance' ? 'Avance' : 'Compra')}</Text>
+                    <Text style={styles.planSub}>Cuota {Math.min(paidN + 1, p.installments)} de {p.installments}{p.interest ? ' · con interés' : ''}</Text>
+                  </View>
+                  <Text style={styles.planAmount}>{format(Math.round(p.remaining || 0))}</Text>
+                </View>
+              );
+            })
+          )}
+        </>
+      )}
 
       {/* Movimientos */}
       {cfg.showTransactions && (
@@ -209,6 +331,46 @@ const SingleBucketScreen = () => {
       <TouchableOpacity style={styles.editBtn} onPress={handleEdit}>
         <Text style={styles.editText}>Editar</Text>
       </TouchableOpacity>
+      {ccModal && (
+        <View style={styles.ccModalCard}>
+          <Text style={styles.ccModalTitle}>{ccModal === 'advance' ? 'Registrar avance' : 'Abonar a la tarjeta'}</Text>
+          <Text style={styles.metaLabel}>Monto</Text>
+          <TextInput
+            style={styles.ccInput}
+            keyboardType="numeric"
+            value={ccAmount}
+            onChangeText={(v) => setCcAmount(v.replace(/[^0-9.]/g, ''))}
+            placeholder="0"
+            placeholderTextColor={theme.neutral}
+            autoFocus
+          />
+          {ccModal === 'advance' && (
+            <>
+              <Text style={[styles.metaLabel, { marginTop: 10 }]}>Cuenta que recibe el efectivo</Text>
+              <View style={styles.ccAccountRow}>
+                {accounts.map((a) => {
+                  const active = ccAccount === a.id;
+                  return (
+                    <TouchableOpacity key={a.id} style={[styles.ccAccountChip, active && styles.ccAccountChipActive]} onPress={() => setCcAccount(a.id)}>
+                      <Text style={[styles.ccAccountText, active && { color: '#fff' }]}>{a.name}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <Text style={styles.ccHint}>Se difiere automáticamente a 24 cuotas con interés.</Text>
+            </>
+          )}
+          <View style={styles.ccModalActions}>
+            <TouchableOpacity style={[styles.ccModalBtn, styles.ccCancel]} onPress={() => setCcModal(null)} disabled={ccBusy}>
+              <Text style={styles.ccModalBtnText}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.ccModalBtn, styles.ccSave, ccBusy && { opacity: 0.6 }]} onPress={submitCcModal} disabled={ccBusy}>
+              <Text style={[styles.ccModalBtnText, { color: '#fff' }]}>{ccBusy ? 'Guardando…' : ccModal === 'advance' ? 'Registrar' : 'Abonar'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
       <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete} disabled={deleteMutation.isPending}>
         <Text style={styles.deleteText}>Eliminar</Text>
       </TouchableOpacity>
@@ -252,6 +414,34 @@ const makeStyles = (t) => StyleSheet.create({
   movDate: { fontSize: SIZES.font * 0.78, color: t.textSecondary, marginTop: 2 },
   movAmount: { fontSize: SIZES.font * 0.95, fontWeight: '600' },
 
+  ccActions: { flexDirection: 'row', gap: 10, marginTop: 14 },
+  ccBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    backgroundColor: t.green, borderRadius: SIZES.radius * 1.2, paddingVertical: 12,
+  },
+  ccBtnAlt: { backgroundColor: 'transparent', borderWidth: 1, borderColor: t.green },
+  ccBtnText: { color: '#fff', fontSize: SIZES.font, fontWeight: '700' },
+  planRow: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: t.card, borderRadius: 10, padding: 10, marginTop: 8 },
+  planIcon: { width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
+  planName: { fontSize: SIZES.font * 0.95, fontWeight: '500', color: t.textPrimary },
+  planSub: { fontSize: SIZES.font * 0.78, color: t.textSecondary, marginTop: 1 },
+  planAmount: { fontSize: SIZES.font * 0.95, fontWeight: '700', color: t.textPrimary },
+  ccModalCard: { backgroundColor: t.card, borderRadius: 12, padding: 16, marginTop: 16, borderWidth: 1, borderColor: t.border },
+  ccModalTitle: { fontSize: SIZES.font * 1.15, fontWeight: '700', color: t.textPrimary, marginBottom: 10, textAlign: 'center' },
+  ccInput: {
+    borderWidth: 1, borderColor: t.border, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 9,
+    fontSize: SIZES.font * 1.1, color: t.textPrimary, backgroundColor: t.inputBg, marginTop: 4,
+  },
+  ccAccountRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 6 },
+  ccAccountChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: t.border, backgroundColor: t.card },
+  ccAccountChipActive: { backgroundColor: t.green, borderColor: t.green },
+  ccAccountText: { fontSize: SIZES.font * 0.9, color: t.textSecondary, fontWeight: '600' },
+  ccHint: { fontSize: SIZES.font * 0.8, color: t.neutral, marginTop: 8 },
+  ccModalActions: { flexDirection: 'row', gap: 10, marginTop: 14 },
+  ccModalBtn: { flex: 1, paddingVertical: 11, borderRadius: 8, alignItems: 'center' },
+  ccSave: { backgroundColor: t.green },
+  ccCancel: { backgroundColor: t.cardAlt },
+  ccModalBtnText: { fontWeight: 'bold', fontSize: 14, color: t.textPrimary },
   editBtn: { marginTop: 24, backgroundColor: t.green, borderRadius: SIZES.radius * 1.2, paddingVertical: 14, alignItems: 'center' },
   editText: { color: '#fff', fontSize: SIZES.font * 1.1, fontWeight: '700' },
   deleteBtn: { marginTop: 10, borderWidth: 1, borderColor: '#D4948C', borderRadius: SIZES.radius * 1.2, paddingVertical: 12, alignItems: 'center' },

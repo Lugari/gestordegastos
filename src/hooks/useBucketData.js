@@ -2,21 +2,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import * as BucketService from '../services/bucketService';
 import { KIND } from '../constants/bucketKinds';
-import { scheduleReminder, cancelReminder, nextMonthlyOccurrence } from '../services/notificationsService';
+import { cancelReminder } from '../services/notificationsService';
 
-// Recordatorio de facturación para tarjetas de crédito: programa (o cancela) una
-// notificación local en la próxima fecha de facturación del bucket de deuda.
+// Nota: el recordatorio de facturación de tarjetas ahora lo genera el motor de
+// cortes (factura automática con su propio recordatorio). Aquí solo limpiamos
+// avisos antiguos al borrar la deuda.
 const syncDebtReminder = async (kind, bucket) => {
   if (kind !== KIND.DEBT || !bucket?.id) return;
-  const key = `debt-${bucket.id}`;
-  if (bucket.type === 'credit card' && bucket.date) {
-    const next = nextMonthlyOccurrence(bucket.date);
-    if (next) {
-      await scheduleReminder(key, 'Recordatorio de pago', `Tu tarjeta "${bucket.name}" factura pronto.`, next);
-      return;
-    }
-  }
-  await cancelReminder(key);
+  await cancelReminder(`debt-${bucket.id}`);
 };
 
 // Hooks genéricos sobre el store unificado @buckets.

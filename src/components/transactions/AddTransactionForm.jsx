@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Text,
   Platform,
+  ScrollView,
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 
@@ -18,6 +19,8 @@ import { useTheme } from '../../context/ThemeContext';
 import { formatMoney } from '../../utils/formatMoney';
 import { useCurrency } from '../../context/CurrencyContext';
 import { useGetAccounts } from '../../hooks/useAccountsData';
+import { useGetDebts } from '../../hooks/useDebtsData';
+import { isCreditCard } from '../../services/cardService';
 
 // Tipos como segmento (Hick): tres opciones visibles, color por significado.
 const TYPES = (t) => [
@@ -33,6 +36,9 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
   const route = useRoute();
   const { baseCurrency } = useCurrency();
   const { data: accounts = [] } = useGetAccounts();
+  const { data: debts = [] } = useGetDebts();
+  const cards = debts.filter(isCreditCard);
+  const [installments, setInstallments] = useState(1);
 
   const [isEditing, setIsEditing] = useState(false);
   const [activeDate, setActiveDate] = useState(0); // 'Hoy' por defecto
@@ -48,6 +54,7 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
   const [formData, setFormData] = useState({
     type: route.params?.transactionType || 'gasto',
     account: '',
+    card_id: '',
     amount: '',
     notes: '',
     date: new Date(),
@@ -102,7 +109,12 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
   };
 
   const selectAccount = (account) =>
-    setFormData((prev) => ({ ...prev, account: account.id, currency: account.currency }));
+    setFormData((prev) => ({ ...prev, account: account.id, card_id: '', currency: account.currency }));
+
+  const selectCard = (card) => {
+    setInstallments(1);
+    setFormData((prev) => ({ ...prev, card_id: card.id, account: '', currency: baseCurrency }));
+  };
 
   const selectCategory = (cat) =>
     setFormData((prev) => ({ ...prev, budget_id: cat.id, icon: cat.icon, color: cat.color }));
@@ -131,9 +143,11 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
       return;
     }
 
+    const payingWithCard = formData.type === 'gasto' && !!formData.card_id;
     const transactionData = {
       type: formData.type.toLowerCase(),
       account: formData.account,
+      ...(payingWithCard && { card_id: formData.card_id, installments }),
       amount: parseFloat(formData.amount),
       currency: formData.currency,
       notes: (formData.notes || '').trim(),
@@ -248,9 +262,9 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
         </>
       )}
 
-      {/* Cuenta */}
-      <Text style={styles.label}>Cuenta</Text>
-      {accounts.length === 0 ? (
+      {/* Cuenta o tarjeta */}
+      <Text style={styles.label}>{formData.type === 'gasto' && cards.length > 0 ? 'Pagar con' : 'Cuenta'}</Text>
+      {accounts.length === 0 && cards.length === 0 ? (
         <Text style={styles.hint}>Sin cuentas: se usará {formData.currency}. Crea cuentas desde el menú para elegir la moneda.</Text>
       ) : (
         <View style={styles.chipsRow}>
@@ -266,8 +280,48 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
               </TouchableOpacity>
             );
           })}
+          {formData.type === 'gasto' && cards.map((c) => {
+            const active = formData.card_id === c.id;
+            return (
+              <TouchableOpacity
+                key={c.id}
+                style={[styles.chip, styles.chipCard, active && styles.chipAccountActive]}
+                onPress={() => selectCard(c)}
+              >
+                <MaterialIcons name="credit-card" size={14} color={active ? '#fff' : theme.textSecondary} />
+                <Text style={[styles.chipText, active && styles.chipAccountTextActive]}>{c.name}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       )}
+
+      {/* Cuotas (barra deslizable) al pagar con tarjeta */}
+      {formData.type === 'gasto' && formData.card_id ? (
+        <>
+          <Text style={styles.label}>Cuotas</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.installmentsRow}>
+            {[1, 2, 3, 6, 9, 12, 18, 24, 36].map((n) => {
+              const active = installments === n;
+              return (
+                <TouchableOpacity
+                  key={n}
+                  style={[styles.installmentChip, active && styles.installmentChipActive]}
+                  onPress={() => setInstallments(n)}
+                >
+                  <Text style={[styles.installmentText, active && styles.installmentTextActive]}>{n}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+          {installments > 1 && formData.amount ? (
+            <Text style={styles.hint}>
+              {installments} cuotas de {formatCurrency(Math.round((parseFloat(formData.amount) || 0) / installments))}
+              {(cards.find((c) => c.id === formData.card_id)?.interest_enabled) ? ' + intereses' : ''}
+            </Text>
+          ) : null}
+        </>
+      ) : null}
 
       {/* Fecha */}
       <Text style={styles.label}>Fecha</Text>
@@ -306,7 +360,7 @@ const AddTransactionForm = ({ onCancel, onSubmit, budgets, savings, transactionT
       )}
 
       {/* Repetir (solo al crear; los chips se desmarcan tocándolos de nuevo) */}
-      {!isEditing && (
+      {!isEditing && !formData.card_id && (
         <>
           <Text style={styles.label}>Repetir (opcional)</Text>
           <View style={styles.chipsRow}>
@@ -463,6 +517,15 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.inputBg,
   },
   recHint: { fontSize: SIZES.font * 0.8, color: t.neutral, marginTop: 8 },
+  chipCard: { flexDirection: 'row', alignItems: 'center', gap: 5, borderStyle: 'dashed' },
+  installmentsRow: { gap: 8, paddingVertical: 2, paddingRight: 12 },
+  installmentChip: {
+    minWidth: 46, alignItems: 'center', paddingVertical: 9, paddingHorizontal: 12,
+    borderRadius: 999, borderWidth: 1, borderColor: t.border, backgroundColor: t.card,
+  },
+  installmentChipActive: { backgroundColor: t.green, borderColor: t.green },
+  installmentText: { fontSize: SIZES.font, fontWeight: '600', color: t.textSecondary },
+  installmentTextActive: { color: '#fff' },
 
   noteInput: {
     borderWidth: 1,

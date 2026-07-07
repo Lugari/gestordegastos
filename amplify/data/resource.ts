@@ -20,6 +20,7 @@ const schema = a.schema({
   DeviceToken: owned(),
   RecurringRule: owned(),
   Bill: owned(),
+  CardPurchase: owned(),
 });
 
 export type Schema = ClientSchema<typeof schema>;

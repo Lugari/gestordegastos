@@ -53,7 +53,7 @@ const ReportsScreen = () => {
     let inc = 0;
     let exp = 0;
     periodTx.forEach((t) => {
-      if (t.type === 'ingreso') inc += toBase(t);
+      if (t.type === 'ingreso' && !t.is_advance) inc += toBase(t);
       else if (t.type === 'gasto') exp += toBase(t);
     });
     return { inc, exp, bal: inc - exp };
@@ -64,7 +64,8 @@ const ReportsScreen = () => {
     const assets =
       savings.reduce((a, s) => a + (s.used || 0), 0) +
       investments.reduce((a, i) => a + (i.used || 0), 0);
-    const liabilities = debts.reduce((a, d) => a + Math.max(0, (d.total || 0) - (d.used || 0)), 0);
+    // TC: la deuda real es `used` (total = cupo); otras deudas: total - abonado.
+    const liabilities = debts.reduce((a, d) => a + (d.type === 'credit card' ? (d.used || 0) : Math.max(0, (d.total || 0) - (d.used || 0))), 0);
     return { assets, liabilities, net: assets - liabilities };
   }, [savings, investments, debts]);
 
@@ -103,7 +104,7 @@ const ReportsScreen = () => {
     labels.forEach((l) => { incomeBy[l] = 0; expenseBy[l] = 0; });
     sorted.forEach((t) => {
       const k = keyFn(new Date(t.date));
-      if (t.type === 'ingreso') incomeBy[k] += toBase(t);
+      if (t.type === 'ingreso' && !t.is_advance) incomeBy[k] += toBase(t);
       else if (t.type === 'gasto') expenseBy[k] += toBase(t);
     });
 

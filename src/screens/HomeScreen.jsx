@@ -86,7 +86,7 @@ const HomeScreen = () => {
     transactions.forEach(transaction => {
       // Convertimos el monto a la moneda base antes de agregar.
       const amount = convert(parseFloat(transaction.amount) || 0, transaction.currency || baseCurrency, baseCurrency);
-      if (transaction.type.toLowerCase() === 'ingreso') {
+      if (transaction.type.toLowerCase() === 'ingreso' && !transaction.is_advance) {
         currentIncome += amount;
       } else if (transaction.type.toLowerCase() === 'gasto') {
         currentExpense += amount;
@@ -116,7 +116,8 @@ const HomeScreen = () => {
     return total > 0 ? used / total : 0;
   }, [savings]);
 
-  const totalDebts = useMemo(() => debts.reduce((acc, debt) => acc + (debt.total || 0), 0), [debts]);
+  // Tarjetas de crédito: la deuda real es `used` (total = cupo); otras deudas usan `total`.
+  const totalDebts = useMemo(() => debts.reduce((acc, d) => acc + (d.type === 'credit card' ? (d.used || 0) : (d.total || 0)), 0), [debts]);
   const totalInvestments = useMemo(() => investments.reduce((acc, inv) => acc + (inv.used || 0), 0), [investments]);
 
   // --- Análisis: tendencia de 6 meses y distribución de gastos del mes ---
@@ -135,7 +136,7 @@ const HomeScreen = () => {
       if (idx < 0) continue;
       const base = convert(parseFloat(t.amount) || 0, t.currency || baseCurrency, baseCurrency);
       const type = (t.type || '').toLowerCase();
-      if (type === 'ingreso') income[idx] += base;
+      if (type === 'ingreso' && !t.is_advance) income[idx] += base;
       else if (type === 'gasto') expense[idx] += base;
     }
     const hasData = income.some((v) => v > 0) || expense.some((v) => v > 0);

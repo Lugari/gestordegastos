@@ -5,6 +5,8 @@ import { StyleSheet, ScrollView, View } from "react-native";
 
 import { notify } from "../utils/notify";
 import * as Recurring from "../services/recurringService";
+import * as Cards from "../services/cardService";
+import { useGetDebts } from "../hooks/useDebtsData";
 
 import { useNavigation } from "@react-navigation/native";
 import { useRoute } from "@react-navigation/native";
@@ -34,6 +36,7 @@ const AddTransactionScreen = () => {
 
     const { data: budgets = [], isLoading: isLoadingBudgets, error: budgetsError, refetch: refetchBudgets } = useGetBudgets();
     const { data: savings = [], isLoading: isLoadingSavings, error: savingsError, refetch: refetchSavings } = useGetSavings();
+    const { data: debts = [] } = useGetDebts();
     const handleCancel= () =>{ 
         navigation.goBack()
     }
@@ -44,6 +47,22 @@ const AddTransactionScreen = () => {
             const { recurrence, ...txData } = formData;
 
             if (!transaction) {
+                // Compra con tarjeta: crea el plan de cuotas y sube la deuda.
+                if (txData.card_id) {
+                    const card = debts.find((d) => d.id === txData.card_id);
+                    if (card) {
+                        await addTransaction(txData);
+                        await Cards.registerPurchase({
+                            card,
+                            amount: txData.amount,
+                            currency: txData.currency,
+                            installments: txData.installments,
+                            notes: txData.notes,
+                        });
+                        navigation.goBack();
+                        return;
+                    }
+                }
                 if (recurrence) {
                     // La fecha de la transacción marca el INICIO de la recurrencia.
                     const startDay = Recurring.toDayString(new Date(txData.date));
@@ -72,7 +91,7 @@ const AddTransactionScreen = () => {
             notify('No se pudo guardar', 'Ocurrió un error al guardar la transacción. Revisa tu conexión e inténtalo de nuevo.');
         }
 
-    }, [addTransaction, updateTransaction, updateBudget, updateSaving, transaction, budgets, savings, navigation])
+    }, [addTransaction, updateTransaction, updateBudget, updateSaving, transaction, budgets, savings, debts, navigation])
 
 
     const formEl = (

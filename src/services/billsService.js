@@ -70,6 +70,27 @@ export const addBill = ({ name, amount, currency, kind, day, date, remindDaysBef
   });
 };
 
+// Alta con id explícito (determinístico): usada por el motor de cortes de
+// tarjeta para que dos dispositivos no dupliquen la factura del extracto.
+export const addBillWithId = ({ id, name, amount, currency, kind, day, date, remindDaysBefore, card_id }) => {
+  const now = new Date().toISOString();
+  return col.add({
+    id,
+    name: (name || '').trim(),
+    amount: parseFloat(amount) || 0,
+    currency,
+    active: true,
+    kind,
+    day: kind === 'monthly' ? Math.min(31, Math.max(1, Number(day) || 1)) : undefined,
+    date: kind === 'once' ? date : undefined,
+    remind_days_before: Math.max(0, Number(remindDaysBefore) ?? 1),
+    card_id,
+    paid: {},
+    created_at: now,
+    updated_at: now,
+  });
+};
+
 export const updateBill = (id, updates) =>
   col.update(id, { ...updates, updated_at: new Date().toISOString() });
 

@@ -14,6 +14,7 @@ import { migrateLegacyData } from './services/migrateBuckets';
 import { migrateLocalToCloud } from './services/cloudSync';
 import { catchUpRecurring } from './services/recurringEngine';
 import { syncBillReminders } from './services/billsReminders';
+import { catchUpCardCuts } from './services/cardCutEngine';
 
 import MainTabs from "./navigation/MainTabs";
 import SingleTransactionScreen from "./screens/SingleTransactionScreen";
@@ -83,6 +84,7 @@ const AppNavigator = () => {
     if (userToken) {
       migrateLocalToCloud()
         .then(() => catchUpRecurring())
+        .then(() => catchUpCardCuts())
         .then(() => syncBillReminders())
         .catch(() => {})
         .finally(() => queryClient.invalidateQueries());
