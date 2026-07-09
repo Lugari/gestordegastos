@@ -15,6 +15,7 @@ import { migrateLocalToCloud } from './services/cloudSync';
 import { catchUpRecurring } from './services/recurringEngine';
 import { syncBillReminders } from './services/billsReminders';
 import { catchUpCardCuts } from './services/cardCutEngine';
+import { catchUpInvestments } from './services/investmentEngine';
 
 import MainTabs from "./navigation/MainTabs";
 import SingleTransactionScreen from "./screens/SingleTransactionScreen";
@@ -85,6 +86,7 @@ const AppNavigator = () => {
       migrateLocalToCloud()
         .then(() => catchUpRecurring())
         .then(() => catchUpCardCuts())
+        .then(() => catchUpInvestments())
         .then(() => syncBillReminders())
         .catch(() => {})
         .finally(() => queryClient.invalidateQueries());

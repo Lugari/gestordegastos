@@ -21,6 +21,7 @@ const schema = a.schema({
   RecurringRule: owned(),
   Bill: owned(),
   CardPurchase: owned(),
+  InvestmentMove: owned(),
 });
 
 export type Schema = ClientSchema<typeof schema>;

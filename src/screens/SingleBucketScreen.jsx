@@ -8,6 +8,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useManageBuckets, useGetBuckets } from '../hooks/useBucketData';
 import { useGetAccounts } from '../hooks/useAccountsData';
 import * as Cards from '../services/cardService';
+import * as Investments from '../services/investmentService';
 import * as TransactionService from '../services/transactionService';
 import { notify } from '../utils/notify';
 import { useGetTransactions } from '../hooks/useTransactionData';
@@ -35,7 +36,7 @@ const CONFIG = {
   [KIND.BUDGET]: { param: 'budget', add: 'AddBudgetScreen', queryKey: ['budgets'], variant: 'progress', heroLabel: 'Disponible', showTransactions: true, addTxType: 'gasto', kindLabel: 'presupuesto' },
   [KIND.SAVING]: { param: 'saving', add: 'AddSavingScreen', queryKey: ['savings'], variant: 'progress', heroLabel: 'Te falta', showTransactions: true, addTxType: 'ahorro', kindLabel: 'ahorro' },
   [KIND.DEBT]: { param: 'debt', add: 'AddDebtScreen', queryKey: ['debts'], variant: 'debt', kindLabel: 'deuda' },
-  [KIND.INVESTMENT]: { param: 'investment', add: 'AddInvestmentScreen', queryKey: ['investments'], variant: 'progress', heroLabel: 'Te falta', kindLabel: 'inversión' },
+  [KIND.INVESTMENT]: { param: 'investment', add: 'AddInvestmentScreen', queryKey: ['investments'], variant: 'investment', kindLabel: 'inversión' },
 };
 
 const fmtDate = (x) => (x ? new Date(x).toLocaleDateString('es-CO') : '—');
@@ -55,13 +56,17 @@ const metaFor = (kind, item, format) => {
         { label: 'Inicio', value: fmtDate(item.created_at) },
         { label: 'Actualizado', value: fmtDate(item.updated_at) },
       ];
-    case KIND.INVESTMENT:
+    case KIND.INVESTMENT: {
+      const INV_LABELS = { fixed: 'Renta fija', variable: 'Renta variable', crypto: 'Cripto', other: 'Inmueble/Otra' };
       return [
-        { label: 'Rentabilidad', value: `${item.roi || 0}% anual` },
-        { label: 'Retorno est./año', value: format(Math.round(((item.used || 0) * (item.roi || 0)) / 100)) },
-        { label: 'Inicio', value: fmtDate(item.created_at) },
-        { label: 'Actualizado', value: fmtDate(item.updated_at) },
+        { label: 'Tipo', value: INV_LABELS[item.type] || 'Renta fija' },
+        { label: item.type === 'fixed' ? 'Tasa (E.A.)' : 'Rentab. esperada', value: `${item.roi || 0}%` },
+        { label: 'Capital invertido', value: format(item.used || 0) },
+        item.type === 'fixed'
+          ? { label: 'Vencimiento', value: item.maturity_date ? fmtDate(item.maturity_date) : 'Sin fecha' }
+          : { label: 'Actualizado', value: fmtDate(item.updated_at) },
       ];
+    }
     case KIND.DEBT:
       if (item.type === 'credit card') {
         return [
@@ -91,7 +96,7 @@ const SingleBucketScreen = () => {
   const { kind, ...rest } = useRoute().params || {};
   const cfg = CONFIG[kind];
 
-  const { format, formatIn } = useCurrency();
+  const { format, formatIn, baseCurrency } = useCurrency();
   const queryClient = useQueryClient();
   const { deleteMutation } = useManageBuckets(kind, cfg?.queryKey ?? ['buckets', kind]);
   const { data: transactions = [] } = useGetTransactions();
@@ -159,6 +164,61 @@ const SingleBucketScreen = () => {
     }
   };
 
+  const isInv = kind === KIND.INVESTMENT;
+
+  // Movimientos de la inversión (aportes, retiros, dividendos, causación).
+  const { data: invMoves = [] } = useQuery({
+    queryKey: ['invmoves', item?.id],
+    queryFn: () => Investments.getMovesFor(item.id),
+    enabled: !!isInv,
+  });
+
+  // Operaciones de inversión (modal)
+  const [invModal, setInvModal] = useState(null); // 'contribute'|'withdraw'|'dividend'|'revalue'
+  const [invAmount, setInvAmount] = useState('');
+  const [invAccount, setInvAccount] = useState('');
+  const [invReinvest, setInvReinvest] = useState(false);
+  const [invBusy, setInvBusy] = useState(false);
+
+  const refreshInv = () => {
+    queryClient.invalidateQueries({ queryKey: ['investments'] });
+    queryClient.invalidateQueries({ queryKey: ['invmoves', item?.id] });
+    queryClient.invalidateQueries({ queryKey: ['transactions'] });
+  };
+
+  const openInvModal = (op) => {
+    setInvModal(op);
+    setInvReinvest(false);
+    setInvAccount(accounts[0]?.id || '');
+    setInvAmount(op === 'revalue' ? String(Math.round(Investments.currentValue(item))) : '');
+  };
+
+  const submitInvModal = async () => {
+    const amount = parseFloat(invAmount) || 0;
+    if (amount <= 0) { notify('Monto inválido', 'Ingresa un monto válido.'); return; }
+    const needsAccount = invModal === 'contribute' || invModal === 'withdraw' || (invModal === 'dividend' && !invReinvest);
+    if (needsAccount && !invAccount) { notify('Falta la cuenta', 'Elige una cuenta.'); return; }
+    setInvBusy(true);
+    try {
+      if (invModal === 'contribute') {
+        await Investments.registerContribution({ investment: item, amount, currency: baseCurrency, account: invAccount });
+      } else if (invModal === 'withdraw') {
+        await Investments.registerWithdrawal({ investment: item, amount, currency: baseCurrency, account: invAccount });
+      } else if (invModal === 'dividend') {
+        await Investments.registerDividend({ investment: item, amount, currency: baseCurrency, account: invAccount, reinvest: invReinvest });
+      } else if (invModal === 'revalue') {
+        await Investments.revalue({ investment: item, newValue: amount, currency: baseCurrency });
+      }
+      setInvModal(null);
+      setInvAmount('');
+      refreshInv();
+    } catch (e) {
+      notify('No se pudo guardar', 'Revisa tu conexión e inténtalo de nuevo.');
+    } finally {
+      setInvBusy(false);
+    }
+  };
+
   const movements = useMemo(() => {
     if (!cfg?.showTransactions || !item) return [];
     return transactions
@@ -196,6 +256,10 @@ const SingleBucketScreen = () => {
   const used = item.used || 0;
   const total = item.total || 0;
   const remaining = total - used;
+  const invValue = Investments.currentValue(item);
+  const invGain = invValue - used;
+  const invGainPct = used > 0 ? (invGain / used) * 100 : 0;
+  const isFixedInv = isInv && item.type === 'fixed';
   const pct = total > 0 ? Math.min(Math.max(used / total, 0), 1) : 0;
   const exceeded = cfg.variant === 'progress' && remaining < 0;
   const meta = metaFor(kind, item, format);
@@ -211,7 +275,15 @@ const SingleBucketScreen = () => {
       </View>
 
       {/* Héroe */}
-      {cfg.variant === 'progress' ? (
+      {cfg.variant === 'investment' ? (
+        <View style={[styles.hero, { backgroundColor: invGain >= 0 ? theme.green : DEBT_RED }]}>
+          <Text style={styles.heroLabel}>Valor actual</Text>
+          <Text style={styles.heroValue}>{format(invValue)}</Text>
+          <Text style={styles.heroSub}>
+            {invGain >= 0 ? '▲' : '▼'} {format(Math.abs(invGain))} ({invGainPct >= 0 ? '+' : ''}{invGainPct.toFixed(1)}%) · invertido {format(used)}
+          </Text>
+        </View>
+      ) : cfg.variant === 'progress' ? (
         <View style={styles.hero}>
           <View style={styles.heroTop}>
             <Text style={styles.heroLabel}>{exceeded ? 'Excedido' : cfg.heroLabel}</Text>
@@ -286,6 +358,69 @@ const SingleBucketScreen = () => {
                     <Text style={styles.planSub}>Cuota {Math.min(paidN + 1, p.installments)} de {p.installments}{p.interest ? ' · con interés' : ''}</Text>
                   </View>
                   <Text style={styles.planAmount}>{format(Math.round(p.remaining || 0))}</Text>
+                </View>
+              );
+            })
+          )}
+        </>
+      )}
+
+      {/* Inversión: aportar / retirar / dividendo / revaluar + historial */}
+      {isInv && (
+        <>
+          <View style={styles.ccActions}>
+            <TouchableOpacity style={styles.ccBtn} onPress={() => openInvModal('contribute')}>
+              <MaterialIcons name="add" size={18} color="#fff" />
+              <Text style={styles.ccBtnText}>Aportar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.ccBtn, styles.ccBtnAlt]} onPress={() => openInvModal('withdraw')}>
+              <MaterialIcons name="account-balance-wallet" size={18} color={theme.green} />
+              <Text style={[styles.ccBtnText, { color: theme.green }]}>Retirar</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.ccActions}>
+            <TouchableOpacity style={[styles.ccBtn, styles.ccBtnAlt]} onPress={() => openInvModal('dividend')}>
+              <MaterialIcons name="paid" size={18} color={theme.green} />
+              <Text style={[styles.ccBtnText, { color: theme.green }]}>Dividendo</Text>
+            </TouchableOpacity>
+            {!isFixedInv && (
+              <TouchableOpacity style={[styles.ccBtn, styles.ccBtnAlt]} onPress={() => openInvModal('revalue')}>
+                <MaterialIcons name="trending-up" size={18} color={theme.green} />
+                <Text style={[styles.ccBtnText, { color: theme.green }]}>Revaluar</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {isFixedInv && (
+            <Text style={styles.emptyMov}>
+              Renta fija: los rendimientos ({item.roi || 0}% E.A.) se causan automáticamente al abrir la app.
+            </Text>
+          )}
+
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionLabel}>Historial de la inversión</Text>
+          </View>
+          {invMoves.length === 0 ? (
+            <Text style={styles.emptyMov}>Sin movimientos aún. Empieza con un aporte.</Text>
+          ) : (
+            invMoves.map((m) => {
+              const cfgMove = {
+                contribution: { label: 'Aporte', icon: 'add', color: theme.green, sign: '+' },
+                withdrawal: { label: 'Retiro', icon: 'account-balance-wallet', color: theme.expense, sign: '−' },
+                dividend: { label: 'Dividendo', icon: 'paid', color: theme.green, sign: '+' },
+                accrual: { label: 'Rendimiento', icon: 'trending-up', color: theme.green, sign: '+' },
+                revalue: { label: 'Revaluación', icon: 'sync', color: theme.textSecondary, sign: '→' },
+              }[m.kind] || { label: m.kind, icon: 'circle', color: theme.neutral, sign: '' };
+              return (
+                <View key={m.id} style={styles.planRow}>
+                  <View style={[styles.planIcon, { backgroundColor: `${cfgMove.color}22` }]}>
+                    <MaterialIcons name={cfgMove.icon} size={16} color={cfgMove.color} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.planName} numberOfLines={1}>{cfgMove.label}{m.note ? ` · ${m.note}` : ''}</Text>
+                    <Text style={styles.planSub}>{fmtDate(m.date)}</Text>
+                  </View>
+                  <Text style={[styles.planAmount, { color: cfgMove.color }]}>{cfgMove.sign} {format(Math.round(m.amount || 0))}</Text>
                 </View>
               );
             })
@@ -371,6 +506,65 @@ const SingleBucketScreen = () => {
         </View>
       )}
 
+      {/* Modal de operación de inversión */}
+      {invModal && (
+        <View style={styles.ccModalCard}>
+          <Text style={styles.ccModalTitle}>
+            {invModal === 'contribute' ? 'Aportar a la inversión'
+              : invModal === 'withdraw' ? 'Retirar / redimir'
+              : invModal === 'dividend' ? 'Registrar dividendo'
+              : 'Actualizar valor de mercado'}
+          </Text>
+          <Text style={styles.metaLabel}>{invModal === 'revalue' ? 'Nuevo valor de mercado' : 'Monto'}</Text>
+          <TextInput
+            style={styles.ccInput}
+            keyboardType="numeric"
+            value={invAmount}
+            onChangeText={(v) => setInvAmount(v.replace(/[^0-9.]/g, ''))}
+            placeholder="0"
+            placeholderTextColor={theme.neutral}
+            autoFocus
+          />
+
+          {invModal === 'dividend' && (
+            <TouchableOpacity style={styles.invReinvestRow} onPress={() => setInvReinvest((r) => !r)}>
+              <MaterialIcons name={invReinvest ? 'check-box' : 'check-box-outline-blank'} size={20} color={theme.green} />
+              <Text style={styles.ccAccountText}>Reinvertir (sube el valor, no entra a una cuenta)</Text>
+            </TouchableOpacity>
+          )}
+
+          {(invModal === 'contribute' || invModal === 'withdraw' || (invModal === 'dividend' && !invReinvest)) && (
+            <>
+              <Text style={[styles.metaLabel, { marginTop: 10 }]}>
+                {invModal === 'contribute' ? 'Cuenta de origen' : 'Cuenta que recibe'}
+              </Text>
+              <View style={styles.ccAccountRow}>
+                {accounts.map((a) => {
+                  const active = invAccount === a.id;
+                  return (
+                    <TouchableOpacity key={a.id} style={[styles.ccAccountChip, active && styles.ccAccountChipActive]} onPress={() => setInvAccount(a.id)}>
+                      <Text style={[styles.ccAccountText, active && { color: '#fff' }]}>{a.name}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              {invModal === 'withdraw' && (
+                <Text style={styles.ccHint}>Se realiza la ganancia proporcional (cuenta como ingreso).</Text>
+              )}
+            </>
+          )}
+
+          <View style={styles.ccModalActions}>
+            <TouchableOpacity style={[styles.ccModalBtn, styles.ccCancel]} onPress={() => setInvModal(null)} disabled={invBusy}>
+              <Text style={styles.ccModalBtnText}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.ccModalBtn, styles.ccSave, invBusy && { opacity: 0.6 }]} onPress={submitInvModal} disabled={invBusy}>
+              <Text style={[styles.ccModalBtnText, { color: '#fff' }]}>{invBusy ? 'Guardando…' : 'Confirmar'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
       <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete} disabled={deleteMutation.isPending}>
         <Text style={styles.deleteText}>Eliminar</Text>
       </TouchableOpacity>
@@ -437,6 +631,7 @@ const makeStyles = (t) => StyleSheet.create({
   ccAccountChipActive: { backgroundColor: t.green, borderColor: t.green },
   ccAccountText: { fontSize: SIZES.font * 0.9, color: t.textSecondary, fontWeight: '600' },
   ccHint: { fontSize: SIZES.font * 0.8, color: t.neutral, marginTop: 8 },
+  invReinvestRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
   ccModalActions: { flexDirection: 'row', gap: 10, marginTop: 14 },
   ccModalBtn: { flex: 1, paddingVertical: 11, borderRadius: 8, alignItems: 'center' },
   ccSave: { backgroundColor: t.green },

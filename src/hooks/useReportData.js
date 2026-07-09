@@ -51,6 +51,9 @@ export const useReportData = (config) => {
     const byCatMap = new Map();
 
     filtered.forEach((t) => {
+      // Los avances y los flujos de inversión (aporte/retiro de capital) no son
+      // ingreso/gasto real: no entran en los totales ni en las categorías.
+      if (t.is_advance || t.is_investment_flow) return;
       const amount = parseFloat(t.amount) || 0;
       byType[t.type] = (byType[t.type] || 0) + amount;
 
@@ -81,8 +84,8 @@ export const useReportData = (config) => {
     sorted.forEach((t) => {
       const l = labelOf(t.date);
       const amount = parseFloat(t.amount) || 0;
-      if (t.type === 'ingreso' && !t.is_advance) income[l] += amount;
-      else if (t.type === 'gasto') expense[l] += amount;
+      if (t.type === 'ingreso' && !t.is_advance && !t.is_investment_flow) income[l] += amount;
+      else if (t.type === 'gasto' && !t.is_investment_flow) expense[l] += amount;
     });
 
     return {

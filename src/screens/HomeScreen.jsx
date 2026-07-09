@@ -86,9 +86,9 @@ const HomeScreen = () => {
     transactions.forEach(transaction => {
       // Convertimos el monto a la moneda base antes de agregar.
       const amount = convert(parseFloat(transaction.amount) || 0, transaction.currency || baseCurrency, baseCurrency);
-      if (transaction.type.toLowerCase() === 'ingreso' && !transaction.is_advance) {
+      if (transaction.type.toLowerCase() === 'ingreso' && !transaction.is_advance && !transaction.is_investment_flow) {
         currentIncome += amount;
-      } else if (transaction.type.toLowerCase() === 'gasto') {
+      } else if (transaction.type.toLowerCase() === 'gasto' && !transaction.is_investment_flow) {
         currentExpense += amount;
       } else if (transaction.type.toLowerCase() === 'ahorro') {
         const saving = savings.find(s => s.id === transaction.budget_id);
@@ -118,7 +118,8 @@ const HomeScreen = () => {
 
   // Tarjetas de crédito: la deuda real es `used` (total = cupo); otras deudas usan `total`.
   const totalDebts = useMemo(() => debts.reduce((acc, d) => acc + (d.type === 'credit card' ? (d.used || 0) : (d.total || 0)), 0), [debts]);
-  const totalInvestments = useMemo(() => investments.reduce((acc, inv) => acc + (inv.used || 0), 0), [investments]);
+  // Valor de mercado de la inversión (o capital si nunca se revaluó).
+  const totalInvestments = useMemo(() => investments.reduce((acc, inv) => acc + (inv.current_value != null ? Number(inv.current_value) || 0 : inv.used || 0), 0), [investments]);
 
   // --- Análisis: tendencia de 6 meses y distribución de gastos del mes ---
   const trendData = useMemo(() => {
@@ -136,8 +137,8 @@ const HomeScreen = () => {
       if (idx < 0) continue;
       const base = convert(parseFloat(t.amount) || 0, t.currency || baseCurrency, baseCurrency);
       const type = (t.type || '').toLowerCase();
-      if (type === 'ingreso' && !t.is_advance) income[idx] += base;
-      else if (type === 'gasto') expense[idx] += base;
+      if (type === 'ingreso' && !t.is_advance && !t.is_investment_flow) income[idx] += base;
+      else if (type === 'gasto' && !t.is_investment_flow) expense[idx] += base;
     }
     const hasData = income.some((v) => v > 0) || expense.some((v) => v > 0);
     return {
