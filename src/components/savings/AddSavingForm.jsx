@@ -7,9 +7,9 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { HeroAmount, Field, TextField, NoteField, AppearanceField, DateField, CheckRow, FormActions, formStyles } from '../buckets/BucketFormKit';
 import { money } from '../../utils/formatMoney';
-import { SAVING_ICONS } from '../../constants/icons';
+import { SAVING_ICONS, BUCKET_COLORS } from '../../constants/icons';
 
-const colorOptions = ['#A77DDB', '#F9DC5C', '#F38BA0', '#b1c3cb', '#b3e6b3', '#edbcbc'];
+const colorOptions = BUCKET_COLORS.saving;
 
 const AddSavingForm = ({ onSubmit, onCancel, toEdit }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);

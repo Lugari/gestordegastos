@@ -3,6 +3,7 @@ import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import HomeScreen from '../screens/HomeScreen';
 import TransactionHistoryScreen from '../screens/TransactionHistoryScreen';
@@ -37,11 +38,18 @@ const CenterAddButton = () => {
   );
 };
 
-const icon = (name) => ({ color, size }) => <MaterialIcons name={name} size={size} color={color} />;
-
 const MainTabs = () => {
   const isDesktop = useIsDesktop();
   const { theme } = useTheme();
+
+  // Icono con estado activo/inactivo: relleno al enfocarse (con píldora de
+  // resalte) y contorno en reposo. MaterialCommunityIcons da pares outline/fill
+  // más modernos y consistentes que el set base.
+  const navIcon = (filled, outline) => ({ color, focused }) => (
+    <View style={[styles.iconPill, focused && { backgroundColor: theme.greenSoft }]}>
+      <MaterialCommunityIcons name={focused ? filled : outline} size={23} color={color} />
+    </View>
+  );
 
   return (
     <Tab.Navigator
@@ -54,29 +62,37 @@ const MainTabs = () => {
         tabBarInactiveTintColor: theme.textSecondary,
         tabBarStyle: isDesktop
           ? { width: 96, paddingTop: 12, backgroundColor: theme.card, borderColor: theme.border }
-          : { height: 60, paddingBottom: 6, paddingTop: 6, backgroundColor: theme.card, borderTopColor: theme.border },
-        tabBarLabelStyle: { fontSize: 11 },
+          : { height: 66, paddingBottom: 8, paddingTop: 8, backgroundColor: theme.card, borderTopColor: theme.border },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
         tabBarItemStyle: isDesktop ? { height: 64 } : undefined,
       }}
     >
-      <Tab.Screen name="HomeScreen" component={HomeScreen} options={{ title: 'Inicio', tabBarIcon: icon('home') }} />
+      <Tab.Screen name="HomeScreen" component={HomeScreen} options={{ title: 'Inicio', tabBarIcon: navIcon('home-variant', 'home-variant-outline') }} />
       <Tab.Screen
         name="TransactionHistoryScreen"
         component={TransactionHistoryScreen}
-        options={{ title: 'Historial', tabBarIcon: icon('receipt-long') }}
+        options={{ title: 'Historial', tabBarIcon: navIcon('text-box', 'text-box-outline') }}
       />
       <Tab.Screen
         name="AddTab"
         component={View}
         options={{ tabBarButton: () => <CenterAddButton />, tabBarLabel: () => null }}
       />
-      <Tab.Screen name="ReportsScreen" component={ReportsScreen} options={{ title: 'Reportes', tabBarIcon: icon('bar-chart') }} />
-      <Tab.Screen name="MoreScreen" component={MoreScreen} options={{ title: 'Más', tabBarIcon: icon('more-horiz') }} />
+      <Tab.Screen name="ReportsScreen" component={ReportsScreen} options={{ title: 'Reportes', tabBarIcon: navIcon('chart-box', 'chart-box-outline') }} />
+      <Tab.Screen name="MoreScreen" component={MoreScreen} options={{ title: 'Más', tabBarIcon: navIcon('dots-horizontal-circle', 'dots-horizontal-circle-outline') }} />
     </Tab.Navigator>
   );
 };
 
 const styles = StyleSheet.create({
+  iconPill: {
+    minWidth: 46,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+  },
   centerWrap: {
     flex: 1,
     justifyContent: 'center',

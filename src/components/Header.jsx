@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 import { SIZES } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
+import { getCachedName, fetchCloudName } from '../services/profileService';
 
 // Header compacto (mockup): avatar con inicial + saludo + mes actual.
 // Todo el bloque lleva a "Más" (perfil/ajustes).
@@ -13,12 +13,12 @@ const Header = () => {
   const { theme } = useTheme();
   const [username, setUsername] = useState('Usuario');
 
-  // Refresca el nombre al volver a enfocar (puede cambiarse en "Más").
+  // Refresca el nombre al volver a enfocar: primero la caché local (instantáneo)
+  // y luego la nube (por si se cambió en otro dispositivo).
   useFocusEffect(
     useCallback(() => {
-      AsyncStorage.getItem('@username').then((v) => {
-        if (v) setUsername(v);
-      });
+      getCachedName().then(setUsername);
+      fetchCloudName().then((n) => { if (n) setUsername(n); });
     }, []),
   );
 

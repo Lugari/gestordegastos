@@ -10,7 +10,6 @@ import {
   Alert,
   Switch,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
@@ -26,10 +25,10 @@ import { useIsDesktop } from '../hooks/useResponsive';
 import CurrencyModal from '../components/CurrencyModal';
 import { importData } from '../services/dataTransfer';
 import { notificationsEnabled, enableNotifications, disableNotifications } from '../services/notificationsService';
+import { getCachedName, fetchCloudName, saveName } from '../services/profileService';
 import { COLORS, SIZES } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 
-const USERNAME_KEY = '@username';
 const GREEN = '#1C6B52';
 
 const notify = (title, message) => {
@@ -92,9 +91,8 @@ const MoreScreen = () => {
   })();
 
   useEffect(() => {
-    AsyncStorage.getItem(USERNAME_KEY).then((v) => {
-      if (v) setUsername(v);
-    });
+    getCachedName().then(setUsername);
+    fetchCloudName().then((n) => { if (n) setUsername(n); });
     notificationsEnabled().then(setNotifsOn);
   }, []);
 
@@ -115,10 +113,9 @@ const MoreScreen = () => {
     setNameModal(true);
   };
 
-  const saveName = async () => {
-    const value = newName.trim() || 'Usuario';
+  const handleSaveName = async () => {
+    const value = await saveName(newName); // guarda en la nube (Cognito) + caché
     setUsername(value);
-    await AsyncStorage.setItem(USERNAME_KEY, value);
     setNameModal(false);
   };
 
@@ -284,7 +281,7 @@ const MoreScreen = () => {
               <TouchableOpacity style={[styles.nameBtn, styles.cancelBtn]} onPress={() => setNameModal(false)}>
                 <Text style={styles.nameBtnText}>Cancelar</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.nameBtn, styles.saveBtn]} onPress={saveName}>
+              <TouchableOpacity style={[styles.nameBtn, styles.saveBtn]} onPress={handleSaveName}>
                 <Text style={[styles.nameBtnText, { color: '#fff' }]}>Guardar</Text>
               </TouchableOpacity>
             </View>

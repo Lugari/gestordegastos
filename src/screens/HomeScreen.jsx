@@ -143,14 +143,45 @@ const HomeScreen = () => {
     const hasData = income.some((v) => v > 0) || expense.some((v) => v > 0);
     return {
       hasData,
+      incomeRaw: income,
+      expenseRaw: expense,
       labels: months.map((mm) => mm.label),
       datasets: [
-        { data: income.map((v) => Math.round(convert(v))), color: (o = 1) => `rgba(28, 107, 82, ${o})`, strokeWidth: 2 },
-        { data: expense.map((v) => Math.round(convert(v))), color: (o = 1) => `rgba(192, 86, 62, ${o})`, strokeWidth: 2 },
+        { data: income.map((v) => Math.round(convert(v))), color: (o = 1) => `rgba(28, 107, 82, ${o})`, strokeWidth: 3 },
+        { data: expense.map((v) => Math.round(convert(v))), color: (o = 1) => `rgba(192, 86, 62, ${o})`, strokeWidth: 3 },
       ],
       legend: ['Ingresos', 'Egresos'],
     };
   }, [transactions, convert, baseCurrency]);
+
+  // Total ahorrado (dinero apartado en metas) para el patrimonio.
+  const totalSavings = useMemo(() => savings.reduce((a, s) => a + (s.used || 0), 0), [savings]);
+
+  // Estadísticas de los últimos 6 meses (promedios, tasa de ahorro, peor mes).
+  const analytics = useMemo(() => {
+    const inc = trendData.incomeRaw || [];
+    const exp = trendData.expenseRaw || [];
+    const n = inc.length || 1;
+    const sumInc = inc.reduce((a, b) => a + b, 0);
+    const sumExp = exp.reduce((a, b) => a + b, 0);
+    let worstIdx = 0;
+    exp.forEach((v, i) => { if (v > exp[worstIdx]) worstIdx = i; });
+    return {
+      avgExpense: sumExp / n,
+      avgIncome: sumInc / n,
+      savingsRate: sumInc > 0 ? ((sumInc - sumExp) / sumInc) * 100 : null,
+      worstMonth: exp[worstIdx] > 0 ? trendData.labels?.[worstIdx] : null,
+      worstValue: exp[worstIdx] || 0,
+    };
+  }, [trendData]);
+
+  // Composición del patrimonio: activos (ahorros + inversiones) vs deudas.
+  const patrimonio = useMemo(() => {
+    const assets = totalSavings + totalInvestments;
+    const net = assets - totalDebts;
+    const max = Math.max(assets, totalDebts, 1);
+    return { assets, net, max, savings: totalSavings, investments: totalInvestments, debts: totalDebts };
+  }, [totalSavings, totalInvestments, totalDebts]);
 
   const expenseSlices = useMemo(() => {
     const now = new Date();
@@ -168,16 +199,26 @@ const HomeScreen = () => {
       .sort((a, b) => b.total - a.total)
       .map((c) => ({
         name: c.name,
-        population: Math.round(convert(c.total)),
+        population: Math.round(c.total), // en moneda base (abbreviate la convierte)
         color: c.color,
-        legendFontColor: undefined, // se fija al renderizar (tema)
-        legendFontSize: 12,
       }));
   }, [transactions, budgets, convert, baseCurrency]);
 
+  // Top 6 categorías + "Otros"; con total y porcentaje para la leyenda.
+  const categoryData = useMemo(() => {
+    const total = expenseSlices.reduce((a, s) => a + s.population, 0);
+    if (total <= 0) return { total: 0, slices: [], legend: [] };
+    const top = expenseSlices.slice(0, 6);
+    const restTotal = expenseSlices.slice(6).reduce((a, s) => a + s.population, 0);
+    const slices = [...top];
+    if (restTotal > 0) slices.push({ name: 'Otros', population: restTotal, color: '#9a9a90' });
+    const legend = slices.map((s) => ({ ...s, pct: Math.round((s.population / total) * 100) }));
+    return { total, slices, legend };
+  }, [expenseSlices]);
+
   const themedSlices = useMemo(
-    () => expenseSlices.map((sl) => ({ ...sl, legendFontColor: theme.textPrimary })),
-    [expenseSlices, theme],
+    () => categoryData.slices.map((sl) => ({ ...sl, legendFontColor: 'transparent', legendFontSize: 1 })),
+    [categoryData],
   );
 
   // Tendencia: parte del ingreso que se conserva este periodo (tasa de ahorro).
@@ -240,38 +281,111 @@ const HomeScreen = () => {
       {/* Análisis: aparece al deslizar hacia abajo */}
       <View style={styles.group}>
         <Text style={styles.section}>Análisis</Text>
+
+        {/* Estadísticas rápidas de los últimos 6 meses */}
+        <View style={styles.statRow}>
+          <View style={styles.statChip}>
+            <Text style={[styles.statValue, { color: theme.green }]}>{analytics.savingsRate != null ? `${Math.round(analytics.savingsRate)}%` : '—'}</Text>
+            <Text style={styles.statLabel}>Tasa de ahorro</Text>
+          </View>
+          <View style={styles.statChip}>
+            <Text style={styles.statValue}>{abbreviate(analytics.avgExpense)}</Text>
+            <Text style={styles.statLabel}>Gasto prom./mes</Text>
+          </View>
+          <View style={styles.statChip}>
+            <Text style={styles.statValue}>{abbreviate(analytics.avgIncome)}</Text>
+            <Text style={styles.statLabel}>Ingreso prom./mes</Text>
+          </View>
+        </View>
+
+        {/* Ingresos vs egresos (línea con relleno) */}
         <View style={styles.chartCard}>
           <Text style={styles.chartTitle}>Ingresos vs egresos (6 meses)</Text>
           {trendData.hasData ? (
             <LineChart
               data={{ labels: trendData.labels, datasets: trendData.datasets, legend: trendData.legend }}
               width={chartWidth}
-              height={200}
+              height={210}
+              withInnerLines={false}
+              withOuterLines={false}
+              fromZero
+              segments={4}
               chartConfig={{
                 backgroundGradientFrom: theme.card,
                 backgroundGradientTo: theme.card,
+                fillShadowGradientOpacity: 0.15,
                 decimalPlaces: 0,
-                color: (o = 1) => theme.isDark ? `rgba(236,236,228,${o})` : `rgba(0,0,0,${o})`,
+                color: (o = 1) => theme.isDark ? `rgba(169,180,173,${o})` : `rgba(79,96,87,${o})`,
+                labelColor: (o = 1) => theme.isDark ? `rgba(169,180,173,${o})` : `rgba(79,96,87,${o})`,
+                propsForDots: { r: '4', strokeWidth: '2', stroke: theme.card },
+                propsForBackgroundLines: { stroke: theme.border },
               }}
               bezier
+              style={styles.chartInner}
             />
           ) : (
             <Text style={styles.chartEmpty}>Registra movimientos para ver tu tendencia.</Text>
           )}
+          {analytics.worstMonth ? (
+            <Text style={styles.chartFootnote}>Mes de mayor gasto: {analytics.worstMonth} · {abbreviate(analytics.worstValue)}</Text>
+          ) : null}
         </View>
+
+        {/* Composición del patrimonio: activos vs deudas */}
+        <View style={styles.chartCard}>
+          <Text style={styles.chartTitle}>Composición del patrimonio</Text>
+          <Text style={[styles.netValue, { color: patrimonio.net >= 0 ? theme.green : theme.expense }]}>{format(patrimonio.net)}</Text>
+          <Text style={styles.netLabel}>Patrimonio neto</Text>
+
+          <View style={styles.compRow}>
+            <Text style={styles.compTag}>Activos</Text>
+            <View style={styles.compTrack}>
+              {patrimonio.savings > 0 ? <View style={{ flex: patrimonio.savings, backgroundColor: SAVING_COLOR }} /> : null}
+              {patrimonio.investments > 0 ? <View style={{ flex: patrimonio.investments, backgroundColor: '#8367C7' }} /> : null}
+              <View style={{ flex: Math.max(0.0001, patrimonio.max - patrimonio.assets) }} />
+            </View>
+          </View>
+          <View style={styles.compRow}>
+            <Text style={styles.compTag}>Deudas</Text>
+            <View style={styles.compTrack}>
+              {patrimonio.debts > 0 ? <View style={{ flex: patrimonio.debts, backgroundColor: theme.expense }} /> : null}
+              <View style={{ flex: Math.max(0.0001, patrimonio.max - patrimonio.debts) }} />
+            </View>
+          </View>
+
+          <View style={styles.compLegend}>
+            <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: SAVING_COLOR }]} /><Text style={styles.legendText}>Ahorros {abbreviate(patrimonio.savings)}</Text></View>
+            <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: '#8367C7' }]} /><Text style={styles.legendText}>Inversiones {abbreviate(patrimonio.investments)}</Text></View>
+            <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: theme.expense }]} /><Text style={styles.legendText}>Deudas {abbreviate(patrimonio.debts)}</Text></View>
+          </View>
+        </View>
+
+        {/* Gastos del mes por categoría (dona + leyenda con %) */}
         <View style={styles.chartCard}>
           <Text style={styles.chartTitle}>Gastos del mes por categoría</Text>
-          {expenseSlices.length > 0 ? (
-            <PieChart
-              data={themedSlices}
-              width={chartWidth}
-              height={190}
-              accessor="population"
-              backgroundColor="transparent"
-              paddingLeft="10"
-              chartConfig={{ color: (o = 1) => theme.isDark ? `rgba(236,236,228,${o})` : `rgba(0,0,0,${o})` }}
-              absolute
-            />
+          {categoryData.slices.length > 0 ? (
+            <View style={styles.pieRow}>
+              <PieChart
+                data={themedSlices}
+                width={150}
+                height={150}
+                accessor="population"
+                backgroundColor="transparent"
+                paddingLeft="35"
+                hasLegend={false}
+                center={[0, 0]}
+                chartConfig={{ color: (o = 1) => theme.isDark ? `rgba(236,236,228,${o})` : `rgba(0,0,0,${o})` }}
+              />
+              <View style={styles.catLegend}>
+                {categoryData.legend.map((c) => (
+                  <View key={c.name} style={styles.catRow}>
+                    <View style={[styles.legendDot, { backgroundColor: c.color }]} />
+                    <Text style={styles.catName} numberOfLines={1}>{c.name}</Text>
+                    <Text style={styles.catPct}>{c.pct}%</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
           ) : (
             <Text style={styles.chartEmpty}>Sin gastos este mes.</Text>
           )}
@@ -314,7 +428,33 @@ const makeStyles = (t) => StyleSheet.create({
     overflow: 'hidden',
   },
   chartTitle: { fontSize: SIZES.font * 0.95, fontWeight: '600', color: t.textPrimary, marginBottom: 8 },
+  chartInner: { marginLeft: -8, borderRadius: 12 },
   chartEmpty: { fontSize: SIZES.font * 0.9, color: t.textSecondary, paddingVertical: 16 },
+  chartFootnote: { fontSize: SIZES.font * 0.78, color: t.textSecondary, marginTop: 6, textAlign: 'center' },
+
+  // Chips de estadísticas
+  statRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
+  statChip: { flex: 1, backgroundColor: t.card, borderRadius: SIZES.radius, paddingVertical: 12, paddingHorizontal: 8, alignItems: 'center' },
+  statValue: { fontSize: SIZES.font * 1.15, fontWeight: '800', color: t.textPrimary },
+  statLabel: { fontSize: SIZES.font * 0.72, color: t.textSecondary, marginTop: 3, textAlign: 'center' },
+
+  // Composición del patrimonio
+  netValue: { fontSize: SIZES.font * 1.8, fontWeight: '800' },
+  netLabel: { fontSize: SIZES.font * 0.8, color: t.textSecondary, marginBottom: 12 },
+  compRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  compTag: { width: 56, fontSize: SIZES.font * 0.78, color: t.textSecondary },
+  compTrack: { flex: 1, height: 14, borderRadius: 7, backgroundColor: t.track, overflow: 'hidden', flexDirection: 'row' },
+  compLegend: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 6 },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  legendDot: { width: 10, height: 10, borderRadius: 5 },
+  legendText: { fontSize: SIZES.font * 0.78, color: t.textSecondary },
+
+  // Leyenda de categorías (dona)
+  pieRow: { flexDirection: 'row', alignItems: 'center' },
+  catLegend: { flex: 1, gap: 7, paddingLeft: 4 },
+  catRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  catName: { flex: 1, fontSize: SIZES.font * 0.82, color: t.textPrimary },
+  catPct: { fontSize: SIZES.font * 0.82, fontWeight: '700', color: t.textSecondary },
   screen: { flex: 1, backgroundColor: t.background },
   mScroll: { padding: 20, gap: 18, paddingBottom: 40 },
   dScroll: { alignItems: 'center', paddingVertical: 32, paddingHorizontal: 24 },

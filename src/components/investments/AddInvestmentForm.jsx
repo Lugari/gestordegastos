@@ -7,9 +7,9 @@ import { notify } from '../../utils/notify';
 
 import { HeroAmount, Field, TextField, NoteField, ChipWrap, DateField, AppearanceField, FormActions, formStyles } from '../buckets/BucketFormKit';
 import { money } from '../../utils/formatMoney';
-import { INVESTMENT_ICONS } from '../../constants/icons';
+import { INVESTMENT_ICONS, BUCKET_COLORS } from '../../constants/icons';
 
-const colorOptions = ['#A77DDB', '#F9DC5C', '#F38BA0', '#b1c3cb', '#b3e6b3', '#edbcbc'];
+const colorOptions = BUCKET_COLORS.investment;
 
 // Tipos de inversión. La renta fija causa rendimientos automáticamente; el
 // resto se revalúa a mano.

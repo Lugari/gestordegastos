@@ -7,10 +7,10 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { HeroAmount, Field, TextField, NoteField, Segment, AppearanceField, DateField, FormActions, formStyles } from '../buckets/BucketFormKit';
 import { money } from '../../utils/formatMoney';
-import { BUDGET_ICONS } from '../../constants/icons';
+import { BUDGET_ICONS, BUCKET_COLORS } from '../../constants/icons';
 
 const periodOptions = ['Diario', 'Semanal', 'Mensual'];
-const colorOptions = ['#b1c3cb', '#b3e6b3', '#edbcbc', '#d5cde0', '#ffe9b6', '#b6efd2'];
+const colorOptions = BUCKET_COLORS.budget;
 
 const AddBudgetForm = ({ onCancel, onSubmit, toEdit }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);

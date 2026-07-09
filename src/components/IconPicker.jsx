@@ -33,8 +33,10 @@ const IconPicker = ({ iconList, onSelect, title = "Seleccionar Ícono" }) => {
     // Renderiza cada ícono en la lista
     const renderIcon = ({ item }) => (
         <TouchableOpacity style={styles.iconContainer} onPress={() => handleIconSelect(item)}>
-            <MaterialIcons name={item} size={32} color="#333" />
-            <Text style={styles.iconName}>{item.replace(/-/g, ' ')}</Text>
+            <View style={styles.iconBadge}>
+                <MaterialIcons name={item} size={28} color={theme.green} />
+            </View>
+            <Text style={styles.iconName} numberOfLines={1}>{item.replace(/-/g, ' ')}</Text>
         </TouchableOpacity>
     );
 
@@ -49,14 +51,14 @@ const IconPicker = ({ iconList, onSelect, title = "Seleccionar Ícono" }) => {
             >
                 <SafeAreaView style={styles.modalContainer}>
                     <View style={styles.header}>
-                        <Text style={styles.headerTitle}>Selecciona un Ícono</Text>
+                        <Text style={styles.headerTitle}>Selecciona un ícono</Text>
                         <TouchableOpacity onPress={() => setModalVisible(false)}>
-                            <MaterialIcons name="close" size={28} color="#333" />
+                            <MaterialIcons name="close" size={28} color={theme.textPrimary} />
                         </TouchableOpacity>
                     </View>
 
                     <FlatList
-                        data={iconList}
+                        data={[...new Set(iconList)]}
                         renderItem={renderIcon}
                         keyExtractor={(item) => item}
                         numColumns={4} // Muestra los íconos en una cuadrícula de 4 columnas
@@ -84,26 +86,37 @@ const makeStyles = (t) => StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
+        color: t.textPrimary,
     },
     list: {
         paddingHorizontal: SIZES.padding * 0.5,
+        paddingTop: 12,
     },
     iconContainer: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: SIZES.padding,
+        paddingVertical: SIZES.padding * 0.75,
         margin: 4,
-        borderRadius: 8,
+        borderRadius: 12,
         backgroundColor: t.cardAlt,
         borderWidth: 1,
         borderColor: t.border,
     },
+    iconBadge: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: t.greenSoft,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     iconName: {
         marginTop: 8,
-        fontSize: SIZES.font * 0.8,
+        fontSize: SIZES.font * 0.72,
         textAlign: 'center',
-        color: t.textSecondary
+        color: t.textSecondary,
+        width: '100%',
     }
 });
 
