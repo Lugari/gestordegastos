@@ -58,7 +58,7 @@ const MoreScreen = () => {
   const navigation = useNavigation();
   const isDesktop = useIsDesktop();
   const queryClient = useQueryClient();
-  const { logout } = useContext(AuthContext);
+  const { logout, isGuest, irAcrearCuenta } = useContext(AuthContext);
   const { currency } = useCurrency();
   const { theme, mode, setMode } = useTheme();
   const styles = React.useMemo(() => makeStyles(theme), [theme]);
@@ -208,6 +208,23 @@ const MoreScreen = () => {
           </View>
         </View>
 
+        {/* Banner de modo invitado: los datos viven solo en el dispositivo */}
+        {isGuest && (
+          <View style={styles.guestCard}>
+            <View style={styles.guestHeader}>
+              <MaterialIcons name="cloud-off" size={20} color={theme.green} />
+              <Text style={styles.guestTitle}>Estás usando la app sin cuenta</Text>
+            </View>
+            <Text style={styles.guestBody}>
+              Tus datos se guardan solo en este teléfono. Crea una cuenta para respaldarlos y
+              sincronizarlos entre dispositivos.
+            </Text>
+            <TouchableOpacity style={styles.guestBtn} onPress={irAcrearCuenta}>
+              <Text style={styles.guestBtnText}>Crear cuenta y respaldar</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         <Group styles={styles} title="Cuentas y moneda">
           <Row styles={styles} t={theme} icon="account-balance-wallet" label="Cuentas" onPress={() => navigation.navigate('AccountsScreen')} />
           <Row styles={styles} t={theme} icon="attach-money" label="Moneda" value={currency} onPress={() => setCurrencyModal(true)} />
@@ -253,12 +270,22 @@ const MoreScreen = () => {
           </View>
         </Group>
 
-        <Group styles={styles} title="Seguridad">
-          <Row styles={styles} t={theme} icon="verified-user" label="Verificación en dos pasos" onPress={openTwoFA} />
-        </Group>
+        {/* 2FA solo aplica a cuentas en la nube (Cognito) */}
+        {!isGuest && (
+          <Group styles={styles} title="Seguridad">
+            <Row styles={styles} t={theme} icon="verified-user" label="Verificación en dos pasos" onPress={openTwoFA} />
+          </Group>
+        )}
 
         <Group styles={styles} title="Sesión">
-          <Row styles={styles} t={theme} icon="logout" label="Cerrar sesión" onPress={logout} danger />
+          <Row
+            styles={styles}
+            t={theme}
+            icon={isGuest ? 'login' : 'logout'}
+            label={isGuest ? 'Salir del modo sin cuenta' : 'Cerrar sesión'}
+            onPress={logout}
+            danger
+          />
         </Group>
 
         <Text style={styles.version}>Gestor de Gastos · v1.0</Text>
@@ -359,6 +386,14 @@ const makeStyles = (t) => StyleSheet.create({
   avatarText: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
   profileName: { fontSize: SIZES.font * 1.4, fontWeight: 'bold', color: t.textPrimary },
   profileEdit: { fontSize: SIZES.font, color: t.green, marginTop: 2, fontWeight: '600' },
+
+  // Banner de modo invitado
+  guestCard: { backgroundColor: t.greenSoft, borderRadius: SIZES.radius * 1.2, padding: 16, marginBottom: 18, borderWidth: 1, borderColor: t.green },
+  guestHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
+  guestTitle: { fontSize: SIZES.font * 1.02, fontWeight: '800', color: t.textPrimary },
+  guestBody: { fontSize: SIZES.font * 0.85, color: t.textSecondary, lineHeight: 18 },
+  guestBtn: { backgroundColor: t.green, borderRadius: 10, paddingVertical: 11, alignItems: 'center', marginTop: 12 },
+  guestBtnText: { color: '#fff', fontWeight: '700', fontSize: SIZES.font },
   group: { marginTop: SIZES.padding * 1.2 },
   groupTitle: { fontSize: SIZES.font * 0.85, fontWeight: '600', color: t.textSecondary, marginBottom: 8, marginLeft: 4 },
   version: { textAlign: 'center', fontSize: SIZES.font * 0.8, color: t.neutral, marginTop: 24 },

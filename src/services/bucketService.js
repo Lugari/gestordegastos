@@ -1,10 +1,10 @@
 import * as Crypto from 'expo-crypto';
 
-import { makeCloudCollection } from './cloudCollection';
+import { makeCollection } from './collection';
 
 // Servicio unificado de "buckets" (presupuestos, ahorros, deudas, inversiones),
 // sincronizado en la nube (AppSync + DynamoDB), por usuario.
-const col = makeCloudCollection('Bucket');
+const col = makeCollection('Bucket');
 
 export const getAllBuckets = () => col.getAll();
 

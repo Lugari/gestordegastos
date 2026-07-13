@@ -1,6 +1,6 @@
 import * as Crypto from 'expo-crypto';
 
-import { makeCloudCollection } from './cloudCollection';
+import { makeCollection } from './collection';
 import * as BucketService from './bucketService';
 import { toBase } from '../utils/formatMoney';
 
@@ -19,7 +19,7 @@ import { toBase } from '../utils/formatMoney';
 //   interest: bool    (compras: según la tarjeta y >1 cuota; avances: siempre)
 //   date, notes, closed: bool
 // }
-const col = makeCloudCollection('CardPurchase');
+const col = makeCollection('CardPurchase');
 
 export const ADVANCE_INSTALLMENTS = 24;
 

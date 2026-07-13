@@ -1,6 +1,6 @@
 import * as Crypto from 'expo-crypto';
 
-import { makeCloudCollection } from './cloudCollection';
+import { makeCollection } from './collection';
 
 // Reglas de transacciones recurrentes, sincronizadas en la nube por usuario.
 //
@@ -14,7 +14,7 @@ import { makeCloudCollection } from './cloudCollection';
 //   next_run: 'YYYY-MM-DD'  (próxima fecha a generar)
 //   created_at, updated_at
 // }
-const col = makeCloudCollection('RecurringRule');
+const col = makeCollection('RecurringRule');
 
 // --- utilidades de fecha (solo día, sin horas) ---
 export const toDayString = (d) => {

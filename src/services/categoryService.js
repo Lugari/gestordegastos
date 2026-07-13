@@ -1,9 +1,9 @@
 import * as Crypto from 'expo-crypto';
 
-import { makeCloudCollection } from './cloudCollection';
+import { makeCollection } from './collection';
 
 // Categorías de transacciones, sincronizadas en la nube (AppSync + DynamoDB).
-const col = makeCloudCollection('Category');
+const col = makeCollection('Category');
 
 export const getAllCategories = () => col.getAll();
 

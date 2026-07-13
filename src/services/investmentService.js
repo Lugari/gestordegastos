@@ -1,6 +1,6 @@
 import * as Crypto from 'expo-crypto';
 
-import { makeCloudCollection } from './cloudCollection';
+import { makeCollection } from './collection';
 import * as BucketService from './bucketService';
 import * as TransactionService from './transactionService';
 import { toBase } from '../utils/formatMoney';
@@ -18,7 +18,7 @@ import { toBase } from '../utils/formatMoney';
 // Movimiento (InvestmentMove):
 //   { id, investment_id, kind: 'contribution'|'withdrawal'|'dividend'|'accrual'|'revalue',
 //     amount, note, date }
-const col = makeCloudCollection('InvestmentMove');
+const col = makeCollection('InvestmentMove');
 
 export const FIXED_TYPE = 'fixed';
 export const isInvestment = (b) => b?.kind === 'investment';

@@ -1,9 +1,9 @@
 import * as Crypto from 'expo-crypto';
 
-import { makeCloudCollection } from './cloudCollection';
+import { makeCollection } from './collection';
 
 // Configuraciones de reporte guardadas, sincronizadas en la nube, para re-ejecutarlas.
-const col = makeCloudCollection('ReportConfig');
+const col = makeCollection('ReportConfig');
 
 export const getAllReports = () => col.getAll();
 

@@ -1,10 +1,10 @@
 import * as Crypto from 'expo-crypto';
 
-import { makeCloudCollection } from './cloudCollection';
+import { makeCollection } from './collection';
 
 // Cuentas del usuario (efectivo, banco, tarjeta…), sincronizadas en la nube.
 // Cada cuenta tiene su moneda; las transacciones se asocian a una cuenta.
-const col = makeCloudCollection('Account');
+const col = makeCollection('Account');
 
 export const getAllAccounts = () => col.getAll();
 

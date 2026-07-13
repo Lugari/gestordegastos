@@ -1,7 +1,7 @@
-import { makeCloudCollection } from './cloudCollection';
+import { makeCollection } from './collection';
 
 // Transacciones sincronizadas en la nube (AppSync + DynamoDB), por usuario.
-const col = makeCloudCollection('Transaction');
+const col = makeCollection('Transaction');
 
 export const getAllTransactions = () => col.getAll();
 

@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetchUserAttributes, updateUserAttributes } from 'aws-amplify/auth';
 
+import { isLocalMode } from './storageMode';
+
 // Nombre para mostrar del usuario. Fuente de verdad: el atributo `name` de
 // Cognito (sincroniza entre dispositivos). AsyncStorage es solo una caché local
 // para pintar al instante sin esperar a la red.
@@ -13,6 +15,7 @@ export const getCachedName = async () => (await AsyncStorage.getItem(NAME_KEY)) 
 // Lee de la nube y refresca la caché. Devuelve null si no hay nombre en la nube
 // (para no pisar la caché local con el valor por defecto).
 export const fetchCloudName = async () => {
+  if (isLocalMode()) return null; // sin cuenta: el nombre vive solo en la caché
   try {
     const attrs = await fetchUserAttributes();
     const name = (attrs?.name || '').trim();
@@ -30,6 +33,7 @@ export const fetchCloudName = async () => {
 export const saveName = async (value) => {
   const name = (value || '').trim() || DEFAULT_NAME;
   await AsyncStorage.setItem(NAME_KEY, name);
+  if (isLocalMode()) return name; // sin cuenta: solo caché local
   try {
     await updateUserAttributes({ userAttributes: { name } });
   } catch {

@@ -1,6 +1,6 @@
 import * as Crypto from 'expo-crypto';
 
-import { makeCloudCollection } from './cloudCollection';
+import { makeCollection } from './collection';
 import { toDayString } from './recurringService';
 
 // Facturas / recordatorios de pago, sincronizadas en la nube por usuario.
@@ -15,7 +15,7 @@ import { toDayString } from './recurringService';
 //   paid: { 'YYYY-MM-DD': true }  (pagos por ocurrencia)
 //   created_at, updated_at
 // }
-const col = makeCloudCollection('Bill');
+const col = makeCollection('Bill');
 
 const daysInMonth = (year, month) => new Date(year, month, 0).getDate(); // month 1..12
 

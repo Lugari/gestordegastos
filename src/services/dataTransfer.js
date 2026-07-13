@@ -1,4 +1,4 @@
-import { makeCloudCollection } from './cloudCollection';
+import { makeCollection } from './collection';
 
 // Importación de un respaldo JSON hacia la nube del usuario.
 // Formato esperado: { buckets: [...], transactions: [...], categories: [...] }
@@ -29,7 +29,7 @@ export const importData = async (raw) => {
   const imported = [];
   for (const [field, modelName] of Object.entries(FIELD_TO_MODEL)) {
     if (Array.isArray(data[field])) {
-      await makeCloudCollection(modelName).replaceAll(data[field]);
+      await makeCollection(modelName).replaceAll(data[field]);
       imported.push(field);
     }
   }

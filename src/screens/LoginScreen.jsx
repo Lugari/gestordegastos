@@ -53,7 +53,7 @@ const IconInput = ({ icon, t, styles, ...props }) => (
 const LoginScreen = () => {
   const { theme } = useTheme();
   const styles = React.useMemo(() => makeStyles(theme), [theme]);
-  const { refresh } = useContext(AuthContext);
+  const { refresh, continuarSinConexion } = useContext(AuthContext);
   const isDesktop = useIsDesktop();
 
   const [mode, setMode] = useState('signIn');
@@ -263,10 +263,24 @@ const LoginScreen = () => {
             </TouchableOpacity>
             {primaryBtn('Iniciar sesión')}
             {linkRow('¿No tienes cuenta?', 'Crear una', () => goTo('signUp'))}
+            {offlineOption}
           </>
         );
     }
   };
+
+  // Entrar sin cuenta (modo local). Disponible siempre que se pueda: si el
+  // servidor está caído o la red bloquea el login, igual puedes usar la app.
+  const offlineOption = (
+    <View style={styles.offlineWrap}>
+      <View style={styles.divider}><View style={styles.dividerLine} /><Text style={styles.dividerText}>o</Text><View style={styles.dividerLine} /></View>
+      <TouchableOpacity style={styles.offlineBtn} onPress={continuarSinConexion} disabled={loading}>
+        <MaterialIcons name="cloud-off" size={18} color={theme.green} />
+        <Text style={styles.offlineText}>Continuar sin cuenta</Text>
+      </TouchableOpacity>
+      <Text style={styles.offlineHint}>Úsala sin conexión; tus datos se guardan en este dispositivo.</Text>
+    </View>
+  );
 
   const primaryBtn = (label) => (
     <TouchableOpacity style={[styles.loginBtn, loading && { opacity: 0.6 }]} onPress={submit} disabled={loading}>
@@ -358,6 +372,15 @@ const makeStyles = (t) => StyleSheet.create({
 
   info: { fontSize: SIZES.font * 0.9, color: t.green, marginBottom: 10, textAlign: 'center' },
   error: { fontSize: SIZES.font * 0.9, color: t.expense, marginBottom: 10, textAlign: 'center' },
+
+  // Continuar sin cuenta
+  offlineWrap: { marginTop: 22, alignItems: 'center' },
+  divider: { flexDirection: 'row', alignItems: 'center', alignSelf: 'stretch', gap: 10, marginBottom: 14 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: t.border },
+  dividerText: { fontSize: SIZES.font * 0.85, color: t.neutral },
+  offlineBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, alignSelf: 'stretch', borderWidth: 1, borderColor: t.green, borderRadius: 12, paddingVertical: 13 },
+  offlineText: { color: t.green, fontSize: SIZES.font, fontWeight: '700' },
+  offlineHint: { fontSize: SIZES.font * 0.78, color: t.textSecondary, textAlign: 'center', marginTop: 8 },
 
   // --- Escritorio ---
   desktopRoot: { flex: 1, flexDirection: 'row', backgroundColor: t.background },
