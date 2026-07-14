@@ -40,6 +40,7 @@ Project plan/
 
 Amplify (Gen 2)
 amplify_outputs.json
+amplify_outputs.*.json
 
 amplifyconfiguration*
 .amplify/
