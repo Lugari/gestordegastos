@@ -9,6 +9,7 @@ import {
   Platform,
   Alert,
   Switch,
+  Linking,
 } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
@@ -31,6 +32,8 @@ import { COLORS, SIZES } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 
 const GREEN = '#1C6B52';
+// URL pública de la política (GitHub Pages del repo, carpeta /docs).
+const PRIVACY_URL = 'https://lugari.github.io/gestordegastos/privacidad.html';
 
 const notify = (title, message) => {
   if (Platform.OS === 'web') window.alert(`${title}\n\n${message}`);
@@ -303,6 +306,16 @@ const MoreScreen = () => {
             <Row styles={styles} t={theme} icon="verified-user" label="Verificación en dos pasos" onPress={openTwoFA} />
           </Group>
         )}
+
+        <Group styles={styles} title="Acerca de">
+          <Row
+            styles={styles}
+            t={theme}
+            icon="privacy-tip"
+            label="Política de privacidad"
+            onPress={() => Linking.openURL(PRIVACY_URL).catch(() => notify('Sin navegador', 'No se pudo abrir el enlace.'))}
+          />
+        </Group>
 
         <Group styles={styles} title="Sesión">
           <Row
