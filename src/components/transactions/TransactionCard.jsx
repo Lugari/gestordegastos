@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Image } from 'react-native';
 import { SIZES, COLORS } from '../../constants/theme';
 import { useCurrency } from '../../context/CurrencyContext';
 
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 
 

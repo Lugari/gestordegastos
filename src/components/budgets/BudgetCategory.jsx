@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import {COLORS, SIZES} from '../../constants/theme';
 import { useCurrency } from '../../context/CurrencyContext';

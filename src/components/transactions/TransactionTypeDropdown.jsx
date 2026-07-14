@@ -10,7 +10,7 @@ import {
 
 import { COLORS, SIZES } from '../../constants/theme';
 
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 const options = ['ingreso', 'gasto', 'ahorro'];
 

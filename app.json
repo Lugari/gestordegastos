@@ -1,15 +1,36 @@
 {
   "expo": {
+    "name": "Gestor de Gastos",
+    "slug": "gestordegastos",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1C6B52"
+    },
+    "assetBundlePatterns": ["**/*"],
     "extra": {
       "eas": {
         "projectId": "ccefe727-6f64-43ec-98f3-fd16cb2de466"
       }
     },
     "android": {
-      "package": "com.lugari.gestordegastos"
+      "package": "com.lugari.gestordegastos",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1C6B52"
+      },
+      "permissions": ["android.permission.POST_NOTIFICATIONS"]
     },
     "ios": {
-      "bundleIdentifier": "com.lugari.gestordegastos"
+      "bundleIdentifier": "com.lugari.gestordegastos",
+      "supportsTablet": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-secure-store",

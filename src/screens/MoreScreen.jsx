@@ -26,6 +26,7 @@ import CurrencyModal from '../components/CurrencyModal';
 import { importData } from '../services/dataTransfer';
 import { notificationsEnabled, enableNotifications, disableNotifications } from '../services/notificationsService';
 import { getCachedName, fetchCloudName, saveName } from '../services/profileService';
+import { deleteAccountAndData, purgeLocalData } from '../services/accountDeletion';
 import { COLORS, SIZES } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 
@@ -65,6 +66,10 @@ const MoreScreen = () => {
 
   const [username, setUsername] = useState('Usuario');
   const [nameModal, setNameModal] = useState(false);
+  // Borrado de cuenta/datos: confirmación fuerte escribiendo ELIMINAR.
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [deleteText, setDeleteText] = useState('');
+  const [deleteBusy, setDeleteBusy] = useState(false);
   const [newName, setNewName] = useState('');
   const [currencyModal, setCurrencyModal] = useState(false);
 
@@ -105,6 +110,28 @@ const MoreScreen = () => {
     } else {
       await disableNotifications();
       setNotifsOn(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (deleteText.trim().toUpperCase() !== 'ELIMINAR') {
+      notify('Confirmación requerida', 'Escribe ELIMINAR para continuar.');
+      return;
+    }
+    setDeleteBusy(true);
+    try {
+      if (isGuest) {
+        await purgeLocalData();
+      } else {
+        await deleteAccountAndData();
+      }
+      queryClient.clear();
+      setDeleteModal(false);
+      await logout();
+    } catch (e) {
+      notify('No se pudo completar', 'Revisa tu conexión e inténtalo de nuevo.');
+    } finally {
+      setDeleteBusy(false);
     }
   };
 
@@ -286,6 +313,14 @@ const MoreScreen = () => {
             onPress={logout}
             danger
           />
+          <Row
+            styles={styles}
+            t={theme}
+            icon="delete-forever"
+            label={isGuest ? 'Borrar datos del dispositivo' : 'Eliminar cuenta'}
+            onPress={() => { setDeleteText(''); setDeleteModal(true); }}
+            danger
+          />
         </Group>
 
         <Text style={styles.version}>Gestor de Gastos · v1.0</Text>
@@ -310,6 +345,40 @@ const MoreScreen = () => {
               </TouchableOpacity>
               <TouchableOpacity style={[styles.nameBtn, styles.saveBtn]} onPress={handleSaveName}>
                 <Text style={[styles.nameBtnText, { color: '#fff' }]}>Guardar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* Overlay eliminar cuenta / datos */}
+      {deleteModal && (
+        <View style={styles.overlay}>
+          <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={() => !deleteBusy && setDeleteModal(false)} />
+          <View style={styles.nameCard}>
+            <MaterialIcons name="warning-amber" size={36} color={theme.danger} style={{ alignSelf: 'center', marginBottom: 8 }} />
+            <Text style={styles.nameTitle}>{isGuest ? 'Borrar datos del dispositivo' : 'Eliminar cuenta'}</Text>
+            <Text style={styles.deleteWarn}>
+              {isGuest
+                ? 'Se borrarán todos los datos guardados en este teléfono. Esta acción no se puede deshacer.'
+                : 'Se eliminarán tu cuenta y TODOS tus datos (transacciones, presupuestos, deudas, inversiones, facturas) de forma permanente. Esta acción no se puede deshacer.'}
+            </Text>
+            <Text style={styles.deleteAsk}>Escribe ELIMINAR para confirmar:</Text>
+            <TextInput
+              style={styles.nameInput}
+              value={deleteText}
+              onChangeText={setDeleteText}
+              placeholder="ELIMINAR"
+              placeholderTextColor={theme.neutral}
+              autoCapitalize="characters"
+              autoCorrect={false}
+            />
+            <View style={styles.nameActions}>
+              <TouchableOpacity style={[styles.nameBtn, styles.cancelBtn]} onPress={() => setDeleteModal(false)} disabled={deleteBusy}>
+                <Text style={styles.nameBtnText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.nameBtn, styles.deleteBtn, deleteBusy && { opacity: 0.6 }]} onPress={confirmDelete} disabled={deleteBusy}>
+                <Text style={[styles.nameBtnText, { color: '#fff' }]}>{deleteBusy ? 'Eliminando…' : 'Eliminar'}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -394,6 +463,11 @@ const makeStyles = (t) => StyleSheet.create({
   guestBody: { fontSize: SIZES.font * 0.85, color: t.textSecondary, lineHeight: 18 },
   guestBtn: { backgroundColor: t.green, borderRadius: 10, paddingVertical: 11, alignItems: 'center', marginTop: 12 },
   guestBtnText: { color: '#fff', fontWeight: '700', fontSize: SIZES.font },
+
+  // Borrado de cuenta / datos
+  deleteWarn: { fontSize: SIZES.font * 0.88, color: t.textSecondary, lineHeight: 19, marginBottom: 10, textAlign: 'center' },
+  deleteAsk: { fontSize: SIZES.font * 0.85, color: t.textPrimary, fontWeight: '600', marginBottom: 6 },
+  deleteBtn: { backgroundColor: t.danger },
   group: { marginTop: SIZES.padding * 1.2 },
   groupTitle: { fontSize: SIZES.font * 0.85, fontWeight: '600', color: t.textSecondary, marginBottom: 8, marginLeft: 4 },
   version: { textAlign: 'center', fontSize: SIZES.font * 0.8, color: t.neutral, marginTop: 24 },

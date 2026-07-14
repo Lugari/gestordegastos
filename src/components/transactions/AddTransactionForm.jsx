@@ -13,7 +13,7 @@ import { useRoute } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { notify } from '../../utils/notify';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SIZES } from '../../constants/theme';
 import { useTheme } from '../../context/ThemeContext';
 import { formatMoney } from '../../utils/formatMoney';

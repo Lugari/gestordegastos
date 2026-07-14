@@ -8,7 +8,7 @@ import {
     StyleSheet,
     SafeAreaView,
 } from 'react-native';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import SecondaryButton from './SecondaryButton'; // Asegúrate de que la ruta sea correcta
 import { SIZES } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';

@@ -8,7 +8,7 @@ import {
 
 } from 'react-native';
 
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import PrimaryButton from '../PrimaryButton';
 import SecondaryButton from '../SecondaryButton';
 import IconPicker from '../IconPicker';
